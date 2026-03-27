@@ -170,7 +170,7 @@ function setupEventListeners() {
     audioPlayer.onplay = () => {
         playIcon.setAttribute('data-lucide', 'pause');
         lucide.createIcons();
-        playerStatus.textContent = 'Playing';
+        playerStatus.textContent = 'Online';
         if (nowPlayingCard) nowPlayingCard.classList.add('playing');
     };
 
@@ -190,7 +190,7 @@ function setupEventListeners() {
     };
 
     audioPlayer.onwaiting = () => {
-        playerStatus.textContent = 'Buffering...';
+        playerStatus.textContent = 'Loading...';
     };
 
     audioPlayer.onerror = (e) => {
@@ -203,7 +203,7 @@ function setupEventListeners() {
     };
 
     audioPlayer.onloadstart = () => {
-        playerStatus.textContent = 'Buffering...';
+        playerStatus.textContent = 'Loading...';
     };
 
     // Prevent background pausing
