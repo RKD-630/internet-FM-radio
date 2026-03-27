@@ -411,10 +411,10 @@ header {
 .eq-bar:nth-child(7) { animation-delay: -0.4s; background: #f43f5e; }
 .eq-bar:nth-child(8) { animation-delay: -0.6s; background: #fb7185; }
 .eq-bar:nth-child(9) { animation-delay: -0.8s; background: #6366f1; }
-.eq-bar:nth-child(10) { animation-delay: -0.3s; background: #a855f7; }
-.eq-bar:nth-child(11) { animation-delay: -0.5s; background: #f43f5e; }
-.eq-bar:nth-child(12) { animation-delay: -0.7s; background: #d946ef; }
-.eq-bar:nth-child(13) { animation-delay: -0.9s; background: #d946ef; }
+.eq-bar:nth-child(10) { animation-delay: -0.10s; background: #a855f7; }
+.eq-bar:nth-child(11) { animation-delay: -0.1s; background: #f43f5e; }
+.eq-bar:nth-child(12) { animation-delay: -0.3s; background: #d946ef; }
+.eq-bar:nth-child(13) { animation-delay: -0.5s; background: #d946ef; }
 
 /* Legacy visualizer (small) */
 .visualizer {
