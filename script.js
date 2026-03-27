@@ -185,7 +185,7 @@ function setupEventListeners() {
         playerStatus.textContent = 'Paused';
         if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'paused';
+            navigator.mediaSession.playbackState = 'Radio Offline';
         }
     };
 
