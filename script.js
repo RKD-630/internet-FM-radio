@@ -1,612 +1,423 @@
-// Configuration
-const API_BASE = 'https://de1.api.radio-browser.info/json';
-const DEFAULT_LIMIT = 50;
+// --- STATE ---
+    const state = {
+      stations: [],
+      filtered: [],
+      currentIndex: -1,
+      isPlaying: false,
+      volume: 0.7,
+      muted: false,
+      tab: 'india',
+      genre: 'all',
+      djMode: false,
+      savedStations: JSON.parse(localStorage.getItem('savedStations') || '[]'),
+      fx: JSON.parse(localStorage.getItem('radioFx') || '{"bass":0,"treble":0,"stereo":0,"dj":false}'),
+      theme: localStorage.getItem('radioTheme') || 'default'
+    };
 
-// State
-let currentStations = [];
-let currentPlaylist = JSON.parse(localStorage.getItem('fm_playlist')) || [];
-let currentStationIndex = -1;
-let currentMode = 'Global'; // 'Global' or 'India'
-let isMuted = false;
-let lastVolume = 80;
+    // --- AUDIO ENGINE ---
+    const audio = document.getElementById('audio-player');
+    let audioCtx, source, gainNode, bassFilter, trebleFilter, stereoPanner, analyser;
+    let audioInitialized = false;
 
-// DOM Elements
-const audioPlayer = document.getElementById('audio-player');
-const stationsGrid = document.getElementById('stations-grid');
-const playlistList = document.getElementById('playlist-list');
-const searchInput = document.getElementById('station-search');
-const scanBtn = document.getElementById('scan-btn');
-const scanIndiaBtn = document.getElementById('scan-india-btn');
-const categoriesBar = document.getElementById('categories-bar');
-const modeLabel = document.getElementById('current-mode-label');
-const indiaOnlyCats = document.querySelector('.india-only-cats');
-const catButtons = document.querySelectorAll('.cat-btn');
-const playPauseBtn = document.getElementById('play-pause-btn');
-const playIcon = document.getElementById('play-icon');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const muteBtn = document.getElementById('mute-btn');
-const volumeIcon = document.getElementById('volume-icon');
-const volumeSlider = document.getElementById('volume-slider');
-const playerStatus = document.getElementById('player-status');
-const currentStationName = document.getElementById('current-station-name');
-const currentStationMeta = document.getElementById('current-station-meta');
-const currentStationImg = document.getElementById('current-station-info-img');
-const playerMiniImg = document.getElementById('player-mini-img');
-const playerMiniName = document.getElementById('player-mini-name');
-const playerMiniMeta = document.getElementById('player-mini-meta');
-const addToPlaylistBtn = document.getElementById('add-to-playlist-btn');
-const resultsCount = document.getElementById('results-count');
-const mainLoader = document.getElementById('main-loader');
-const nowPlayingCard = document.querySelector('.now-playing-card');
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
+    const led = document.getElementById('signal-led');
+    const updateLED = (status) => {
+      led.classList.remove('red', 'green');
+      if (status === 'playing') led.classList.add('green');
+      else led.classList.add('red');
+    };
 
-// New UI Elements
-const mainTabs = document.querySelectorAll('.tab-btn');
-const views = {
-    discovery: document.getElementById('discovery-view'),
-    playlist: document.getElementById('playlist-view'),
-    scanner: document.getElementById('scanner-view')
-};
-const quickPlaylistList = document.getElementById('quick-playlist-list');
-const fullPlaylistList = document.getElementById('full-playlist-list');
+    audio.addEventListener('playing', () => updateLED('playing'));
+    audio.addEventListener('pause', () => updateLED('stopped'));
+    audio.addEventListener('waiting', () => updateLED('stopped'));
+    audio.addEventListener('error', () => updateLED('stopped'));
+    audio.addEventListener('emptied', () => updateLED('stopped'));
+    audio.addEventListener('stalled', () => updateLED('stopped'));
 
-// Scanner Elements
-const freqSlider = document.getElementById('freq-slider');
-const freqValue = document.getElementById('freq-value');
-const scanLine = document.getElementById('scan-line');
-const customNameInput = document.getElementById('custom-name');
-const customUrlInput = document.getElementById('custom-url');
-const customIconInput = document.getElementById('custom-icon');
-const addCustomBtn = document.getElementById('add-custom-btn');
-const autoScanBtn = document.getElementById('auto-scan-btn');
-const saveAllBtn = document.getElementById('save-all-btn');
-const signalBars = document.querySelectorAll('.signal-bars span');
+    function initAudio() {
+      if (audioInitialized) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      source = audioCtx.createMediaElementSource(audio);
+      gainNode = audioCtx.createGain();
+      bassFilter = audioCtx.createBiquadFilter();
+      trebleFilter = audioCtx.createBiquadFilter();
+      stereoPanner = audioCtx.createStereoPanner();
+      analyser = audioCtx.createAnalyser();
 
-let discoveredFrequencies = [];
+      bassFilter.type = 'lowshelf';
+      bassFilter.frequency.value = 150;
+      bassFilter.gain.value = state.fx.bass;
 
-// Initialize
-function init() {
-    setupEventListeners();
-    fetchStations(); // Initial load (Trending)
-    renderPlaylist();
-    updateVolume(80);
-    loadTheme();
-    
-    // Auto-adjusting helper for mobile
-    window.addEventListener('resize', () => {
-        lucide.createIcons();
-    });
-}
+      trebleFilter.type = 'highshelf';
+      trebleFilter.frequency.value = 3000;
+      trebleFilter.gain.value = state.fx.treble;
 
-function setupEventListeners() {
-    scanBtn.addEventListener('click', () => {
-        const query = searchInput.value.trim();
-        currentMode = 'Global';
-        modeLabel.textContent = 'Global Categories:';
-        indiaOnlyCats.style.display = 'none';
-        fetchStations(query);
-        updateActiveCat('All');
-        switchView('discovery');
-    });
+      stereoPanner.pan.value = state.fx.stereo;
+      analyser.fftSize = 256;
 
-    scanIndiaBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        currentMode = 'India';
-        modeLabel.textContent = 'India Categories:';
-        indiaOnlyCats.style.display = 'contents';
-        fetchStations('', 'India');
-        updateActiveCat('All');
-        switchView('discovery');
-    });
+      source.connect(bassFilter);
+      bassFilter.connect(trebleFilter);
+      trebleFilter.connect(stereoPanner);
+      stereoPanner.connect(gainNode);
+      gainNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
 
-    catButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tag = btn.dataset.tag;
-            const country = currentMode === 'India' ? 'India' : '';
-            fetchStations('', country, tag);
-            updateActiveCat(btn.textContent);
-            switchView('discovery');
+      gainNode.gain.value = state.muted ? 0 : state.volume;
+      applyDJMode();
+      audioInitialized = true;
+    }
+
+    function applyDJMode() {
+      if (!audioCtx) return;
+      if (state.djMode) {
+        bassFilter.gain.value = 6;
+        trebleFilter.gain.value = -3;
+        stereoPanner.pan.value = 0.3;
+      } else {
+        bassFilter.gain.value = state.fx.bass;
+        trebleFilter.gain.value = state.fx.treble;
+        stereoPanner.pan.value = state.fx.stereo;
+      }
+    }
+
+    // --- VISUALIZER ---
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = 60;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- DANCE LIGHTS ---
+    const danceContainer = document.getElementById('dance-container');
+    const numDanceLights = 15;
+    const danceLights = [];
+
+    function initDanceLights() {
+      danceContainer.innerHTML = '';
+      for (let i = 0; i < numDanceLights; i++) {
+        const light = document.createElement('div');
+        light.className = 'dance-light';
+        danceContainer.appendChild(light);
+        danceLights.push(light);
+      }
+    }
+    initDanceLights();
+
+    function updateDanceLights(dataArray) {
+      const hueBase = (state.theme === 'neon') ? 320 : (state.theme === 'dark' ? 240 : 210);
+
+      danceLights.forEach((light, i) => {
+        // Map each light to a segment of the frequency data for individual "dancing"
+        const segmentSize = Math.floor(dataArray.length / numDanceLights);
+        const startIdx = i * segmentSize;
+        let segmentSum = 0;
+        for (let j = 0; j < segmentSize; j++) {
+          segmentSum += dataArray[startIdx + j];
+        }
+        const intensity = segmentSum / segmentSize / 255;
+
+        if (intensity > 0.1) {
+          const glow = intensity * 25;
+          const brightness = 40 + (intensity * 60);
+          const hue = (hueBase + (i * 5)) % 360; 
+          
+          light.style.background = `hsl(${hue}, 100%, ${brightness}%)`;
+          light.style.boxShadow = `0 0 ${glow}px ${glow/3}px hsl(${hue}, 100%, 50%)`;
+          light.style.transform = `scale(${1 + intensity * 0.5})`;
+          light.style.opacity = '1';
+        } else {
+          light.style.background = `rgba(50, 50, 50, 0.3)`;
+          light.style.boxShadow = 'none';
+          light.style.transform = `scale(1)`;
+          light.style.opacity = '0.6';
+        }
+      });
+    }
+
+    function drawVisualizer() {
+      if (!analyser) return requestAnimationFrame(drawVisualizer);
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      // Update dance lights
+      updateDanceLights(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let x = 0;
+      let totalIntensity = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height;
+        totalIntensity += dataArray[i];
+        const hue = (i / bufferLength) * 360;
+        ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+      }
+
+      // Update Mini Loudspeakers "Jump"
+      if (totalIntensity > 0) {
+        const avgIntensity = (totalIntensity / bufferLength) / 255;
+        const scale = 1 + (avgIntensity * 0.3); // Jump effect
+        document.querySelectorAll('.speaker-cone-mini').forEach(cone => {
+          cone.style.transform = `scale(${scale})`;
         });
-    });
-
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            fetchStations(searchInput.value.trim());
-            switchView('discovery');
-        }
-    });
-
-    themeToggle.addEventListener('click', toggleTheme);
-
-    playPauseBtn.addEventListener('click', togglePlay);
-    
-    prevBtn.addEventListener('click', playPrevious);
-    nextBtn.addEventListener('click', playNext);
-
-    muteBtn.addEventListener('click', toggleMute);
-    
-    volumeSlider.addEventListener('input', (e) => {
-        updateVolume(e.target.value);
-    });
-
-    addToPlaylistBtn.addEventListener('click', () => {
-        if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
-            addToPlaylist(currentStations[currentStationIndex]);
-        }
-    });
-
-    // Tab Switching
-    mainTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-            switchView(target);
+      } else {
+        document.querySelectorAll('.speaker-cone-mini').forEach(cone => {
+          cone.style.transform = `scale(1)`;
         });
-    });
+      }
 
-    // Scanner Logic
-    if (freqSlider) {
-        freqSlider.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value).toFixed(1);
-            freqValue.textContent = val;
-            updateSignalStrength(val);
+      requestAnimationFrame(drawVisualizer);
+    }
+    drawVisualizer();
+
+    // --- API & DATA ---
+    const API = 'https://de1.api.radio-browser.info/json/stations/search';
+    const fetchStations = async (type, genre) => {
+      const params = { limit: 40, order: 'clickcount', reverse: 'true' };
+      if (genre !== 'all') params.tag = genre;
+      if (type === 'india') params.countrycode = 'IN';
+      else if (type === 'world') params.countrycode = ['US', 'GB', 'DE', 'JP', 'BR'][Math.floor(Math.random() * 5)];
+      else if (type === 'local') {
+        if (!navigator.geolocation) return [];
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              fetch(`${API}?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&radius=100&limit=30&order=clickcount`)
+                .then(r => r.json()).then(resolve).catch(() => resolve([]));
+            },
+            () => resolve([])
+          );
         });
-    }
-
-    if (addCustomBtn) {
-        addCustomBtn.addEventListener('click', addCustomStation);
-    }
-
-    if (autoScanBtn) {
-        autoScanBtn.addEventListener('click', startAutoScan);
-    }
-
-    if (saveAllBtn) {
-        saveAllBtn.addEventListener('click', saveAllDiscovered);
-    }
-
-    // Audio Player Events
-    audioPlayer.onplay = () => {
-        playIcon.setAttribute('data-lucide', 'pause');
-        lucide.createIcons();
-        playerStatus.textContent = 'Online';
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
+      }
+      return fetch(`${API}?${new URLSearchParams(params)}`).then(r => r.json()).catch(() => []);
     };
 
-    audioPlayer.onplaying = () => {
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-        playerStatus.textContent = 'Playing';
-    };
-
-    audioPlayer.onpause = () => {
-        playIcon.setAttribute('data-lucide', 'play');
-        lucide.createIcons();
-        playerStatus.textContent = 'Paused';
-        if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'Radio Offline';
-        }
-    };
-
-    audioPlayer.onwaiting = () => {
-        playerStatus.textContent = 'Loading...';
-    };
-
-    audioPlayer.onerror = (e) => {
-        console.error('Audio playback error:', e);
-        playerStatus.textContent = 'Error Loading Stream';
-        playerStatus.style.color = 'var(--accent-color)';
-        setTimeout(() => {
-            playerStatus.style.color = 'var(--primary-color)';
-        }, 3000);
-    };
-
-    audioPlayer.onloadstart = () => {
-        playerStatus.textContent = 'Loading...';
-    };
-
-    // Prevent background pausing
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !audioPlayer.paused) {
-            // Re-assert playback state to OS
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
-        }
-    });
-}
-
-// API Functions
-async function fetchStations(query = '', country = '', tag = '') {
-    mainLoader.style.display = 'flex';
-    stationsGrid.innerHTML = '';
-    
-    let url = `${API_BASE}/stations/search?limit=${DEFAULT_LIMIT}&order=clickcount&reverse=true&hidebroken=true`;
-    if (country) {
-        url += `&country=${encodeURIComponent(country)}`;
-    }
-    if (tag) {
-        url += `&tag=${encodeURIComponent(tag)}`;
-    }
-    if (query) {
-        url += `&name=${encodeURIComponent(query)}`;
-    }
-
-    try {
-        const response = await fetch(url);
-        currentStations = await response.json();
-        renderStations();
-        resultsCount.textContent = `${currentStations.length} stations found`;
-    } catch (error) {
-        console.error('Failed to fetch stations:', error);
-        stationsGrid.innerHTML = '<p class="error">Failed to load stations. Please check your internet connection.</p>';
-    } finally {
-        mainLoader.style.display = 'none';
-    }
-}
-
-// Render Functions
-function renderStations() {
-    if (currentStations.length === 0) {
-        stationsGrid.innerHTML = '<div class="empty-state"><p>No stations found for this search.</p></div>';
+    // --- UI RENDERING ---
+    const renderStations = () => {
+      const list = document.getElementById('station-list');
+      if (state.filtered.length === 0) {
+        list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted)">No stations found. Try scanning or changing genre.</p>';
         return;
-    }
-
-    stationsGrid.innerHTML = currentStations.map((station, index) => `
-        <div class="station-item" onclick="playStation(${index}, 'search', this)">
-            <img src="${station.favicon || 'https://via.placeholder.com/60?text=FM'}" 
-                 class="list-img" 
-                 loading="lazy"
-                 onerror="this.onerror=null; this.src='https://via.placeholder.com/60?text=FM';">
-            <div class="item-info">
-                <h4>${station.name}</h4>
-                <p>${station.country} • ${station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'Radio'}</p>
-            </div>
-            <div class="item-actions">
-                <button class="icon-btn" onclick="event.stopPropagation(); addToPlaylistById('${station.stationuuid}')">
-                    <i data-lucide="plus-circle"></i>
-                </button>
-            </div>
+      }
+      list.innerHTML = state.filtered.map((s, i) => `
+        <div class="station-card ${i === state.currentIndex ? 'playing' : ''}" data-index="${i}">
+          <div class="station-logo">
+            ${s.favicon
+          ? `<img src="${s.favicon}" onerror="this.parentElement.innerHTML='<i>📻</i>'">`
+          : '<i>📻</i>'}
+          </div>
+          <div class="station-info">
+            <h3>${s.name}</h3>
+            <p>${s.countrycode || 'World'} • ${s.tags || 'General'}</p>
+          </div>
         </div>
-    `).join('');
-    lucide.createIcons();
-}
-
-function renderPlaylist() {
-    const playlistHTML = currentPlaylist.length === 0 
-        ? `<div class="empty-state"><i data-lucide="list-music"></i><p>No stations saved yet</p></div>`
-        : currentPlaylist.map((station, index) => `
-            <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
-                <img src="${station.favicon || 'https://via.placeholder.com/60?text=FM'}" 
-                     class="list-img" 
-                     loading="lazy"
-                     onerror="this.onerror=null; this.src='https://via.placeholder.com/60?text=FM';">
-                <div class="item-info">
-                    <h4>${station.name}</h4>
-                    <p>${station.country || 'Custom Station'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="icon-btn" onclick="event.stopPropagation(); removeFromPlaylist(${index})">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-    if (quickPlaylistList) quickPlaylistList.innerHTML = playlistHTML;
-    if (fullPlaylistList) fullPlaylistList.innerHTML = playlistHTML;
-    
-    lucide.createIcons();
-}
-
-function switchView(target) {
-    // Update Tabs
-    mainTabs.forEach(tab => {
-        if (tab.dataset.tab === target) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
-
-    // Update Views
-    Object.keys(views).forEach(key => {
-        if (key === target) {
-            views[key].style.display = 'block';
-        } else {
-            views[key].style.display = 'none';
-        }
-    });
-}
-
-function updateSignalStrength(freq) {
-    // Simulate signal strength based on frequency (just for UI)
-    const seed = Math.sin(freq * 10);
-    signalBars.forEach((bar, i) => {
-        const height = 10 + (i * 10) + (seed * 5);
-        bar.style.height = `${Math.max(5, height)}px`;
-        bar.style.opacity = seed > 0.5 ? '1' : '0.4';
-    });
-}
-
-function addCustomStation() {
-    const name = customNameInput.value.trim();
-    const url = customUrlInput.value.trim();
-    const icon = customIconInput.value.trim();
-    const freq = freqValue.textContent;
-
-    if (!name || !url) {
-        alert('Please provide at least a name and a stream URL.');
-        return;
-    }
-
-    const newStation = {
-        stationuuid: 'custom-' + Date.now(),
-        name: `${name} (${freq} MHz)`,
-        url: url,
-        url_resolved: url,
-        favicon: icon || 'https://via.placeholder.com/200?text=FM',
-        country: 'Custom',
-        tags: 'FM, Manual'
+      `).join('');
+      document.querySelectorAll('.station-card').forEach(card => {
+        card.onclick = () => playIndex(parseInt(card.dataset.index));
+      });
     };
 
-    addToPlaylist(newStation);
-    alert('Station added to your playlist!');
-    
-    // Clear inputs
-    customNameInput.value = '';
-    customUrlInput.value = '';
-    customIconInput.value = '';
-}
+    const playIndex = async (idx) => {
+      if (idx < 0 || idx >= state.filtered.length) return;
+      initAudio();
+      state.currentIndex = idx;
+      const station = state.filtered[idx];
+      audio.src = station.url_resolved || station.url;
+      audio.play().then(() => {
+        state.isPlaying = true;
+        updateUI();
+        autoSave(station);
+      }).catch(e => {
+        document.getElementById('status-msg').textContent = '⚠️ Stream failed or blocked by browser security';
+        console.error(e);
+      });
+    };
 
-function startAutoScan() {
-    autoScanBtn.disabled = true;
-    autoScanBtn.innerHTML = '<i class="spin" data-lucide="refresh-cw"></i> Scanning...';
-    lucide.createIcons();
-    discoveredFrequencies = [];
-    saveAllBtn.style.display = 'none';
-    
-    let currentFreq = 87.5;
-    const interval = setInterval(() => {
-        currentFreq = +(currentFreq + 0.5).toFixed(1);
-        freqSlider.value = currentFreq;
-        freqValue.textContent = currentFreq;
-        updateSignalStrength(currentFreq);
-        
-        // Simulate finding "active" frequencies
-        if (Math.random() > 0.7) {
-            discoveredFrequencies.push(currentFreq);
-            // Flash frequency display on find
-            freqValue.style.color = 'var(--accent-color)';
-            setTimeout(() => { freqValue.style.color = 'var(--text-primary)'; }, 200);
-        }
-        
-        if (currentFreq >= 108) {
-            clearInterval(interval);
-            autoScanBtn.disabled = false;
-            autoScanBtn.innerHTML = '<i data-lucide="zap"></i> Auto Scan Frequencies';
-            lucide.createIcons();
-            
-            if (discoveredFrequencies.length > 0) {
-                saveAllBtn.style.display = 'flex';
-                saveAllBtn.textContent = `Save ${discoveredFrequencies.length} Frequencies`;
-                alert(`Scan complete! Found ${discoveredFrequencies.length} active frequencies.`);
-            } else {
-                alert('Scan complete. No active frequencies found.');
-            }
-        }
-    }, 100);
-}
+    const autoSave = (station) => {
+      const exists = state.savedStations.find(s => s.stationuuid === station.stationuuid);
+      if (!exists) {
+        state.savedStations.push(station);
+        localStorage.setItem('savedStations', JSON.stringify(state.savedStations));
+        document.getElementById('status-msg').textContent = `✅ Auto-saved "${station.name}"`;
+      }
+    };
 
-function saveAllDiscovered() {
-    if (discoveredFrequencies.length === 0) return;
-    
-    discoveredFrequencies.forEach(freq => {
-        const newStation = {
-            stationuuid: 'auto-' + freq + '-' + Date.now(),
-            name: `FM Station ${freq}`,
-            url: `https://icecast.radio-browser.info/fm/${freq}`, // Placeholder URL
-            url_resolved: `https://icecast.radio-browser.info/fm/${freq}`,
-            favicon: 'https://via.placeholder.com/200?text=FM',
-            country: 'Local Scan',
-            tags: 'FM, Scanned'
-        };
-        currentPlaylist.push(newStation);
-    });
-    
-    savePlaylist();
-    renderPlaylist();
-    saveAllBtn.style.display = 'none';
-    alert(`${discoveredFrequencies.length} stations added to your playlist!`);
-}
+    const updateUI = () => {
+      document.getElementById('play-btn').textContent = state.isPlaying ? '⏸' : '▶';
+      const station = state.filtered[state.currentIndex] || {};
+      document.getElementById('np-title').textContent = station.name || 'No Station Selected';
+      document.getElementById('np-meta').textContent = station.tags || 'Select a station to play';
 
-// Playback Logic
-function playStation(index, source = 'search', element = null) {
-    let station;
-    if (source === 'search') {
-        station = currentStations[index];
-        currentStationIndex = index;
-    } else {
-        station = currentPlaylist[index];
-    }
+      // Update Digital Display
+      if (state.currentIndex >= 0) {
+        // Create a pseudo-frequency if none exists
+        const freq = station.freq || (90 + (state.currentIndex % 20) + (state.currentIndex % 10) / 10).toFixed(1);
+        document.getElementById('digi-freq').textContent = freq;
+        document.getElementById('digi-meta').textContent = station.name.substring(0, 15).toUpperCase();
+      } else {
+        document.getElementById('digi-freq').textContent = '--.-';
+        document.getElementById('digi-meta').textContent = 'OFF AIR';
+      }
+      renderStations();
+    };
 
-    if (!station) return;
+    // --- EVENT LISTENERS ---
+    document.getElementById('scan-btn').onclick = async () => {
+      document.getElementById('status-msg').textContent = '📡 Scanning local FM...';
+      state.stations = await fetchStations('local', 'all');
+      state.filtered = state.stations;
+      renderStations();
+      document.getElementById('status-msg').textContent = `✅ Found ${state.stations.length} local stations`;
+    };
 
-    // Update Player UI
-    updatePlayerUI(station);
-
-    // Load and Play
-    audioPlayer.src = station.url_resolved || station.url;
-    audioPlayer.play().catch(e => {
-        console.warn('Auto-play failed, user interaction required.', e);
-        playerStatus.textContent = 'Click Play to start';
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = async () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.tab = tab.dataset.tab;
+        document.getElementById('status-msg').textContent = '🔄 Loading stations...';
+        state.stations = await fetchStations(state.tab, state.genre);
+        state.filtered = state.stations;
+        renderStations();
+        document.getElementById('status-msg').textContent = 'Loaded';
+      };
     });
 
-    // Background Audio Support (Media Session)
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: station.name,
-            artist: station.country || 'FM Radio',
-            album: station.tags || 'Internet Radio',
-            artwork: [
-                { src: station.favicon || 'https://via.placeholder.com/200?text=FM', sizes: '200x200', type: 'image/png' }
-            ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => audioPlayer.play());
-        navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
-        navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
-        navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
-        
-        navigator.mediaSession.playbackState = 'playing';
-    }
-
-    // Add active class
-    const items = document.querySelectorAll('.station-item');
-    items.forEach(item => item.classList.remove('active'));
-    
-    if (element) {
-        element.classList.add('active');
-    }
-}
-
-function updatePlayerUI(station) {
-    const name = station.name || 'Unknown Station';
-    const country = station.country || 'Global';
-    const tags = station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'Radio';
-    const img = station.favicon || 'https://via.placeholder.com/200?text=Global+FM';
-
-    currentStationName.textContent = name;
-    currentStationMeta.textContent = `${country} • ${tags}`;
-    currentStationImg.src = img;
-    
-    playerMiniName.textContent = name;
-    playerMiniMeta.textContent = country;
-    playerMiniImg.src = img;
-    playerMiniImg.onerror = () => { playerMiniImg.src = 'https://via.placeholder.com/48?text=FM'; };
-    
-    playerStatus.textContent = 'Loading...';
-}
-
-function togglePlay() {
-    if (audioPlayer.paused) {
-        audioPlayer.play();
-    } else {
-        audioPlayer.pause();
-    }
-    // Double check icon (already handled by event listeners, but for responsiveness)
-    setTimeout(() => {
-        const iconName = audioPlayer.paused ? 'play' : 'pause';
-        playIcon.setAttribute('data-lucide', iconName);
-        lucide.createIcons();
-    }, 50);
-}
-
-function playNext() {
-    if (currentStations.length === 0) return;
-    currentStationIndex = (currentStationIndex + 1) % currentStations.length;
-    playStation(currentStationIndex, 'search');
-}
-
-function playPrevious() {
-    if (currentStations.length === 0) return;
-    currentStationIndex = (currentStationIndex - 1 + currentStations.length) % currentStations.length;
-    playStation(currentStationIndex, 'search');
-}
-
-// Volume Controls
-function updateVolume(value) {
-    const volume = value / 100;
-    audioPlayer.volume = volume;
-    volumeSlider.value = value;
-    
-    if (volume === 0) {
-        volumeIcon.setAttribute('data-lucide', 'volume-x');
-    } else if (volume < 0.5) {
-        volumeIcon.setAttribute('data-lucide', 'volume-1');
-    } else {
-        volumeIcon.setAttribute('data-lucide', 'volume-2');
-    }
-    lucide.createIcons();
-    
-    if (volume > 0) {
-        lastVolume = value;
-        isMuted = false;
-    }
-}
-
-function toggleMute() {
-    if (isMuted) {
-        updateVolume(lastVolume);
-    } else {
-        lastVolume = volumeSlider.value;
-        updateVolume(0);
-        isMuted = true;
-    }
-}
-
-// Playlist Logic
-function addToPlaylist(station) {
-    if (currentPlaylist.some(s => s.stationuuid === station.stationuuid)) {
-        alert('Station already in playlist!');
-        return;
-    }
-    currentPlaylist.push(station);
-    savePlaylist();
-    renderPlaylist();
-}
-
-function addToPlaylistById(uuid) {
-    const station = currentStations.find(s => s.stationuuid === uuid);
-    if (station) {
-        addToPlaylist(station);
-    }
-}
-
-function removeFromPlaylist(index) {
-    currentPlaylist.splice(index, 1);
-    savePlaylist();
-    renderPlaylist();
-}
-
-function savePlaylist() {
-    localStorage.setItem('fm_playlist', JSON.stringify(currentPlaylist));
-}
-
-function updateActiveCat(label) {
-    catButtons.forEach(btn => {
-        if (btn.textContent === label) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.onclick = async () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        state.genre = chip.dataset.genre;
+        document.getElementById('status-msg').textContent = `🔄 Loading ${state.genre} stations...`;
+        state.stations = await fetchStations(state.tab, state.genre);
+        state.filtered = state.stations;
+        renderStations();
+        document.getElementById('status-msg').textContent = 'Loaded';
+      };
     });
-}
 
-// Theme Functions
-function toggleTheme() {
-    const isLight = document.body.getAttribute('data-theme') === 'light';
-    const newTheme = isLight ? 'dark' : 'light';
-    setTheme(newTheme);
-}
+    document.getElementById('play-btn').onclick = () => {
+      initAudio();
+      if (audio.paused && state.currentIndex >= 0) {
+        audio.play();
+        state.isPlaying = true;
+      } else if (!audio.paused) {
+        audio.pause();
+        state.isPlaying = false;
+      } else if (state.currentIndex === -1 && state.filtered.length > 0) {
+        playIndex(0);
+      }
+      updateUI();
+    };
 
-function setTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('fm_theme', theme);
-    
-    if (theme === 'light') {
-        themeIcon.setAttribute('data-lucide', 'sun');
-    } else {
-        themeIcon.setAttribute('data-lucide', 'moon');
+    document.getElementById('prev-btn').onclick = () => {
+      if (state.currentIndex > 0) playIndex(state.currentIndex - 1);
+      else if (state.filtered.length > 0) playIndex(state.filtered.length - 1);
+    };
+
+    document.getElementById('next-btn').onclick = () => {
+      if (state.currentIndex < state.filtered.length - 1) playIndex(state.currentIndex + 1);
+      else if (state.filtered.length > 0) playIndex(0);
+    };
+
+    document.getElementById('vol-slider').oninput = (e) => {
+      state.volume = parseFloat(e.target.value);
+      if (gainNode) gainNode.gain.value = state.muted ? 0 : state.volume;
+      localStorage.setItem('radioVol', state.volume);
+    };
+
+    document.getElementById('mute-btn').onclick = () => {
+      state.muted = !state.muted;
+      if (gainNode) gainNode.gain.value = state.muted ? 0 : state.volume;
+      document.getElementById('mute-btn').textContent = state.muted ? '🔇' : '🔊';
+    };
+
+    // FX Listeners
+    ['bass', 'treble'].forEach(fx => {
+      document.getElementById(`fx-${fx}`).oninput = (e) => {
+        state.fx[fx] = parseFloat(e.target.value);
+        if (bassFilter && fx === 'bass') bassFilter.gain.value = state.fx.bass;
+        if (trebleFilter && fx === 'treble') trebleFilter.gain.value = state.fx.treble;
+        if (!state.djMode) applyDJMode();
+        localStorage.setItem('radioFx', JSON.stringify(state.fx));
+      };
+    });
+
+    document.getElementById('fx-stereo').oninput = (e) => {
+      state.fx.stereo = parseFloat(e.target.value);
+      if (stereoPanner) stereoPanner.pan.value = state.fx.stereo;
+      if (!state.djMode) applyDJMode();
+      localStorage.setItem('radioFx', JSON.stringify(state.fx));
+    };
+
+    document.getElementById('fx-dj').onclick = () => {
+      state.djMode = !state.djMode;
+      state.fx.dj = state.djMode;
+      const btn = document.getElementById('fx-dj');
+      const stateSpan = document.getElementById('dj-state');
+      stateSpan.textContent = state.djMode ? 'ON' : 'OFF';
+      if (state.djMode) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+      applyDJMode();
+      localStorage.setItem('radioFx', JSON.stringify(state.fx));
+    };
+
+
+    // --- THEME & MINIMIZE ENGINE ---
+    function applyTheme(theme) {
+      if (theme === 'light') theme = 'default';
+      document.body.classList.remove('theme-neon', 'theme-dark');
+      if (theme !== 'default') {
+        document.body.classList.add(`theme-${theme}`);
+      }
+      state.theme = theme;
+      const radio = document.getElementById(`t-${theme}`);
+      if (radio) radio.checked = true;
+      localStorage.setItem('radioTheme', theme);
     }
-    lucide.createIcons();
-}
 
-function loadTheme() {
-    const savedTheme = localStorage.getItem('fm_theme') || 'dark';
-    setTheme(savedTheme);
-}
+    document.querySelectorAll('input[name="theme"]').forEach(r => {
+      r.onchange = (e) => applyTheme(e.target.value);
+    });
 
-// Start App
-init();
+    const minBtn = document.getElementById('minimize-btn');
+    const maxBtn = document.getElementById('maximize-btn');
+
+    minBtn.onclick = () => document.body.classList.add('minimized');
+    maxBtn.onclick = () => document.body.classList.remove('minimized');
+
+    applyTheme(state.theme);
+
+    // Restore settings
+    const savedVol = localStorage.getItem('radioVol');
+    if (savedVol) {
+      state.volume = parseFloat(savedVol);
+      document.getElementById('vol-slider').value = state.volume;
+    }
+    if (state.fx.dj) {
+      state.djMode = true;
+      document.getElementById('dj-state').textContent = 'ON';
+      document.getElementById('fx-dj').classList.add('active');
+      document.getElementById('fx-bass').value = state.fx.bass;
+      document.getElementById('fx-treble').value = state.fx.treble;
+      document.getElementById('fx-stereo').value = state.fx.stereo;
+    }
+
+
+    // Init with default tab (Indian FM)
+    document.getElementById('status-msg').textContent = '🔄 Loading Indian FM...';
+    fetchStations('india', 'all').then(data => {
+      state.stations = data;
+      state.filtered = data;
+      renderStations();
+      document.getElementById('status-msg').textContent = 'Loaded';
+    });
