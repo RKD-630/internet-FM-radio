@@ -666,7 +666,7 @@
           <div class="station-logo" style="position: relative;">
             ${(s.country || s.countrycode) ? `<div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.55rem; text-align: center; padding: 2px 0; z-index: 2; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.country || s.countrycode}</div>` : ''}
             ${(s.favicon && s.favicon !== 'null')
-          ? `<img src="${s.favicon}" alt="Station Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><i style="display:none;">📻</i>`
+          ? `<img src="${s.favicon}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><i style="display:none;">📻</i>`
           : '<i>📻</i>'}
           </div>
           <div class="station-info">
@@ -685,9 +685,6 @@
       if (idx < 0 || idx >= state.filtered.length) return;
       initAudio();
       state.currentIndex = idx;
-      if (state.filtered && state.filtered.length > 1) {
-        document.getElementById('tuning-slider').value = (idx / (state.filtered.length - 1)) * 100;
-      }
       const station = state.filtered[idx];
       audio.src = station.url_resolved || station.url;
       audio.play().then(() => {
@@ -1031,16 +1028,6 @@
       state.volumeBoost = e.target.checked;
       if (gainNode) gainNode.gain.value = (state.muted ? 0 : state.volume) * (state.volumeBoost ? 2.0 : 1.0);
       localStorage.setItem('volumeBoost', state.volumeBoost);
-    };
-
-    const tuningSlider = document.getElementById('tuning-slider');
-    tuningSlider.oninput = (e) => {
-      if (!state.filtered || state.filtered.length === 0) return;
-      const percent = e.target.value / 100;
-      const targetIndex = Math.floor(percent * (state.filtered.length - 1));
-      if (targetIndex !== state.currentIndex) {
-        playIndex(targetIndex);
-      }
     };
 
     document.getElementById('vol-slider').oninput = (e) => {

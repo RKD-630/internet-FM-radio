@@ -34,7 +34,7 @@
         <div id="np-logo-wrapper" class="np-logo-wrapper" style="position: relative;">
           <div id="np-country" style="position: absolute; top: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; text-align: center; padding: 2px 0; z-index: 10; display: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           </div>
-          <img id="np-logo" src="" alt="Station Logo" style="display:none;" onerror="this.style.display='none'; document.getElementById('np-logo-fallback').style.display='block';" />
+          <img id="np-logo" style="display:none;" onerror="this.style.display='none'; document.getElementById('np-logo-fallback').style.display='block';" />
           <i id="np-logo-fallback">📻</i>
         </div>
         <div class="np-info-wrapper">
@@ -80,10 +80,6 @@
         <button id="region-toggle-btn" class="ctrl-btn toggle-btn" style="border:1px solid transparent; color:var(--success);">🇮🇳 Indian FM</button>
         <button id="audio-mode-btn" class="ctrl-btn toggle-btn" style="border:1px solid #888; color:var(--accent);">🎚️
           Normal</button>
-      </div>
-      <div class="tuning-wrap" id="tuning-wrap" style="display: none; width: 100%; align-items: center; gap: 10px; margin-top: 10px; flex-direction: column;">
-        <label for="tuning-slider" style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Tuning</label>
-        <input type="range" id="tuning-slider" min="0" max="100" value="0" style="width: 100%; cursor: pointer;" />
       </div>
     </div>
     <!-- 3. Audio FX Panel -->

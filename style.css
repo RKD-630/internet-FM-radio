@@ -45,12 +45,6 @@
       --playing-bg: rgba(208, 0, 255, 0.15);
     }
 
-    body.theme-antygravity .np-logo-wrapper {
-      display: none !important;
-    }
-
-
-
     body.theme-digital * {
       font-family: 'Courier New', Courier, monospace !important;
     }
@@ -745,8 +739,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 240px;
-      height: 240px;
+      width: 180px;
+      height: 180px;
       margin: 0;
       background: transparent;
       border: none;
@@ -761,7 +755,7 @@
       align-items: center;
       justify-content: center;
       flex: 1;
-      height: 240px;
+      height: 216px;
       margin: 0;
       background: transparent;
       border: none;
@@ -832,8 +826,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 220px;
-      height: 220px;
+      width: 160px;
+      height: 160px;
       background: transparent;
       border: none;
       border-radius: 8px;
@@ -847,7 +841,7 @@
       align-items: center;
       justify-content: center;
       flex: 1;
-      height: 220px;
+      height: 160px;
       background: transparent;
       border: none;
       border-radius: 8px;
@@ -1112,7 +1106,7 @@
       border-radius: 4px;
       width: 55px;
       height: 45px;
-      background: linear-gradient(180deg, #333 0%, #111 100%);
+      background: linear-gradient(180deg, #33 0%, #111 100%);
       border: 1px solid #000;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -1419,41 +1413,6 @@
 
       .np-header {
         justify-content: center;
-      }
-
-      #visualizer {
-        transform: scale(0.8);
-        transform-origin: center center;
-      }
-    }
-    
-    /* Specific adjustments for narrower devices like Motorola G54 (approx 360px-412px wide) */
-    @media (max-width: 430px) {
-      .np-info-wrapper {
-        height: 250px;
-      }
-      #visualizer {
-        transform: scale(0.65);
-      }
-      .controls {
-        gap: 8px;
-        padding: 12px 8px;
-      }
-      .ctrl-btn {
-        width: 38px;
-        height: 38px;
-        font-size: 1.1rem;
-      }
-      .ctrl-btn.play {
-        width: 46px;
-        height: 46px;
-        font-size: 1.3rem;
-      }
-      .vol-wrap input {
-        width: 80px;
-      }
-      #np-title {
-        font-size: 1.25rem;
       }
     }
 
