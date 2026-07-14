@@ -612,7 +612,7 @@ function updatePlayerUI(station) {
     const defaultMini = DEFAULT_LOGO;
 
     currentStationName.textContent = name;
-    if (name.length > 20) {
+    if (name.length > 35) {
         currentStationName.classList.add('marquee-text');
     } else {
         currentStationName.classList.remove('marquee-text');
