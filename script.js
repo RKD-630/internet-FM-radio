@@ -761,7 +761,7 @@ function setTheme(theme) {
 }
 
 function loadTheme() {
-    const savedTheme = localStorage.getItem('fm_theme') || 'dark';
+    const savedTheme = localStorage.getItem('fm_theme') || 'light';
     setTheme(savedTheme);
 }
 
