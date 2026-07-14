@@ -1,888 +1,1299 @@
-// Configuration
-const API_BASE = 'https://de1.api.radio-browser.info/json';
-const DEFAULT_LIMIT = 50;
-const DEFAULT_LOGO = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%93%BB%3C%2Ftext%3E%3C%2Fsvg%3E';
+// --- STATE ---
+    const state = {
+      stations: [],
+      filtered: [],
+      currentIndex: -1,
+      isPlaying: false,
+      isScanning: false,
+      volume: 0.7,
+      volumeBoost: localStorage.getItem('volumeBoost') === 'true',
+      muted: false,
+      tab: 'india',
+      genre: 'all',
+      apiLimit: parseInt(localStorage.getItem('apiLimit')) || 40,
+      beatMode: false,
+      djMode: false,
+      hdMode: false,
+      genres: {
+        india: [
+          { id: 'all', label: '🌐 All' },
+          { id: 'hindi', label: 'Hindi' },
+          { id: 'bhakti', label: '🕉️Bhakti' },
+          { id: 'news', label: 'News' },
+          { id: 'bangla', label: 'Bangla' },
+          { id: 'music', label: 'Music' },
+          { id: 'bollywood', label: 'Bollywood' },
+          { id: 'remix', label: 'Remix-DJ' },
+          { id: 'classic', label: 'Classic' },
+          { id: 'dance', label: 'Dance' },
+          { id: 'pop', label: 'Pop' }
+        ],
+        world: [
+          { id: 'all', label: '🌐 All' },
+          { id: 'news', label: 'News' },
+          { id: 'music', label: 'Music' },
+          { id: 'dance', label: 'Dance' },
+          { id: 'remix', label: 'Remix' },
+          { id: 'dj', label: 'DJ' },
+          { id: 'classic', label: 'Classic' },
+          { id: 'pop', label: 'Pop' },
+          { id: 'retro', label: 'Retro' },
+          { id: 'gold', label: 'Gold' },
+          { id: 'jazz', label: 'Jazz' },
+          { id: 'talk show', label: 'Talk Show' },
+          { id: 'us news', label: 'US News' },
+          { id: 'bbc news', label: 'BBC News' }
+        ]
+      },
+      savedStations: JSON.parse(localStorage.getItem('savedStations') || '[]'),
+      fx: JSON.parse(localStorage.getItem('radioFx') || '{"bass":0,"treble":0,"stereo":0,"dj":false,"beat":false}'),
+      theme: localStorage.getItem('radioTheme') || 'digital'
+    };
 
-// State
-let currentStations = [];
-let currentPlaylist = JSON.parse(localStorage.getItem('fm_playlist')) || [];
-let currentStationIndex = -1;
-let currentMode = 'India'; // 'Global' or 'India'
-let isMuted = false;
-let lastVolume = 80;
-let isHDEQEnabled = false;
-let isDJBoostEnabled = false;
-let isVolBoostEnabled = false;
-let isSmartScanning = false;
-let smartScanTimeout = null;
-let playCheckTimeout = null;
-let queueTickerInterval = null;
-let showingNextInQueue = true;
-let lastQuery = '';
-let lastCountry = '';
-let lastTag = '';
-let lastState = '';
-let lastLanguage = '';
+    // --- AUDIO ENGINE ---
+    const audio = document.getElementById('audio-player');
+    let audioCtx, source, gainNode, bassFilter, trebleFilter, stereoPanner, analyser, compressor, splitter, merger, delayL, delayR;
+    let audioInitialized = false;
 
-// DOM Elements
-const audioPlayer = document.getElementById('audio-player');
-const stationsGrid = document.getElementById('stations-grid');
-const playlistList = document.getElementById('playlist-list');
-const searchInput = document.getElementById('station-search');
-const scanBtn = document.getElementById('scan-btn');
-const scanIndiaBtn = document.getElementById('scan-india-btn');
-const categoriesBar = document.getElementById('categories-bar');
-const modeLabel = document.getElementById('current-mode-label');
-const indiaCats = document.getElementById('india-cats');
-const globalCats = document.getElementById('global-cats');
-const catButtons = document.querySelectorAll('.cat-btn');
-const playPauseBtn = document.getElementById('play-pause-btn');
-const playIcon = document.getElementById('play-icon');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const muteBtn = document.getElementById('mute-btn');
-const volumeIcon = document.getElementById('volume-icon');
-const volumeSlider = document.getElementById('volume-slider');
-const playerStatus = document.getElementById('player-status');
-const currentStationName = document.getElementById('current-station-name');
-const currentStationMeta = document.getElementById('current-station-meta');
-const currentStationImg = document.getElementById('current-station-info-img');
-const addToPlaylistBtn = document.getElementById('add-to-playlist-btn');
-const resultsCount = document.getElementById('results-count');
-const mainLoader = document.getElementById('main-loader');
-const nowPlayingCard = document.querySelector('.now-playing-card');
-const fullscreenBtn = document.getElementById('fullscreen-btn');
-const refreshBtn = document.getElementById('refresh-btn');
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
-const eqHdBtn = document.getElementById('eq-hd-btn');
-const djBoostBtn = document.getElementById('dj-boost-btn');
-const volBoostCheck = document.getElementById('vol-boost-check');
-const smartAutoScanBtn = document.getElementById('smart-auto-scan-btn');
-const queueTickerText = document.getElementById('queue-ticker-text');
+    const led = document.getElementById('signal-led');
+    const npHeader = document.querySelector('.np-header');
 
-// New UI Elements
-const mainTabs = document.querySelectorAll('.tab-btn:not(.action-btn)');
-const views = {
-    discovery: document.getElementById('discovery-view'),
-    playlist: document.getElementById('playlist-view'),
-    scanner: document.getElementById('scanner-view')
-};
-const quickPlaylistList = document.getElementById('quick-playlist-list');
-const fullPlaylistList = document.getElementById('full-playlist-list');
+    const updateLED = (status) => {
+      led.classList.remove('red', 'green');
+      npHeader.classList.remove('playing', 'stopped');
 
-// Scanner Elements
-const freqSlider = document.getElementById('freq-slider');
-const freqValue = document.getElementById('freq-value');
-const scanLine = document.getElementById('scan-line');
-const customNameInput = document.getElementById('custom-name');
-const customUrlInput = document.getElementById('custom-url');
-const customIconInput = document.getElementById('custom-icon');
-const addCustomBtn = document.getElementById('add-custom-btn');
-const autoScanBtn = document.getElementById('auto-scan-btn');
-const saveAllBtn = document.getElementById('save-all-btn');
-const signalBars = document.querySelectorAll('.signal-bars span');
+      if (status === 'playing') {
+        led.classList.add('green');
+        npHeader.classList.add('playing');
+      } else {
+        led.classList.add('red');
+        npHeader.classList.add('stopped');
+      }
+    };
 
-let discoveredFrequencies = [];
+    audio.addEventListener('playing', () => updateLED('playing'));
+    audio.addEventListener('pause', () => updateLED('stopped'));
+    audio.addEventListener('waiting', () => updateLED('stopped'));
+    audio.addEventListener('error', () => updateLED('stopped'));
+    audio.addEventListener('emptied', () => updateLED('stopped'));
+    audio.addEventListener('stalled', () => updateLED('stopped'));
 
-// Initialize
-function init() {
-    setupEventListeners();
-    fetchStations('', 'India'); // Initial load (Trending)
-    renderPlaylist();
-    updateVolume(80);
-    loadTheme();
-    
-    // Auto-adjusting helper for mobile
-    window.addEventListener('resize', () => {
-        lucide.createIcons();
-    });
-}
+    function initAudio() {
+      if (audioInitialized) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      source = audioCtx.createMediaElementSource(audio);
+      gainNode = audioCtx.createGain();
+      bassFilter = audioCtx.createBiquadFilter();
+      trebleFilter = audioCtx.createBiquadFilter();
+      stereoPanner = audioCtx.createStereoPanner();
+      compressor = audioCtx.createDynamicsCompressor();
 
-function setupEventListeners() {
-    scanBtn.addEventListener('click', () => {
-        const query = searchInput.value.trim();
-        currentMode = 'Global';
-        modeLabel.textContent = 'Global Categories:';
-        indiaCats.style.display = 'none';
-        globalCats.style.display = 'flex';
-        fetchStations(query);
-        updateActiveCat('All');
-        switchView('discovery');
-    });
+      splitter = audioCtx.createChannelSplitter(2);
+      merger = audioCtx.createChannelMerger(2);
+      delayL = audioCtx.createDelay();
+      delayR = audioCtx.createDelay();
 
-    scanIndiaBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        currentMode = 'India';
-        modeLabel.textContent = 'India Categories:';
-        globalCats.style.display = 'none';
-        indiaCats.style.display = 'flex';
-        fetchStations('', 'India');
-        updateActiveCat('All');
-        switchView('discovery');
-    });
+      analyser = audioCtx.createAnalyser();
 
-    catButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tag = btn.dataset.tag || '';
-            const state = btn.dataset.state || '';
-            const language = btn.dataset.language || '';
-            const query = btn.dataset.query || '';
-            const overrideCountry = btn.dataset.country;
-            const country = overrideCountry !== undefined ? overrideCountry : (currentMode === 'India' ? 'India' : '');
-            fetchStations(query, country, tag, state, language);
-            updateActiveCat(btn.textContent);
-            switchView('discovery');
-        });
-    });
+      bassFilter.type = 'lowshelf';
+      bassFilter.frequency.value = 150;
+      bassFilter.gain.value = state.fx.bass;
 
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            fetchStations(searchInput.value.trim());
-            switchView('discovery');
+      trebleFilter.type = 'highshelf';
+      trebleFilter.frequency.value = 3000;
+      trebleFilter.gain.value = state.fx.treble;
+
+      stereoPanner.pan.value = state.fx.stereo;
+      analyser.fftSize = 256;
+
+      // Routing
+      source.connect(bassFilter);
+      bassFilter.connect(trebleFilter);
+      trebleFilter.connect(compressor);
+
+      compressor.connect(splitter);
+
+      splitter.connect(delayL, 0);
+      delayL.connect(merger, 0, 0);
+
+      splitter.connect(delayR, 1);
+      delayR.connect(merger, 0, 1);
+
+      merger.connect(stereoPanner);
+      stereoPanner.connect(gainNode);
+      gainNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      gainNode.gain.value = (state.muted ? 0 : state.volume) * (state.volumeBoost ? 2.0 : 1.0);
+      applyFX();
+      audioInitialized = true;
+    }
+
+    function applyFX() {
+      if (!audioCtx) return;
+
+      let finalBass = state.fx.bass;
+      let finalTreble = state.fx.treble;
+      let finalStereo = state.fx.stereo;
+
+      if (state.hdMode) {
+        finalBass += 4;
+        finalTreble += 5;
+
+        compressor.threshold.value = -24;
+        compressor.knee.value = 30;
+        compressor.ratio.value = 12;
+        compressor.attack.value = 0.003;
+        compressor.release.value = 0.25;
+
+        delayL.delayTime.value = 0;
+        delayR.delayTime.value = 0.015; // 15ms Haas effect
+      } else {
+        compressor.threshold.value = 0;
+        compressor.knee.value = 40;
+        compressor.ratio.value = 1;
+        compressor.attack.value = 0;
+        compressor.release.value = 0.25;
+
+        delayL.delayTime.value = 0;
+        delayR.delayTime.value = 0;
+      }
+
+      if (state.djMode) {
+        finalBass += 6;
+        finalTreble -= 3;
+        finalStereo = 0.3;
+      }
+
+      if (state.beatMode) {
+        finalBass += 8; // Heavy beat boost
+      }
+
+      bassFilter.gain.value = finalBass;
+      trebleFilter.gain.value = finalTreble;
+      stereoPanner.pan.value = finalStereo;
+    }
+
+    // Replaces applyDJMode
+
+    // --- VISUALIZER ---
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- DANCE LIGHTS ---
+    const danceContainer = document.getElementById('dance-container');
+    const numDanceLights = 15;
+    const danceLights = [];
+
+    function initDanceLights() {
+      danceContainer.innerHTML = '';
+      for (let i = 0; i < numDanceLights; i++) {
+        const light = document.createElement('div');
+        light.className = 'dance-light';
+        danceContainer.appendChild(light);
+        danceLights.push(light);
+      }
+    }
+    initDanceLights();
+
+    function updateDanceLights(dataArray) {
+      // Map themes to specific colors
+      const hueBase = (state.theme === 'digital-red' ? 0 :
+        (state.theme === 'digital-blue' ? 200 :
+          (state.theme === 'white' ? 200 :
+          (state.theme === 'antygravity' ? 280 : 120))));
+
+      danceLights.forEach((light, i) => {
+        // Map each light to a segment of the frequency data for individual "dancing"
+        const segmentSize = Math.floor(dataArray.length / numDanceLights);
+        const startIdx = i * segmentSize;
+        let segmentSum = 0;
+        for (let j = 0; j < segmentSize; j++) {
+          segmentSum += dataArray[startIdx + j];
         }
-    });
+        const intensity = segmentSum / segmentSize / 255;
 
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            fetchStations(lastQuery, lastCountry, lastTag, lastState, lastLanguage);
-        });
-    }
+        if (intensity > 0.1) {
+          const glow = intensity * 25;
+          const brightness = 40 + (intensity * 60);
+          const hue = (hueBase + (i * 5)) % 360;
 
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        });
-    }
-
-    themeToggle.addEventListener('click', toggleTheme);
-
-    playPauseBtn.addEventListener('click', togglePlay);
-    
-    prevBtn.addEventListener('click', playPrevious);
-    nextBtn.addEventListener('click', playNext);
-
-    muteBtn.addEventListener('click', toggleMute);
-    
-    volumeSlider.addEventListener('input', (e) => {
-        updateVolume(e.target.value);
-    });
-
-    addToPlaylistBtn.addEventListener('click', () => {
-        if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
-            addToPlaylist(currentStations[currentStationIndex]);
-        }
-    });
-
-    currentStationImg.addEventListener('click', () => {
-        addToPlaylistBtn.click();
-    });
-
-    if (eqHdBtn) {
-        eqHdBtn.addEventListener('click', toggleHDEQ);
-    }
-    
-    if (djBoostBtn) {
-        djBoostBtn.addEventListener('click', toggleDJBoost);
-    }
-    
-    if (volBoostCheck) {
-        volBoostCheck.addEventListener('change', toggleVolBoost);
-    }
-
-    if (smartAutoScanBtn) {
-        smartAutoScanBtn.addEventListener('click', toggleSmartAutoScan);
-    }
-
-    // Tab Switching
-    mainTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-            switchView(target);
-        });
-    });
-
-    // Scanner Logic
-    if (freqSlider) {
-        freqSlider.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value).toFixed(1);
-            freqValue.textContent = val;
-            updateSignalStrength(val);
-        });
-    }
-
-    if (addCustomBtn) {
-        addCustomBtn.addEventListener('click', addCustomStation);
-    }
-
-    if (autoScanBtn) {
-        autoScanBtn.addEventListener('click', startAutoScan);
-    }
-
-    if (saveAllBtn) {
-        saveAllBtn.addEventListener('click', saveAllDiscovered);
-    }
-
-    // Audio Player Events
-    audioPlayer.onplay = () => {
-        playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
-        lucide.createIcons();
-        playerStatus.textContent = 'Playing';
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-    };
-
-    audioPlayer.onplaying = () => {
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-        playerStatus.textContent = 'Playing';
-    };
-
-    audioPlayer.onpause = () => {
-        playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
-        lucide.createIcons();
-        playerStatus.textContent = 'Paused';
-        if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'paused';
-        }
-    };
-
-    audioPlayer.onwaiting = () => {
-        playerStatus.textContent = 'Buffering...';
-    };
-
-    audioPlayer.onerror = (e) => {
-        console.error('Audio playback error:', e);
-        playerStatus.textContent = 'Error Loading Stream';
-        playerStatus.style.color = 'var(--accent-color)';
-        setTimeout(() => {
-            playerStatus.style.color = 'var(--primary-color)';
-        }, 3000);
-    };
-
-    audioPlayer.onloadstart = () => {
-        playerStatus.textContent = 'Buffering...';
-    };
-
-    // Prevent background pausing
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !audioPlayer.paused) {
-            // Re-assert playback state to OS
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
-        }
-    });
-}
-
-// API Functions
-async function fetchStations(query = '', country = '', tag = '', state = '', language = '') {
-    lastQuery = query;
-    lastCountry = country;
-    lastTag = tag;
-    lastState = state;
-    lastLanguage = language;
-    
-    mainLoader.style.display = 'flex';
-    stationsGrid.innerHTML = '';
-    
-    let url = `${API_BASE}/stations/search?limit=${DEFAULT_LIMIT}&order=clickcount&reverse=true&hidebroken=true`;
-    if (country) {
-        url += `&country=${encodeURIComponent(country)}`;
-    }
-    if (tag) {
-        url += `&tag=${encodeURIComponent(tag)}`;
-    }
-    if (state) {
-        url += `&state=${encodeURIComponent(state)}`;
-    }
-    if (language) {
-        url += `&language=${encodeURIComponent(language)}`;
-    }
-    if (query) {
-        url += `&name=${encodeURIComponent(query)}`;
-    }
-
-    try {
-        const response = await fetch(url);
-        currentStations = await response.json();
-        renderStations();
-        resultsCount.textContent = `${currentStations.length} stations found`;
-        
-        // Auto-play the first station if any are found
-        if (currentStations.length > 0) {
-            playStation(0, 'search');
-        }
-    } catch (error) {
-        console.error('Failed to fetch stations:', error);
-        stationsGrid.innerHTML = '<p class="error">Failed to load stations. Please check your internet connection.</p>';
-    } finally {
-        mainLoader.style.display = 'none';
-    }
-}
-
-// Render Functions
-function renderStations() {
-    if (currentStations.length === 0) {
-        stationsGrid.innerHTML = '<div class="empty-state"><p>No stations found for this search.</p></div>';
-        return;
-    }
-
-    stationsGrid.innerHTML = currentStations.map((station, index) => `
-        <div class="station-item" onclick="playStation(${index}, 'search', this)">
-            <img src="${station.favicon || DEFAULT_LOGO}" 
-                 class="list-img" 
-                 loading="lazy"
-                 onerror="this.onerror=null; this.src='${DEFAULT_LOGO}';">
-            <div class="item-info">
-                <h4>${station.name}</h4>
-                <p>${station.country} • ${station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'Radio'}</p>
-            </div>
-            <div class="item-actions">
-                <button class="icon-btn" onclick="event.stopPropagation(); addToPlaylistById('${station.stationuuid}')">
-                    <i data-lucide="plus-circle"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
-    lucide.createIcons();
-}
-
-function renderPlaylist() {
-    const playlistHTML = currentPlaylist.length === 0 
-        ? `<div class="empty-state"><i data-lucide="list-music"></i><p>No stations saved yet</p></div>`
-        : currentPlaylist.map((station, index) => `
-            <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
-                <img src="${station.favicon || DEFAULT_LOGO}" 
-                     class="list-img" 
-                     loading="lazy"
-                     onerror="this.onerror=null; this.src='${DEFAULT_LOGO}';">
-                <div class="item-info">
-                    <h4>${station.name}</h4>
-                    <p>${station.country || 'Custom Station'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="icon-btn" onclick="event.stopPropagation(); removeFromPlaylist(${index})">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-    if (quickPlaylistList) quickPlaylistList.innerHTML = playlistHTML;
-    if (fullPlaylistList) fullPlaylistList.innerHTML = playlistHTML;
-    
-    lucide.createIcons();
-}
-
-function switchView(target) {
-    // Update Tabs
-    mainTabs.forEach(tab => {
-        if (tab.dataset.tab === target) {
-            tab.classList.add('active');
+          light.style.background = `hsl(${hue}, 100%, ${brightness}%)`;
+          light.style.boxShadow = `0 0 ${glow}px ${glow / 3}px hsl(${hue}, 100%, 50%)`;
+          light.style.transform = `scale(${1 + intensity * 0.5})`;
+          light.style.opacity = '1';
         } else {
-            tab.classList.remove('active');
+          light.style.background = `rgba(50, 50, 50, 0.3)`;
+          light.style.boxShadow = 'none';
+          light.style.transform = `scale(1)`;
+          light.style.opacity = '0.6';
         }
-    });
-
-    // Update Views
-    Object.keys(views).forEach(key => {
-        if (key === target) {
-            views[key].style.display = 'block';
-        } else {
-            views[key].style.display = 'none';
-        }
-    });
-}
-
-function updateSignalStrength(freq) {
-    // Simulate signal strength based on frequency (just for UI)
-    const seed = Math.sin(freq * 10);
-    signalBars.forEach((bar, i) => {
-        const height = 10 + (i * 10) + (seed * 5);
-        bar.style.height = `${Math.max(5, height)}px`;
-        bar.style.opacity = seed > 0.5 ? '1' : '0.4';
-    });
-}
-
-function addCustomStation() {
-    const name = customNameInput.value.trim();
-    const url = customUrlInput.value.trim();
-    const icon = customIconInput.value.trim();
-    const freq = freqValue.textContent;
-
-    if (!name || !url) {
-        alert('Please provide at least a name and a stream URL.');
-        return;
+      });
     }
+    let vuNeedleCurrent = 0, vuNeedleL = 0, vuNeedleR = 0;
 
-    const newStation = {
-        stationuuid: 'custom-' + Date.now(),
-        name: `${name} (${freq} MHz)`,
-        url: url,
-        url_resolved: url,
-        favicon: icon || DEFAULT_LOGO,
-        country: 'Custom',
-        tags: 'FM, Manual'
-    };
+    function drawVisualizer() {
+      if (!analyser) return requestAnimationFrame(drawVisualizer);
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
 
-    addToPlaylist(newStation);
-    alert('Station added to your playlist!');
-    
-    // Clear inputs
-    customNameInput.value = '';
-    customUrlInput.value = '';
-    customIconInput.value = '';
-}
+      // Update dance lights
+      updateDanceLights(dataArray);
 
-function startAutoScan() {
-    autoScanBtn.disabled = true;
-    autoScanBtn.innerHTML = '<i class="spin" data-lucide="refresh-cw"></i> Scanning...';
-    lucide.createIcons();
-    discoveredFrequencies = [];
-    saveAllBtn.style.display = 'none';
-    
-    let currentFreq = 87.5;
-    const interval = setInterval(() => {
-        currentFreq = +(currentFreq + 0.5).toFixed(1);
-        freqSlider.value = currentFreq;
-        freqValue.textContent = currentFreq;
-        updateSignalStrength(currentFreq);
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (state.theme === 'digital') {
+        const numBands = 32;
+        const gap = 2;
+        const barWidth = (w / numBands) - gap;
+        const blockHeight = 14; // 3 cells = 1 cell
+        const totalBlocks = Math.floor(h / (blockHeight + gap));
+
+        if (!window.digitalPeaks || window.digitalPeaks.length !== numBands) {
+          window.digitalPeaks = new Array(numBands).fill(0);
+        }
+
+        // Vibrant distinct colors for columns
+        const colColors = [
+          '#ff3300', '#00ff33', '#00aaff', '#ff00ff', '#ffaa00', 
+          '#7700ff', '#00ffcc', '#ff3333', '#99ff00', '#ff00aa', '#ffff00', '#0066ff'
+        ];
+
+        // Background
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, w, h);
+
+        const step = Math.floor(bufferLength / numBands);
         
-        // Simulate finding "active" frequencies
-        if (Math.random() > 0.7) {
-            discoveredFrequencies.push(currentFreq);
-            // Flash frequency display on find
-            freqValue.style.color = 'var(--accent-color)';
-            setTimeout(() => { freqValue.style.color = 'var(--text-primary)'; }, 200);
+        for (let i = 0; i < numBands; i++) {
+          let sum = 0;
+          for (let j = 0; j < step; j++) {
+             sum += dataArray[i * step + j];
+          }
+          const val = (sum / step) / 255;
+          const numActiveBlocks = Math.min(totalBlocks, Math.floor(totalBlocks * val * 1.5));
+          
+          if (numActiveBlocks >= window.digitalPeaks[i]) {
+            window.digitalPeaks[i] = numActiveBlocks;
+          } else {
+            window.digitalPeaks[i] = Math.max(0, window.digitalPeaks[i] - 0.25);
+          }
+
+          const x = (gap / 2) + i * (barWidth + gap);
+          const colColor = colColors[i % colColors.length];
+
+          // Draw background (unlit) blocks
+          ctx.fillStyle = 'rgba(20, 20, 20, 0.5)';
+          for (let j = 0; j < totalBlocks; j++) {
+            const y = h - (j * (blockHeight + gap)) - blockHeight;
+            ctx.fillRect(x, y, barWidth, blockHeight);
+          }
+
+          // Draw active blocks
+          ctx.fillStyle = colColor;
+          ctx.shadowBlur = 12; // Shining effect
+          ctx.shadowColor = colColor;
+          for (let j = 0; j < numActiveBlocks; j++) {
+            const y = h - (j * (blockHeight + gap)) - blockHeight;
+            ctx.fillRect(x, y, barWidth, blockHeight);
+          }
+          
+          // Draw peak block
+          const peakBlock = Math.min(totalBlocks - 1, Math.floor(window.digitalPeaks[i]));
+          if (peakBlock >= 0) {
+            ctx.fillStyle = colColor;
+            const peakY = h - (peakBlock * (blockHeight + gap)) - blockHeight;
+            ctx.fillRect(x, peakY, barWidth, blockHeight);
+          }
+          ctx.shadowBlur = 0;
+        }
+      } else if (state.theme === 'digital-blue' || state.theme === 'white') {
+        let sumL = 0, sumR = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          if (i % 2 === 0) sumL += dataArray[i]; 
+          else sumR += dataArray[i];
+        }
+        let volL = Math.min(1, (sumL / (bufferLength / 2)) / 255 * 1.8);
+        let volR = Math.min(1, (sumR / (bufferLength / 2)) / 255 * 1.8);
+
+        const barHeight = h * 0.25;
+        const gap = h * 0.15;
+        const startY_L = h / 2 - barHeight - (gap / 2);
+        const startY_R = h / 2 + (gap / 2);
+        
+        ctx.fillStyle = 'rgba(0, 221, 255, 0.05)';
+        ctx.fillRect(20, startY_L, w - 20, barHeight);
+        ctx.fillRect(20, startY_R, w - 20, barHeight);
+        
+        const gradient = ctx.createLinearGradient(20, 0, w, 0);
+        gradient.addColorStop(0, '#00ff00');
+        gradient.addColorStop(0.7, '#ffff00');
+        gradient.addColorStop(1, '#ff0000');
+        
+        ctx.fillStyle = gradient;
+        ctx.shadowBlur = 15; // Shining effect
+        ctx.shadowColor = '#00ddff';
+        ctx.fillRect(20, startY_L, (w - 20) * volL, barHeight);
+        ctx.fillRect(20, startY_R, (w - 20) * volR, barHeight);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#041702';
+        for (let x = 20; x < w; x += 12) {
+          ctx.fillRect(x, startY_L, 2, barHeight);
+          ctx.fillRect(x, startY_R, 2, barHeight);
         }
         
-        if (currentFreq >= 108) {
-            clearInterval(interval);
-            autoScanBtn.disabled = false;
-            autoScanBtn.innerHTML = '<i data-lucide="zap"></i> Auto Scan Frequencies';
-            lucide.createIcons();
+        ctx.fillStyle = '#00ddff';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('L', 2, startY_L + barHeight - 4);
+        ctx.fillText('R', 2, startY_R + barHeight - 4);
+      } else if (state.theme === 'antygravity') {
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        let vol = (sum / bufferLength) / 255;
+        vol = Math.min(1, vol * 2.2);
+        vuNeedleCurrent += (vol - vuNeedleCurrent) * 0.2; 
+
+        const cx = w / 2;
+        const cy = h * 1.1; // Pivot slightly below bottom
+        const radius = h * 0.95;
+
+        // Face Background (Gradient)
+        const gradFace = ctx.createRadialGradient(cx, cy, 10, cx, cy, radius * 1.5);
+        gradFace.addColorStop(0, '#ffffcc'); // Yellowish warm glow
+        gradFace.addColorStop(1, '#e5e5e5'); // Cream edges
+        ctx.fillStyle = gradFace;
+        ctx.fillRect(0, 0, w, h);
+
+        const startAngle = Math.PI * 1.15;
+        const endAngle = Math.PI * 1.85;
+        const range = endAngle - startAngle;
+        
+        // 10 segments
+        const zeroIndex = 7;
+        const totalSegments = 10;
+        const zeroAngle = startAngle + (zeroIndex / totalSegments) * range;
+
+        const innerArcRadius = radius * 0.8;
+
+        // Draw Thick Inner Arc
+        ctx.beginPath();
+        ctx.arc(cx, cy, innerArcRadius, startAngle, zeroAngle);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#111';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, innerArcRadius, zeroAngle, endAngle);
+        ctx.lineWidth = 8; // Red band is quite thick
+        ctx.strokeStyle = '#d31515';
+        ctx.stroke();
+
+        // Draw Thin Outer Arc
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startAngle, endAngle);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#111';
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const outerLabels = ['20', '10', '7', '5', '3', '2', '1', '0', '1', '2', '3'];
+
+        for (let i = 0; i <= totalSegments; i++) {
+          const angle = startAngle + (i / totalSegments) * range;
+          const isRed = i > zeroIndex;
+          
+          // Tick line
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+          ctx.lineTo(cx + Math.cos(angle) * (innerArcRadius - (isRed ? 2 : 6)), cy + Math.sin(angle) * (innerArcRadius - (isRed ? 2 : 6)));
+          ctx.lineWidth = isRed ? 2.5 : 2;
+          ctx.strokeStyle = isRed ? '#d31515' : '#111';
+          ctx.stroke();
+
+          // Outer Label (Rotated)
+          ctx.save();
+          ctx.translate(cx + Math.cos(angle) * (radius + 15), cy + Math.sin(angle) * (radius + 15));
+          ctx.rotate(angle + Math.PI/2);
+          ctx.fillStyle = isRed ? '#d31515' : '#111';
+          ctx.font = 'bold ' + Math.max(12, radius * 0.12) + 'px sans-serif';
+          ctx.fillText(outerLabels[i], 0, 0);
+          ctx.restore();
+        }
+
+        // Minor ticks
+        for (let i = 0; i < totalSegments * 2; i++) {
+          if (i % 2 === 0) continue; // Skip major ticks
+          const angle = startAngle + (i / (totalSegments * 2)) * range;
+          const isRed = (i / 2) > zeroIndex;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+          ctx.lineTo(cx + Math.cos(angle) * (innerArcRadius + (radius - innerArcRadius) * 0.4), cy + Math.sin(angle) * (innerArcRadius + (radius - innerArcRadius) * 0.4));
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = isRed ? '#d31515' : '#111';
+          ctx.stroke();
+        }
+
+        // Add inner labels (20, 40, 60, 80, 100%)
+        ctx.fillStyle = '#444';
+        ctx.font = 'normal ' + Math.max(9, radius * 0.08) + 'px sans-serif';
+        const innerLabels = ['20', '40', '60', '80', '100%'];
+        for (let i = 0; i < innerLabels.length; i++) {
+           const pct = (i + 1) / (innerLabels.length + 0.5); // Space evenly before zero
+           const angle = startAngle + pct * (zeroAngle - startAngle);
+           ctx.save();
+           ctx.translate(cx + Math.cos(angle) * (innerArcRadius - 15), cy + Math.sin(angle) * (innerArcRadius - 15));
+           ctx.rotate(angle + Math.PI/2);
+           ctx.fillText(innerLabels[i], 0, 0);
+           ctx.restore();
+        }
+        
+        // Plus sign at the end
+        ctx.save();
+        ctx.translate(cx + Math.cos(endAngle + 0.12) * innerArcRadius, cy + Math.sin(endAngle + 0.12) * innerArcRadius);
+        ctx.rotate(endAngle + 0.12 + Math.PI/2);
+        ctx.fillStyle = '#d31515';
+        ctx.font = 'bold ' + Math.max(16, radius * 0.16) + 'px sans-serif';
+        ctx.fillText('+', 0, 0);
+        ctx.restore();
+
+        // Needle
+        const currentAngle = vuNeedleCurrent * range;
+        const needleAngle = startAngle + currentAngle;
+        
+        ctx.beginPath();
+        ctx.moveTo(cx, cy); 
+        ctx.lineTo(cx + Math.cos(needleAngle) * (radius * 1.26), cy + Math.sin(needleAngle) * (radius * 1.26));
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#111';
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+        ctx.stroke();
+        
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Needle Pivot (Large black dome)
+        const pivotRadius = radius * 0.28;
+        const pivotGrad = ctx.createRadialGradient(cx, cy - pivotRadius*0.1, pivotRadius*0.1, cx, cy, pivotRadius);
+        pivotGrad.addColorStop(0, '#333');
+        pivotGrad.addColorStop(0.5, '#111');
+        pivotGrad.addColorStop(1, '#000');
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, pivotRadius, 0, Math.PI * 2);
+        ctx.fillStyle = pivotGrad;
+        ctx.fill();
+        
+        // Concentric texture rings
+        ctx.beginPath();
+        ctx.arc(cx, cy, pivotRadius * 0.6, 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#222';
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, pivotRadius * 0.3, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        // Vintage Dual Analog VU Meters (Left / Right)
+        let sumL = 0, sumR = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          if (i % 2 === 0) sumL += dataArray[i]; 
+          else sumR += dataArray[i];
+        }
+        let volL = Math.min(1, ((sumL / (bufferLength / 2)) / 255) * 2.2);
+        let volR = Math.min(1, ((sumR / (bufferLength / 2)) / 255) * 2.2);
+        
+        vuNeedleL += (volL - vuNeedleL) * 0.15;
+        vuNeedleR += (volR - vuNeedleR) * 0.15;
+
+        // Warm vintage backlight
+        ctx.fillStyle = '#fdf6e3'; // Warm cream color
+        ctx.fillRect(0, 0, w, h);
+        
+        // Draw 2 meters
+        const meterWidth = w / 2;
+        const cy = h * 0.9;
+        const radius = Math.min(meterWidth * 0.45, h * 0.8);
+        const startAngle = Math.PI * 1.15;
+        const endAngle = Math.PI * 1.85;
+        const range = endAngle - startAngle;
+
+        const drawMeter = (offsetX, needleVal, label) => {
+          const cx = offsetX + meterWidth / 2;
+          
+          // Outer bezel/shadow for each meter
+          ctx.beginPath();
+          ctx.rect(offsetX + 5, 5, meterWidth - 10, h - 10);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#d3c6b2'; // Vintage trim
+          ctx.stroke();
+          
+          // Meter Arc (black)
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, startAngle, endAngle);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#222';
+          ctx.stroke();
+          
+          // Red Zone Arc
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, startAngle + range * 0.75, endAngle);
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = '#d32f2f';
+          ctx.stroke();
+
+          // Ticks
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          for (let i = 0; i <= 20; i++) {
+            const angle = startAngle + (i / 20) * range;
+            const isRed = (i / 20) > 0.75;
+            const isMajor = i % 5 === 0;
+            const tickLen = isMajor ? radius * 0.12 : radius * 0.06;
             
-            if (discoveredFrequencies.length > 0) {
-                saveAllBtn.style.display = 'flex';
-                saveAllBtn.textContent = `Save ${discoveredFrequencies.length} Frequencies`;
-                alert(`Scan complete! Found ${discoveredFrequencies.length} active frequencies.`);
-            } else {
-                alert('Scan complete. No active frequencies found.');
-            }
-        }
-    }, 100);
-}
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+            ctx.lineTo(cx + Math.cos(angle) * (radius - tickLen), cy + Math.sin(angle) * (radius - tickLen));
+            ctx.lineWidth = isMajor ? 1.5 : 1;
+            ctx.strokeStyle = isRed ? '#d32f2f' : '#222';
+            ctx.stroke();
 
-function saveAllDiscovered() {
-    if (discoveredFrequencies.length === 0) return;
-    
-    discoveredFrequencies.forEach(freq => {
-        const newStation = {
-            stationuuid: 'auto-' + freq + '-' + Date.now(),
-            name: `FM Station ${freq}`,
-            url: `https://icecast.radio-browser.info/fm/${freq}`, // Placeholder URL
-            url_resolved: `https://icecast.radio-browser.info/fm/${freq}`,
-            favicon: DEFAULT_LOGO,
-            country: 'Local Scan',
-            tags: 'FM, Scanned'
+            // Text for major ticks
+            if (isMajor && i % 10 === 0) {
+               const val = i === 0 ? '-20' : (i === 10 ? '-10' : (i === 20 ? '+3' : ''));
+               ctx.fillStyle = isRed ? '#d32f2f' : '#222';
+               ctx.font = 'bold ' + Math.max(9, radius * 0.12) + 'px sans-serif';
+               ctx.fillText(val, cx + Math.cos(angle) * (radius - tickLen - 12), cy + Math.sin(angle) * (radius - tickLen - 12));
+            }
+          }
+
+          // Label
+          ctx.fillStyle = '#555';
+          ctx.font = 'bold ' + Math.max(10, radius * 0.15) + 'px serif';
+          ctx.fillText('VU', cx, cy - radius * 0.45);
+          ctx.font = 'normal ' + Math.max(8, radius * 0.1) + 'px sans-serif';
+          ctx.fillText(label, cx, cy - radius * 0.28);
+
+          // Needle
+          const needleAngle = startAngle + (needleVal * range);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy); 
+          ctx.lineTo(cx + Math.cos(needleAngle) * (radius * 0.95), cy + Math.sin(needleAngle) * (radius * 0.95));
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#111';
+          ctx.shadowBlur = 3;
+          ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+
+          // Pivot Dome
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius * 0.08, 0, Math.PI * 2);
+          ctx.fillStyle = '#111';
+          ctx.fill();
         };
-        currentPlaylist.push(newStation);
-    });
-    
-    savePlaylist();
-    renderPlaylist();
-    saveAllBtn.style.display = 'none';
-    alert(`${discoveredFrequencies.length} stations added to your playlist!`);
-}
 
-// Playback Logic
-function playStation(index, source = 'search', element = null) {
-    let station;
-    if (source === 'search') {
-        station = currentStations[index];
-        currentStationIndex = index;
-    } else {
-        station = currentPlaylist[index];
+        drawMeter(0, vuNeedleL, 'LEFT');
+        drawMeter(meterWidth, vuNeedleR, 'RIGHT');
+      }
+      requestAnimationFrame(drawVisualizer);
     }
+    drawVisualizer();
 
-    if (!station) return;
+    // --- API & DATA ---
+    const API = 'https://de1.api.radio-browser.info/json/stations/search';
+    const fetchStations = async (type, genre) => {
+      const params = { limit: state.apiLimit, order: 'clickcount', reverse: 'true' };
 
-    // Update Player UI
-    updatePlayerUI(station);
-    
-    // Update Queue Info Text
-    if (queueTickerText) {
-        let list = source === 'search' ? currentStations : currentPlaylist;
-        if (list.length > 0) {
-            const pIdx = (index - 1 + list.length) % list.length;
-            const nIdx = (index + 1) % list.length;
-            const prevStationText = `⏮️ Prev: ${list[pIdx].name || 'Unknown'}`;
-            const nextStationText = `⏭️ Next: ${list[nIdx].name || 'Unknown'}`;
-            
-            queueTickerText.textContent = nextStationText;
-            queueTickerText.style.color = '#00FF33';
-            queueTickerText.style.textShadow = '0 0 5px #F7FF00, 1px 1px 2px #F7FF00';
-            showingNextInQueue = true;
-            
-            clearInterval(queueTickerInterval);
-            queueTickerInterval = setInterval(() => {
-                queueTickerText.style.opacity = '0';
-                setTimeout(() => {
-                    if (showingNextInQueue) {
-                        queueTickerText.textContent = prevStationText;
-                        queueTickerText.style.color = '#FFFF00';
-                        queueTickerText.style.textShadow = '0 0 5px #000000, 1px 1px 2px #000000';
-                    } else {
-                        queueTickerText.textContent = nextStationText;
-                        queueTickerText.style.color = '#00FF33';
-                        queueTickerText.style.textShadow = '0 0 5px #F7FF00, 1px 1px 2px #F7FF00';
-                    }
-                    queueTickerText.style.opacity = '1';
-                    showingNextInQueue = !showingNextInQueue;
-                }, 300);
-            }, 4000);
+      if (genre === 'us news') {
+        params.tag = 'news';
+        params.countrycode = 'US';
+      } else if (genre === 'bbc news') {
+        params.tag = 'news';
+        params.countrycode = 'GB';
+      } else if (genre !== 'all') {
+        params.tag = genre;
+      }
+
+      if (type === 'india') params.countrycode = 'IN';
+      else if (type === 'world') {
+        // Search globally if no specific country set by genre
+        if (!params.countrycode) {
+          // Optional: filter for some diverse world regions if desired
+          // params.countrycode = ['US', 'GB', 'DE', 'JP', 'BR'][Math.floor(Math.random() * 5)];
         }
-    }
-
-    // Load and Play
-    audioPlayer.src = station.url_resolved || station.url;
-    let autoPlayBlocked = false;
-    
-    audioPlayer.play().catch(e => {
-        console.warn('Auto-play failed, user interaction required.', e);
-        playerStatus.textContent = 'Click Play to start';
-        if (e.name === 'NotAllowedError') {
-            autoPlayBlocked = true;
-        }
-    });
-
-    // Auto skip if not playing within 4 seconds
-    clearTimeout(playCheckTimeout);
-    playCheckTimeout = setTimeout(() => {
-        if (autoPlayBlocked) return;
-        
-        if (audioPlayer.paused || audioPlayer.readyState === 0 || audioPlayer.error) {
-            console.log('Station failed to play within 4 seconds. Skipping to next...');
-            playerStatus.textContent = 'Failed, skipping...';
-            playNext();
-        }
-    }, 4000);
-
-    // Background Audio Support (Media Session)
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: station.name,
-            artist: station.country || 'FM Radio',
-            album: station.tags || 'Internet Radio',
-            artwork: [
-                { src: station.favicon || DEFAULT_LOGO, sizes: '200x200', type: 'image/png' }
-            ]
+      }
+      else if (type === 'local') {
+        if (!navigator.geolocation) return [];
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              fetch(`${API}?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&radius=100&limit=${state.apiLimit}&order=clickcount`)
+                .then(r => r.json()).then(resolve).catch(() => resolve([]));
+            },
+            () => resolve([])
+          );
         });
+      }
+      return fetch(`${API}?${new URLSearchParams(params)}`).then(r => r.json()).catch(() => []);
+    };
 
-        navigator.mediaSession.setActionHandler('play', () => audioPlayer.play());
-        navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
-        navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
-        navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
-        
-        navigator.mediaSession.playbackState = 'playing';
-    }
-
-    // Add active class
-    const items = document.querySelectorAll('.station-item');
-    items.forEach(item => item.classList.remove('active'));
-    
-    if (element) {
-        element.classList.add('active');
-    }
-}
-
-function updatePlayerUI(station) {
-    const name = station.name || 'Unknown Station';
-    const country = station.country || 'Global';
-    const tags = station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'Radio';
-    const img = station.favicon || DEFAULT_LOGO;
-
-    const defaultLogo = DEFAULT_LOGO;
-    const defaultMini = DEFAULT_LOGO;
-
-    currentStationName.textContent = name;
-    if (name.length > 35) {
-        currentStationName.classList.add('marquee-text');
-    } else {
-        currentStationName.classList.remove('marquee-text');
-    }
-    currentStationMeta.textContent = `${country} • ${tags}`;
-    
-    // Set up main image with timeout and error fallback
-    let mainImgLoaded = false;
-    currentStationImg.onload = () => { mainImgLoaded = true; };
-    currentStationImg.onerror = () => { currentStationImg.src = defaultLogo; };
-    currentStationImg.src = img;
-    setTimeout(() => {
-        if (!mainImgLoaded && currentStationImg.src === img) {
-            currentStationImg.src = defaultLogo;
-        }
-    }, 2500); // 2.5 seconds timeout
-    
-    playerStatus.textContent = 'Loading...';
-}
-
-function togglePlay() {
-    if (audioPlayer.paused) {
-        audioPlayer.play();
-    } else {
-        audioPlayer.pause();
-    }
-    // Double check icon (already handled by event listeners, but for responsiveness)
-    setTimeout(() => {
-        const iconName = audioPlayer.paused ? 'play' : 'pause';
-        playPauseBtn.innerHTML = `<i data-lucide="${iconName}" id="play-icon"></i>`;
-        lucide.createIcons();
-    }, 50);
-}
-
-function playNext() {
-    if (currentStations.length === 0) return;
-    currentStationIndex = (currentStationIndex + 1) % currentStations.length;
-    playStation(currentStationIndex, 'search');
-}
-
-function playPrevious() {
-    if (currentStations.length === 0) return;
-    currentStationIndex = (currentStationIndex - 1 + currentStations.length) % currentStations.length;
-    playStation(currentStationIndex, 'search');
-}
-
-// Volume Controls
-function updateVolume(value) {
-    let volume = value / 100;
-    volumeSlider.value = value;
-    
-    // Apply Boosts based on active features
-    if (isVolBoostEnabled) {
-        volume = 1.0;
-    } else {
-        if (isHDEQEnabled) volume = Math.min(1.0, volume * 1.25);
-        if (isDJBoostEnabled) volume = Math.min(1.0, volume * 1.5);
-    }
-    
-    audioPlayer.volume = volume;
-    
-    let volIconName = 'volume-2';
-    if (volume === 0) {
-        volIconName = 'volume-x';
-    } else if (volume < 0.5) {
-        volIconName = 'volume-1';
-    }
-    
-    const muteBtnElement = document.getElementById('mute-btn');
-    if (muteBtnElement) {
-        muteBtnElement.innerHTML = `<i data-lucide="${volIconName}" id="volume-icon"></i>`;
-        lucide.createIcons();
-    }
-    
-    if (volume > 0) {
-        lastVolume = value;
-        isMuted = false;
-    }
-}
-
-function toggleMute() {
-    if (isMuted) {
-        updateVolume(lastVolume);
-    } else {
-        lastVolume = volumeSlider.value;
-        updateVolume(0);
-        isMuted = true;
-    }
-}
-
-// Playlist Logic
-function addToPlaylist(station) {
-    if (currentPlaylist.some(s => s.stationuuid === station.stationuuid)) {
-        alert('Station already in playlist!');
+    // --- UI RENDERING ---
+    const renderStations = () => {
+      const list = document.getElementById('station-list');
+      if (state.filtered.length === 0) {
+        list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted)">No stations found. Try scanning or changing genre.</p>';
         return;
+      }
+      list.innerHTML = state.filtered.map((s, i) => `
+        <div class="station-card ${i === state.currentIndex ? 'playing' : ''}" data-index="${i}">
+          <div class="station-logo" style="position: relative;">
+            ${(s.country || s.countrycode) ? `<div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.55rem; text-align: center; padding: 2px 0; z-index: 2; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.country || s.countrycode}</div>` : ''}
+            ${(s.favicon && s.favicon !== 'null')
+          ? `<img src="${s.favicon}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><i style="display:none;">📻</i>`
+          : '<i>📻</i>'}
+          </div>
+          <div class="station-info">
+            <h3>${s.name}</h3>
+            <p>${s.countrycode || 'World'} • ${s.tags || 'General'}</p>
+          </div>
+        </div>
+      `).join('');
+      document.querySelectorAll('.station-card').forEach(card => {
+        card.onclick = () => playIndex(parseInt(card.dataset.index));
+      });
+    };
+
+    const playIndex = async (idx, isFromScan = false) => {
+      if (!isFromScan && state.isScanning) stopScan();
+      if (idx < 0 || idx >= state.filtered.length) return;
+      initAudio();
+      state.currentIndex = idx;
+      const station = state.filtered[idx];
+      audio.src = station.url_resolved || station.url;
+      audio.play().then(() => {
+        state.isPlaying = true;
+        updateUI();
+        autoSave(station);
+      }).catch(e => {
+        document.getElementById('status-msg').textContent = '⚠️ Stream failed or blocked by browser security';
+        console.error(e);
+      });
+    };
+
+    const autoSave = (station) => {
+      const exists = state.savedStations.find(s => s.stationuuid === station.stationuuid);
+      if (!exists) {
+        state.savedStations.push(station);
+        localStorage.setItem('savedStations', JSON.stringify(state.savedStations));
+        document.getElementById('status-msg').textContent = `✅ Auto-saved "${station.name}"`;
+      }
+    };
+
+    // --- STATION TICKER ---
+    let tickerInterval = null;
+    let tickerPhase = 'prev'; // 'prev' | 'next'
+
+    function getTickerStationName(phase) {
+      const total = state.filtered.length;
+      if (total === 0) return '—';
+      const idx = state.currentIndex;
+      if (phase === 'prev') {
+        const pi = idx > 0 ? idx - 1 : total - 1;
+        return state.filtered[pi]?.name || '—';
+      } else {
+        const ni = idx < total - 1 ? idx + 1 : 0;
+        return state.filtered[ni]?.name || '—';
+      }
     }
-    currentPlaylist.push(station);
-    savePlaylist();
-    renderPlaylist();
-}
 
-function addToPlaylistById(uuid) {
-    const station = currentStations.find(s => s.stationuuid === uuid);
-    if (station) {
-        addToPlaylist(station);
+    function setTickerContent(phase) {
+      const badge = document.getElementById('ticker-badge');
+      const label = document.getElementById('ticker-label');
+      const name = getTickerStationName(phase);
+      badge.className = `ticker-badge ${phase}`;
+      badge.textContent = phase === 'prev' ? '⏮ PREV' : '⏭ NEXT';
+      label.className = `prev-color fade-in`;
+      if (phase === 'next') label.className = 'next-color fade-in';
+      label.textContent = name;
     }
-}
 
-function removeFromPlaylist(index) {
-    currentPlaylist.splice(index, 1);
-    savePlaylist();
-    renderPlaylist();
-}
+    function tickerCycle() {
+      const label = document.getElementById('ticker-label');
+      // Fade out
+      label.classList.remove('fade-in');
+      label.classList.add('fade-out');
+      setTimeout(() => {
+        tickerPhase = tickerPhase === 'prev' ? 'next' : 'prev';
+        setTickerContent(tickerPhase);
+        label.classList.remove('fade-out');
+        label.classList.add('fade-in');
+      }, 420);
+    }
 
-function savePlaylist() {
-    localStorage.setItem('fm_playlist', JSON.stringify(currentPlaylist));
-}
+    function startTicker() {
+      if (tickerInterval) return; // already running
+      tickerPhase = 'prev';
+      setTickerContent('prev');
+      document.getElementById('station-ticker').classList.add('visible');
+      tickerInterval = setInterval(tickerCycle, 5000); // Run more slowly
+    }
 
-function updateActiveCat(label) {
-    catButtons.forEach(btn => {
-        if (btn.textContent === label) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
+    function stopTicker() {
+      if (tickerInterval) { clearInterval(tickerInterval); tickerInterval = null; }
+      document.getElementById('station-ticker').classList.remove('visible');
+    }
+
+    const updateUI = () => {
+      const playBtn = document.getElementById('play-btn');
+      playBtn.textContent = state.isPlaying ? '⏸' : '▶';
+      playBtn.classList.remove('state-play', 'state-pause');
+      playBtn.classList.add(state.isPlaying ? 'state-pause' : 'state-play');
+
+      const station = state.filtered[state.currentIndex] || {};
+      const titleEl = document.getElementById('np-title');
+      const text = station.name || 'No Station Selected';
+      let infoStr = '';
+      if (station.name) {
+        let parts = [];
+        if (station.tags) {
+          const mainTag = station.tags.split(',')[0].trim();
+          if (mainTag) parts.push(mainTag);
         }
+        if (station.bitrate && station.bitrate > 0) {
+          parts.push(`${station.bitrate} kbps`);
+        }
+        if (station.countrycode || station.country) {
+          parts.push(station.countrycode || station.country);
+        }
+        if (parts.length > 0) {
+          infoStr = ` <span style="font-size: 0.8em; opacity: 0.7; font-weight: normal;">(${parts.join(' • ')})</span>`;
+        }
+      }
+      titleEl.innerHTML = `<span>${text}${infoStr}</span>`;
+      titleEl.classList.remove('marquee-active');
+      requestAnimationFrame(() => {
+        const span = titleEl.querySelector('span');
+        if (span && span.scrollWidth > titleEl.clientWidth) {
+          titleEl.classList.add('marquee-active');
+        }
+      });
+
+      const logoImg = document.getElementById('np-logo');
+      const logoFallback = document.getElementById('np-logo-fallback');
+      if (station.favicon && station.favicon !== 'null') {
+        logoImg.src = station.favicon;
+        logoImg.style.display = 'block';
+        logoFallback.style.display = 'none';
+      } else {
+        logoImg.style.display = 'none';
+        logoFallback.style.display = 'block';
+      }
+
+      const npCountry = document.getElementById('np-country');
+      if (npCountry) {
+        const cName = station.country || station.countrycode;
+        if (cName) {
+          npCountry.textContent = cName;
+          npCountry.style.display = 'block';
+        } else {
+          npCountry.style.display = 'none';
+        }
+      }
+
+      const progressWrap = document.getElementById('progress-wrap');
+      if (station.isLocal) {
+        progressWrap.style.display = 'flex';
+      } else {
+        progressWrap.style.display = 'none';
+      }
+
+      // Update ticker when a station changes (re-seed with fresh prev/next names)
+      if (state.isPlaying && state.currentIndex >= 0) {
+        if (tickerInterval) {
+          // Already running — reset phase so names refresh immediately
+          clearInterval(tickerInterval);
+          tickerInterval = null;
+          tickerPhase = 'prev';
+          setTickerContent('prev');
+          tickerInterval = setInterval(tickerCycle, 5000); // Run more slowly
+        } else {
+          startTicker();
+        }
+      } else {
+        stopTicker();
+      }
+
+      renderStations();
+    };
+
+    // --- EVENT LISTENERS ---
+
+    const syncActiveUI = () => {
+      // Sync Tabs
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === state.tab);
+      });
+      document.querySelectorAll('.min-tab-btn').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === state.tab);
+      });
+      // Sync Minimized Tab Radio Buttons
+      document.querySelectorAll('.min-tab-radio').forEach(r => {
+        r.checked = (r.dataset.tab === state.tab);
+      });
+
+      // Sync Genres
+      document.querySelectorAll('.chip, .min-genre-btn').forEach(c => {
+        c.classList.toggle('active', c.dataset.genre === state.genre);
+      });
+
+      // Sync Audio Mode Button
+      const modeBtn = document.getElementById('audio-mode-btn');
+      if (modeBtn) {
+        if (state.hdMode) {
+          modeBtn.textContent = '🎧 HD Stereo';
+          modeBtn.style.borderColor = '#ff00ff';
+          modeBtn.style.color = '#ff00ff';
+        } else if (state.beatMode) {
+          modeBtn.textContent = '🥁 Beat Boost';
+          modeBtn.style.borderColor = '#ff9900';
+          modeBtn.style.color = '#00e5ff';
+        } else if (state.djMode) {
+          modeBtn.textContent = '🎛️ DJ Mode';
+          modeBtn.style.borderColor = '#00e5ff';
+          modeBtn.style.color = '#00e5ff';
+        } else {
+          modeBtn.textContent = '🎚️ Normal';
+          modeBtn.style.borderColor = '#888';
+          modeBtn.style.color = '#888';
+        }
+      }
+
+      // Toggle local tab class on body
+      document.body.classList.toggle('tab-local', state.tab === 'local');
+
+      // Ensure genres match current tab
+      renderGenres();
+    };
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = async () => {
+        state.tab = tab.dataset.tab;
+        state.genre = 'all'; // Reset genre on tab change
+        syncActiveUI();
+        document.getElementById('status-msg').textContent = '🔄 Loading stations...';
+        state.stations = await fetchStations(state.tab, state.genre);
+        state.filtered = state.stations;
+        renderStations();
+        document.getElementById('status-msg').textContent = 'Loaded';
+      };
     });
-}
 
-// Theme Functions
-function toggleTheme() {
-    const isLight = document.body.getAttribute('data-theme') === 'light';
-    const newTheme = isLight ? 'dark' : 'light';
-    setTheme(newTheme);
-}
+    const renderGenres = () => {
+      const bar = document.getElementById('genre-bar');
+      const minBar = document.getElementById('genre-row-min');
+      const list = state.genres[state.tab] || state.genres['india'];
 
-function setTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('fm_theme', theme);
-    
-    if (theme === 'light') {
-        themeIcon.setAttribute('data-lucide', 'sun');
-    } else {
-        themeIcon.setAttribute('data-lucide', 'moon');
-    }
-    lucide.createIcons();
-}
+      const html = list.map(g => `
+        <button class="chip ${g.id === state.genre ? 'active' : ''}" data-genre="${g.id}">${g.label}</button>
+      `).join('');
 
-function loadTheme() {
-    const savedTheme = localStorage.getItem('fm_theme') || 'light';
-    setTheme(savedTheme);
-}
+      const minHtml = list.map(g => `
+        <button class="min-genre-btn chip ${g.id === state.genre ? 'active' : ''}" data-genre="${g.id}">${g.label.replace(/🌐\s?/, '')}</button>
+      `).join('');
 
-// HD/EQ Logic
-function toggleHDEQ() {
-    isHDEQEnabled = !isHDEQEnabled;
-    if (isHDEQEnabled) {
-        eqHdBtn.style.backgroundColor = 'var(--primary-color)';
-        eqHdBtn.style.color = '#fff';
-        playerStatus.textContent = 'HD/EQ Active';
-    } else {
-        eqHdBtn.style.backgroundColor = 'transparent';
-        eqHdBtn.style.color = 'inherit';
-        playerStatus.textContent = 'HD/EQ Disabled';
-    }
-    
-    updateVolume(volumeSlider.value);
-    
-    setTimeout(() => {
-        if (audioPlayer.paused) playerStatus.textContent = 'Paused';
-        else playerStatus.textContent = 'Playing';
-    }, 2000);
-}
+      bar.innerHTML = html;
+      minBar.innerHTML = minHtml;
 
-// DJ Boost Logic
-function toggleDJBoost() {
-    isDJBoostEnabled = !isDJBoostEnabled;
-    if (isDJBoostEnabled) {
-        djBoostBtn.style.backgroundColor = 'var(--accent-color)';
-        djBoostBtn.style.color = '#fff';
-        playerStatus.textContent = 'DJ/Beats Boost ON';
-    } else {
-        djBoostBtn.style.backgroundColor = 'transparent';
-        djBoostBtn.style.color = 'inherit';
-        playerStatus.textContent = 'DJ/Beats Boost OFF';
-    }
-    
-    updateVolume(volumeSlider.value);
-    
-    setTimeout(() => {
-        if (audioPlayer.paused) playerStatus.textContent = 'Paused';
-        else playerStatus.textContent = 'Playing';
-    }, 2000);
-}
+      // Re-attach listeners
+      bar.querySelectorAll('.chip').forEach(btn => {
+        btn.onclick = () => selectGenre(btn.dataset.genre);
+      });
+      minBar.querySelectorAll('.min-genre-btn').forEach(btn => {
+        btn.onclick = () => selectGenre(btn.dataset.genre);
+      });
+    };
 
-// Vol Boost Logic
-function toggleVolBoost(e) {
-    isVolBoostEnabled = e.target.checked;
-    if (isVolBoostEnabled) {
-        playerStatus.textContent = 'Volume Max Boost ON';
-    } else {
-        playerStatus.textContent = 'Volume Boost OFF';
-    }
-    
-    updateVolume(volumeSlider.value);
-    
-    setTimeout(() => {
-        if (audioPlayer.paused) playerStatus.textContent = 'Paused';
-        else playerStatus.textContent = 'Playing';
-    }, 2000);
-}
+    const selectGenre = async (genre) => {
+      state.genre = genre;
+      syncActiveUI();
+      renderGenres(); // update active state visually
 
-// Smart Auto Scan Logic
-function toggleSmartAutoScan() {
-    isSmartScanning = !isSmartScanning;
-    
-    if (isSmartScanning) {
-        smartAutoScanBtn.innerHTML = '<i data-lucide="stop-circle"></i><span>Stop Scan</span>';
-        smartAutoScanBtn.style.backgroundColor = 'var(--accent-color)';
-        smartAutoScanBtn.style.color = '#fff';
-        lucide.createIcons();
-        
-        if (currentStations.length === 0) {
-            alert('No stations in the current list to scan!');
-            toggleSmartAutoScan();
-            return;
+      if (state.tab === 'local_device') return; // Don't fetch genres for local device files
+
+      document.getElementById('status-msg').textContent = `🔄 Loading ${state.genre} stations...`;
+      state.stations = await fetchStations(state.tab, state.genre);
+      state.filtered = state.stations;
+      renderStations();
+      document.getElementById('status-msg').textContent = 'Loaded';
+    };
+
+    renderGenres();
+
+    // --- LOCAL DEVICE HANDLING ---
+    const localDeviceBtn = document.getElementById('local-device-btn');
+    const localDeviceInput = document.getElementById('local-device-input');
+
+    if (localDeviceBtn && localDeviceInput) {
+      localDeviceBtn.onclick = () => localDeviceInput.click();
+      localDeviceInput.onchange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+          handleLocalFiles(files);
         }
-        
-        if (currentStationIndex < 0) currentStationIndex = 0;
-        
-        playerStatus.textContent = 'Auto Scan Started...';
-        playSmartScanStation();
-    } else {
-        smartAutoScanBtn.innerHTML = '<i data-lucide="zap"></i><span>Auto Scan</span>';
-        smartAutoScanBtn.style.backgroundColor = '';
-        smartAutoScanBtn.style.color = 'var(--primary-color)';
-        lucide.createIcons();
-        
-        clearTimeout(smartScanTimeout);
-        clearTimeout(playCheckTimeout);
-        playerStatus.textContent = 'Auto Scan Stopped';
+      };
     }
-}
 
-function playSmartScanStation() {
-    if (!isSmartScanning) return;
-    
-    playStation(currentStationIndex, 'search');
-    
-    clearTimeout(playCheckTimeout);
-    clearTimeout(smartScanTimeout);
-    
-    // Check if station plays within 4 seconds
-    playCheckTimeout = setTimeout(() => {
-        if (!isSmartScanning) return;
+    function handleLocalFiles(files) {
+      state.tab = 'local_device';
+      state.genre = 'all';
+
+      const newStations = files.map((file, idx) => ({
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        url: URL.createObjectURL(file),
+        favicon: '', // No icon for local files
+        stationuuid: 'local-' + Date.now() + '-' + idx,
+        tags: 'Local Audio',
+        isLocal: true
+      }));
+
+      state.stations = newStations;
+      state.filtered = newStations;
+
+      syncActiveUI();
+      renderStations();
+      document.getElementById('status-msg').textContent = `Loaded ${files.length} local files`;
+
+      if (newStations.length > 0) {
+        playIndex(0);
+      }
+    }
+
+    document.getElementById('play-btn').onclick = () => {
+      if (state.isScanning) stopScan();
+      initAudio();
+      if (audio.paused && state.currentIndex >= 0) {
+        audio.play();
+        state.isPlaying = true;
+      } else if (!audio.paused) {
+        audio.pause();
+        state.isPlaying = false;
+      } else if (state.currentIndex === -1 && state.filtered.length > 0) {
+        playIndex(0);
+      }
+      updateUI();
+    };
+
+    document.getElementById('prev-btn').onclick = () => {
+      if (state.currentIndex > 0) playIndex(state.currentIndex - 1);
+      else if (state.filtered.length > 0) playIndex(state.filtered.length - 1);
+    };
+
+    document.getElementById('next-btn').onclick = () => {
+      if (state.currentIndex < state.filtered.length - 1) playIndex(state.currentIndex + 1);
+      else if (state.filtered.length > 0) playIndex(0);
+    };
+
+    document.getElementById('api-limit').addEventListener('change', (e) => {
+      state.apiLimit = parseInt(e.target.value) || 40;
+      localStorage.setItem('apiLimit', state.apiLimit);
+      document.getElementById('status-msg').textContent = '🔄 Loading stations...';
+      fetchStations(state.tab, state.genre, state.apiLimit).then(data => {
+        state.stations = data;
+        state.filtered = data;
+        renderStations();
+        document.getElementById('status-msg').textContent = 'Loaded';
+      });
+    });
+
+    const boostCheck = document.getElementById('boost-check');
+    boostCheck.checked = state.volumeBoost;
+    boostCheck.onchange = (e) => {
+      state.volumeBoost = e.target.checked;
+      if (gainNode) gainNode.gain.value = (state.muted ? 0 : state.volume) * (state.volumeBoost ? 2.0 : 1.0);
+      localStorage.setItem('volumeBoost', state.volumeBoost);
+    };
+
+    document.getElementById('vol-slider').oninput = (e) => {
+      state.volume = parseFloat(e.target.value);
+      if (gainNode) gainNode.gain.value = (state.muted ? 0 : state.volume) * (state.volumeBoost ? 2.0 : 1.0);
+      localStorage.setItem('radioVol', state.volume);
+    };
+
+    const progressSlider = document.getElementById('progress-slider');
+    const timeCurrent = document.getElementById('time-current');
+    const timeTotal = document.getElementById('time-total');
+    let isSeeking = false;
+
+    function formatTime(seconds) {
+      if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    audio.addEventListener('timeupdate', () => {
+      if (!isSeeking && audio.duration) {
+        progressSlider.value = (audio.currentTime / audio.duration) * 100;
+        timeCurrent.textContent = formatTime(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      timeTotal.textContent = formatTime(audio.duration);
+    });
+
+    progressSlider.addEventListener('input', (e) => {
+      isSeeking = true;
+      if (audio.duration) {
+        timeCurrent.textContent = formatTime((e.target.value / 100) * audio.duration);
+      }
+    });
+
+    progressSlider.addEventListener('change', (e) => {
+      if (audio.duration) {
+        audio.currentTime = (e.target.value / 100) * audio.duration;
+      }
+      isSeeking = false;
+    });
+
+    document.getElementById('mute-btn').onclick = () => {
+      state.muted = !state.muted;
+      if (gainNode) gainNode.gain.value = (state.muted ? 0 : state.volume) * (state.volumeBoost ? 2.0 : 1.0);
+      document.getElementById('mute-btn').textContent = state.muted ? '🔇' : '🔊';
+    };
+
+    // --- REGION TOGGLE BUTTON ---
+    const regionToggleBtn = document.getElementById('region-toggle-btn');
+    regionToggleBtn.onclick = async () => {
+      if (state.tab === 'india') {
+        state.tab = 'world';
+        regionToggleBtn.textContent = '🌍 World';
+        regionToggleBtn.style.borderColor = '#00e5ff';
+        regionToggleBtn.style.color = '#00e5ff';
+      } else {
+        state.tab = 'india';
+        regionToggleBtn.textContent = '🇮🇳 Indian FM';
+        regionToggleBtn.style.borderColor = 'var(--accent)';
+        regionToggleBtn.style.color = '#00e5ff';
+      }
+      state.genre = 'all';
+      syncActiveUI();
+      document.getElementById('status-msg').textContent = '🔄 Loading stations...';
+      state.stations = await fetchStations(state.tab, state.genre);
+      state.filtered = state.stations;
+      renderStations();
+      document.getElementById('status-msg').textContent = 'Loaded';
+    };
+
+    // --- AUDIO MODE CYCLE BUTTON ---
+    const audioModeBtn = document.getElementById('audio-mode-btn');
+    const modes = [
+      { label: '🎚️ Normal', beat: false, dj: false, hd: false, color: '#d9f505' },
+      { label: '🎧 HD Stereo', beat: false, dj: false, hd: true, color: '#ff00ff' },
+      { label: '🥁 Beat Boost', beat: true, dj: false, hd: false, color: '#4ae004' },
+      { label: '🎛️ DJ Mode', beat: false, dj: true, hd: false, color: '#00e5ff' }
+    ];
+    let currentMode = 0;
+
+    function applyAudioMode(idx) {
+      currentMode = idx;
+      const m = modes[idx];
+      state.beatMode = m.beat;
+      state.djMode = m.dj;
+      state.hdMode = m.hd;
+      state.fx.beat = m.beat;
+      state.fx.dj = m.dj;
+      state.fx.hd = m.hd;
+      audioModeBtn.textContent = m.label;
+      audioModeBtn.style.borderColor = m.color;
+      audioModeBtn.style.color = m.color;
+      applyFX();
+      localStorage.setItem('radioFx', JSON.stringify(state.fx));
+    }
+
+    if (audioModeBtn) {
+      // Restore saved mode
+      if (state.fx.hd) currentMode = 1;
+      else if (state.fx.beat) currentMode = 2;
+      else if (state.fx.dj) currentMode = 3;
+      applyAudioMode(currentMode);
+
+      audioModeBtn.onclick = () => applyAudioMode((currentMode + 1) % modes.length);
+    }
+
+
+    // --- THEME & MINIMIZE ENGINE ---
+    const themesList = ['digital', 'digital-blue', 'antygravity', 'white'];
+    const themeIcons = { 'digital': '📟', 'digital-blue': '📟', 'antygravity': '🛸', 'white': '⚪' };
+    const themeCycleBtn = document.getElementById('theme-cycle-btn');
+
+    function applyTheme(theme) {
+      if (!themesList.includes(theme)) theme = 'digital';
+      document.body.classList.remove('theme-digital', 'theme-digital-blue', 'theme-antygravity', 'theme-white');
+
+      if (theme.startsWith('digital') || theme === 'antygravity') {
+        document.body.classList.add('theme-digital');
+      }
+      document.body.classList.add(`theme-${theme}`);
+      state.theme = theme;
+      if (themeCycleBtn) {
+        themeCycleBtn.innerText = themeIcons[theme] || '📟';
+      }
+      localStorage.setItem('radioTheme', theme);
+    }
+
+    if (themeCycleBtn) {
+      themeCycleBtn.onclick = () => {
+        const currentIndex = themesList.indexOf(state.theme);
+        const nextTheme = themesList[(currentIndex + 1) % themesList.length];
+        applyTheme(nextTheme);
+      };
+    }
+
+
+
+    // Toggle station list visibility
+    const sectionTitleBtn = document.querySelector('.section-title');
+    sectionTitleBtn.onclick = () => {
+      const isHidden = document.getElementById('station-list').classList.toggle('hide-names');
+      sectionTitleBtn.textContent = isHidden ? 'Show List' : 'Hide List';
+    };
+
+    applyTheme(state.theme);
+    updateLED('stopped');
+    updateUI();
+
+    // Restore settings
+    const savedVol = localStorage.getItem('radioVol');
+    if (savedVol) {
+      state.volume = parseFloat(savedVol);
+      document.getElementById('vol-slider').value = state.volume;
+    }
+    if (state.fx.dj || state.fx.beat || state.fx.hd) {
+      state.djMode = state.fx.dj;
+      state.beatMode = state.fx.beat;
+      state.hdMode = state.fx.hd;
+      syncActiveUI();
+    }
+
+
+    // Drag to scroll functionality for genre rows
+    function makeScrollable(ele) {
+      if (!ele) return;
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+
+      ele.addEventListener('mousedown', (e) => {
+        isDown = true;
+        ele.style.cursor = 'grabbing';
+        startX = e.pageX - ele.offsetLeft;
+        scrollLeft = ele.scrollLeft;
+      });
+      ele.addEventListener('mouseleave', () => {
+        isDown = false;
+        ele.style.cursor = 'grab';
+      });
+      ele.addEventListener('mouseup', () => {
+        isDown = false;
+        ele.style.cursor = 'grab';
+      });
+      ele.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - ele.offsetLeft;
+        const walk = (x - startX) * 2; // scroll-fast
+        ele.scrollLeft = scrollLeft - walk;
+      });
+    }
+
+    makeScrollable(document.getElementById('genre-row-min'));
+    makeScrollable(document.getElementById('genre-bar'));
+
+    // Init with default tab (Indian FM)
+    document.getElementById('status-msg').textContent = '🔄 Loading Indian FM...';
+    fetchStations('india', 'all').then(data => {
+      state.stations = data;
+      state.filtered = data;
+      renderStations();
+      document.getElementById('status-msg').textContent = 'Loaded';
+    });
+    // --- SCAN FEATURE ---
+    let scanTimer = null;
+    let scanTimeout = null;
+
+    function stopScan() {
+      state.isScanning = false;
+      const scanBtn = document.getElementById('scan-btn');
+      if (scanBtn) {
+        scanBtn.textContent = 'SCAN';
+        scanBtn.style.background = 'var(--accent)';
+      }
+      clearTimeout(scanTimer);
+      clearTimeout(scanTimeout);
+    }
+
+    document.getElementById('scan-btn').onclick = () => {
+      if (state.isScanning) {
+        stopScan();
+      } else {
+        if (state.filtered.length === 0) return;
+        state.isScanning = true;
+        document.getElementById('scan-btn').textContent = 'STOP';
+        document.getElementById('scan-btn').style.background = 'var(--danger)';
         
-        if (audioPlayer.paused || audioPlayer.readyState < 3) {
-            // Failed or taking too long
-            playerStatus.textContent = 'Skipping unresponsive station...';
-            currentStationIndex = (currentStationIndex + 1) % currentStations.length;
-            playSmartScanStation();
-        } else {
-            // Playing successfully, schedule next change in 6 seconds (Total 10s)
-            smartScanTimeout = setTimeout(() => {
-                if (!isSmartScanning) return;
-                currentStationIndex = (currentStationIndex + 1) % currentStations.length;
-                playSmartScanStation();
-            }, 6000);
-        }
-    }, 4000);
-}
+        let startIdx = state.currentIndex >= 0 ? state.currentIndex : 0;
+        playScanIndex(startIdx);
+      }
+    };
 
-// Start App
-init();
+    function playScanIndex(idx) {
+      if (!state.isScanning) return;
+      clearTimeout(scanTimer);
+      clearTimeout(scanTimeout);
+      
+      if (idx >= state.filtered.length) {
+        stopScan(); // Done scanning
+        return;
+      }
+      
+      playIndex(idx, true); // true = isFromScan
+      
+      // Wait 4 seconds to see if it starts playing. If not, skip to next.
+      scanTimeout = setTimeout(() => {
+        if (!state.isPlaying || audio.paused || audio.readyState === 0) {
+          playScanIndex(idx + 1);
+        }
+      }, 4000);
+      
+      // Allow playing for 10 seconds total, then move to next
+      scanTimer = setTimeout(() => {
+        playScanIndex(idx + 1);
+      }, 10000);
+    }
