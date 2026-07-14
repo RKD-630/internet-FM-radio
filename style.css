@@ -20,6 +20,11 @@
     --card-hover: rgba(0, 0, 0, 0.04);
 }
 
+[data-theme="light"] #queue-ticker-text {
+    color: darkgreen !important;
+    text-shadow: none !important;
+}
+
 * {
     margin: 0;
     padding: 0;

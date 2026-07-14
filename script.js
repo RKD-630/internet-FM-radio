@@ -21,6 +21,8 @@ let showingNextInQueue = true;
 let lastQuery = '';
 let lastCountry = '';
 let lastTag = '';
+let lastState = '';
+let lastLanguage = '';
 
 // DOM Elements
 const audioPlayer = document.getElementById('audio-player');
@@ -143,7 +145,7 @@ function setupEventListeners() {
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
-            fetchStations(lastQuery, lastCountry, lastTag);
+            fetchStations(lastQuery, lastCountry, lastTag, lastState, lastLanguage);
         });
     }
 
@@ -283,6 +285,8 @@ async function fetchStations(query = '', country = '', tag = '', state = '', lan
     lastQuery = query;
     lastCountry = country;
     lastTag = tag;
+    lastState = state;
+    lastLanguage = language;
     
     mainLoader.style.display = 'flex';
     stationsGrid.innerHTML = '';

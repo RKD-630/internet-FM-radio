@@ -7,7 +7,11 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-    // Basic pass-through fetch handler
-    // Required to be recognized as a PWA
+    // Skip cross-origin requests, especially audio streams and APIs
+    if (!event.request.url.startsWith(self.location.origin)) {
+        return;
+    }
+    
+    // Basic pass-through fetch handler for same-origin (required for PWA)
     event.respondWith(fetch(event.request).catch(() => new Response('Network error')));
 });
