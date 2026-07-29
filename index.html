@@ -28,13 +28,7 @@
                 <i data-lucide="radio"></i>
                 <span>Global FM</span>
             </div>
-            <div class="search-bar">
-                <input type="text" id="station-search" placeholder="Search stations (country, name, tag)...">
-                <button id="search-btn" class="primary-btn" title="Search">
-                    <i data-lucide="search"></i>
-                    <span>Search</span>
-                </button>
-            </div>
+
             <div style="display: flex; gap: 0.5rem;">
                 <button id="fullscreen-btn" class="icon-btn theme-btn" title="Toggle Fullscreen">
                     <i data-lucide="maximize" id="fullscreen-icon"></i>
@@ -49,67 +43,25 @@
         </header>
 
         <nav class="main-tabs glass" id="main-tabs">
-            <button class="tab-btn active" data-tab="discovery">
-                <i data-lucide="search"></i>
-                <span>Discovery</span>
-            </button>
-            <button class="tab-btn action-btn" id="smart-auto-scan-btn" style="color: var(--primary-color); font-weight: bold;">
-                <i data-lucide="zap"></i>
-                <span>Auto Scan</span>
+            <button class="tab-btn action-btn cat-btn active" data-tag="bhakti" style="color: var(--primary-color); font-weight: bold;">
+                <i data-lucide="radio"></i>
+                <span>Bhakti</span>
             </button>
             <button class="tab-btn" data-tab="playlist">
                 <i data-lucide="list-music"></i>
                 <span>Playlist</span>
             </button>
-            <button class="tab-btn" data-tab="scanner">
-                <i data-lucide="radio"></i>
-                <span>FM Scanner</span>
-            </button>
+            <div class="search-bar main-search-bar">
+                <input type="text" id="station-search" placeholder="Search stations...">
+                <button id="search-btn" class="primary-btn" title="Search">
+                    <i data-lucide="search"></i>
+                </button>
+            </div>
         </nav>
 
         <main>
         <div id="discovery-view">
-            <nav class="category-nav glass" id="categories-bar">
-                <button id="mode-toggle-btn" class="india-active" style="margin-right:1rem; flex-shrink:0; border-radius: 20px; padding: 0.5rem 1rem;">
-                    <i data-lucide="repeat"></i>
-                    <span id="mode-toggle-text">Mode: India</span>
-                </button>
-                <div class="cat-scroll" id="india-cats" style="display: flex;">
-                    <button class="cat-btn active" data-tag="">All</button>
-                    <button class="cat-btn" data-tag="hindi">Hindi</button>
-                    <button class="cat-btn" data-tag="bhakti">Bhakti</button>
-                    <button class="cat-btn" data-tag="news">News</button>
-                    <button class="cat-btn" data-tag="bangla">Bangla</button>
-                    <button class="cat-btn" data-tag="punjabi">Punjabi</button>
-                    <button class="cat-btn" data-tag="bihar">Bihar</button>
-                    <button class="cat-btn" data-tag="bhojpuri">Bhojpuri</button>
-                    <button class="cat-btn" data-tag="music">Music</button>
-                    <button class="cat-btn" data-tag="dj remix">DJ - Remix</button>
-                    <button class="cat-btn" data-tag="tamil">Tamil</button>
-                    <button class="cat-btn" data-tag="kannad">Kannad</button>
-                </div>
-                <div class="cat-scroll" id="global-cats" style="display: none;">
-                    <button class="cat-btn active" data-tag="">All</button>
-                    <button class="cat-btn" data-tag="australia news">Australia NEWS</button>
-                    <button class="cat-btn" data-tag="euro news">Euro NEWS</button>
-                    <button class="cat-btn" data-tag="bbc news">BBC NEWS</button>
-                    <button class="cat-btn" data-tag="us news">US NEWS</button>
-                    <button class="cat-btn" data-tag="world news">World News</button>
-                    <button class="cat-btn" data-tag="russian news">Russian NEWS</button>
-                    <button class="cat-btn" data-tag="france news">France NEWS</button>
-                    <button class="cat-btn" data-tag="pop">Pop</button>
-                    <button class="cat-btn" data-tag="rock">Rock</button>
-                    <button class="cat-btn" data-tag="jazz">Jazz</button>
-                    <button class="cat-btn" data-tag="classical">Classical</button>
-                    <button class="cat-btn" data-tag="hip hop">Hip Hop</button>
-                    <button class="cat-btn" data-tag="electronic">Electronic</button>
-                    <button class="cat-btn" data-tag="ambient">Ambient</button>
-                    <button class="cat-btn" data-tag="dance music">Dance Music</button>
-                    <button class="cat-btn" data-tag="educational">Educational</button>
-                    <button class="cat-btn" data-tag="sports">Sports</button>
-                    <button class="cat-btn" data-tag="talk">Talk</button>
-                </div>
-            </nav>
+
 
             <section class="hero-section">
                 <div class="now-playing-card glass">
@@ -130,24 +82,7 @@
                         </div>
                     </div>
 
-                    <div class="banner-right">
-                        <div class="equalizer-container">
-                            <div class="colorful-equalizer" id="banner-equalizer">
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
 
                 <div class="volume-controls glass" style="margin: 1.5rem auto 0 auto; padding: 1rem 1.5rem; border-radius: 16px; display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 900px;">
@@ -175,7 +110,7 @@
             </section>
 
             <section class="content-grid" id="discovery-grid">
-                <div class="stations-column">
+                <div class="stations-column" style="display: none;">
                     <div class="section-header">
                         <h2>Discovered Stations</h2>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -185,13 +120,13 @@
                     </div>
                     <div id="stations-grid" class="stations-list">
                         <!-- Stations will be injected here -->
-                        <div class="loader-container" id="main-loader" style="display: none;">
-                            <div class="loader"></div>
-                        </div>
+                    </div>
+                    <div class="loader-container" id="main-loader" style="display: none;">
+                        <div class="loader"></div>
                     </div>
                 </div>
 
-                <aside class="playlist-column desktop-playlist">
+                <aside class="playlist-column desktop-playlist" style="display: none;">
                     <div class="section-header">
                         <h2>Quick Playlist</h2>
                     </div>
@@ -241,8 +176,8 @@
                     <p>Tune into a specific frequency and add your favorite stations manually.</p>
                 </div>
                 
-                <div class="scanner-layout">
-                    <div class="tuner-column">
+                <div class="scanner-layout" style="justify-content: center;">
+                    <div class="tuner-column" style="width: 100%; max-width: 600px;">
                         <div class="frequency-display">
                             <span id="freq-value">91.1</span>
                             <span class="unit">MHz</span>
@@ -256,38 +191,11 @@
                                 <span></span><span></span><span></span><span></span><span></span>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-column glass">
-                        <h3>Add New Station</h3>
-                        <div class="input-group">
-                            <label>Station Name</label>
-                            <input type="text" id="custom-name" placeholder="e.g. My Favorite FM">
-                        </div>
-                        <div class="input-group">
-                            <label>Stream URL (m3u8, mp3, etc.)</label>
-                            <input type="text" id="custom-url" placeholder="https://...">
-                        </div>
-                        <div class="input-group">
-                            <label>Logo/Favicon URL (Optional)</label>
-                            <input type="text" id="custom-icon" placeholder="https://...">
-                        </div>
-                        <div class="scanner-actions">
-                            <button id="add-custom-btn" class="primary-btn">
-                                <i data-lucide="plus"></i>
-                                Add to My Radio
+                        <div class="scanner-actions" style="margin-top: 2rem; display: flex; justify-content: center;">
+                            <button id="tune-in-btn" class="primary-btn" style="width: 100%; justify-content: center; font-size: 1.2rem; padding: 15px;">
+                                <i data-lucide="radio"></i>
+                                Tune Station
                             </button>
-                            <div class="divider"><span>OR</span></div>
-                            <div class="scanner-auto-actions">
-                                <button id="auto-scan-btn" class="accent-btn">
-                                    <i data-lucide="zap"></i>
-                                    Auto Scan Frequencies
-                                </button>
-                                <button id="save-all-btn" class="secondary-btn" style="display: none;">
-                                    <i data-lucide="save"></i>
-                                    Save All Discovered
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -317,6 +225,54 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        // --- Interactive UI Enhancements ---
+        
+        // 1. Mouse-following Blobs
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            const blob1 = document.querySelector('.blob-1');
+            const blob2 = document.querySelector('.blob-2');
+            
+            // Subtle parallax effect based on mouse position
+            if (blob1 && blob2) {
+                const moveX1 = (x - window.innerWidth / 2) * 0.05;
+                const moveY1 = (y - window.innerHeight / 2) * 0.05;
+                blob1.style.transform = `translate(${moveX1}px, ${moveY1}px)`;
+                
+                const moveX2 = (x - window.innerWidth / 2) * -0.05;
+                const moveY2 = (y - window.innerHeight / 2) * -0.05;
+                blob2.style.transform = `translate(${moveX2}px, ${moveY2}px)`;
+            }
+        });
+
+        // 2. Ripple Effect on Clicks
+        document.addEventListener('mousedown', function (e) {
+            let target = e.target.closest('button, .station-item, .cat-btn');
+            if (target) {
+                let ripple = document.createElement('span');
+                ripple.classList.add('ripple-effect');
+                let rect = target.getBoundingClientRect();
+                let size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = e.clientX - rect.left - size / 2 + 'px';
+                ripple.style.top = e.clientY - rect.top - size / 2 + 'px';
+                
+                // Ensure target can contain the ripple
+                if (window.getComputedStyle(target).position === 'static') {
+                    target.style.position = 'relative';
+                }
+                target.style.overflow = 'hidden';
+                
+                target.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+        });
     </script>
 </body>
 </html>
