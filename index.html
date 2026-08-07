@@ -1,278 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    <title>Global FM | Internet Radio Discovery</title>
-    <meta name="description" content="Discover and stream world FM internet stations with Global FM. Rapidly scan, play, and save your favorite stations.">
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <link rel="stylesheet" href="style.css">
-</head>
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0c1116" />
+<title>SENTRYCAM — Web IP Camera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="style.css" /></head>
 <body>
-    <div class="app-container">
-        <!-- Background elements for visual flair -->
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        
-        <header>
-            <div class="logo">
-                <i data-lucide="radio"></i>
-                <span>Global FM</span>
-            </div>
 
-            <div style="display: flex; gap: 0.5rem;">
-                <button id="fullscreen-btn" class="icon-btn theme-btn" title="Toggle Fullscreen">
-                    <i data-lucide="maximize" id="fullscreen-icon"></i>
-                </button>
-                <button id="refresh-btn" class="icon-btn theme-btn" title="Reload Stations">
-                    <i data-lucide="refresh-cw"></i>
-                </button>
-                <button id="theme-toggle" class="icon-btn theme-btn" title="Toggle Light/Dark Mode">
-                    <i data-lucide="moon" id="theme-icon"></i>
-                </button>
-            </div>
-        </header>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><circle cx="15" cy="8.5" r=".8" fill="currentColor"/></svg>
+    </div>
+    <div>
+      <h1>SENTRYCAM</h1>
+      <small>WEB IP CAMERA · REMOTE VIEW</small>
+    </div>
+  </div>
+  <div class="leds">
+    <span class="led-item"><i class="led led-green" id="ledCam"></i>CAM</span>
+    <span class="led-item"><i class="led led-red" id="ledRec"></i>REC</span>
+    <span class="led-item"><i class="led led-amber" id="ledLink"></i>LINK</span>
+  </div>
+  <div class="clock"><b id="clockTime">--:--:--</b><span id="clockDate"></span></div>
+</header>
 
-        <nav class="main-tabs glass" id="main-tabs">
-            <button class="tab-btn action-btn cat-btn active" data-tag="bhakti" style="color: var(--primary-color); font-weight: bold;">
-                <i data-lucide="radio"></i>
-                <span>Bhakti</span>
-            </button>
-            <button class="tab-btn" data-tab="playlist">
-                <i data-lucide="list-music"></i>
-                <span>Playlist</span>
-            </button>
-            <div class="search-bar main-search-bar">
-                <input type="text" id="station-search" placeholder="Search stations...">
-                <button id="search-btn" class="primary-btn" title="Search">
-                    <i data-lucide="search"></i>
-                </button>
-            </div>
-        </nav>
-
-        <main>
-        <div id="discovery-view">
-
-
-            <section class="hero-section">
-                <div class="now-playing-card glass">
-                    <div class="station-visual">
-                        <img id="current-station-info-img" src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%93%BB%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Station Logo" style="cursor: pointer;" title="Add to Playlist">
-                    </div>
-                    <div class="station-details">
-                        <span class="status-badge" id="player-status">Ready</span>
-                        <h1 id="current-station-name" style="font-size: 3.5rem; line-height: 1.1; margin: 10px 0; padding-bottom: 10px;">Choose a Station</h1>
-                        <p id="current-station-meta">Select a station to start broadcasting</p>
-                        <div class="station-actions" style="display: none;">
-                            <button id="add-to-playlist-btn" class="secondary-btn">
-                                <i data-lucide="plus-circle"></i>
-                            </button>
-                        </div>
-                        <div id="queue-text-info" style="display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--text-secondary); max-width: 100%; overflow: hidden; margin-top: 15px; width: 100%;">
-                            <span id="queue-ticker-text" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; font-weight: bold; transition: opacity 0.3s ease; letter-spacing: 0.5px; text-shadow: 2px 2px 4px #000000, 0px 0px 10px #000000;">--</span>
-                        </div>
-                    </div>
-
-
-                </div>
-
-                <div class="volume-controls glass" style="margin: 1.5rem auto 0 auto; padding: 1rem 1.5rem; border-radius: 16px; display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 900px;">
-                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                        <button id="eq-hd-btn" class="control-btn" title="Toggle HD Quality & Bass/Treble" style="border: 1px solid var(--primary-color); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; font-weight: bold; background: transparent; color: inherit;">
-                            HD / EQ
-                        </button>
-                        <button id="dj-boost-btn" class="control-btn" title="Toggle DJ / Beats Boost" style="border: 1px solid var(--accent-color); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; font-weight: bold; background: transparent; color: inherit;">
-                            DJ Boost
-                        </button>
-                        <div class="vol-boost-check" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold;">
-                            <input type="checkbox" id="vol-boost-check" style="width: 16px; height: 16px; accent-color: var(--primary-color);">
-                            <label for="vol-boost-check" style="cursor: pointer;">Vol Boost</label>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
-                        <button id="mute-btn" class="control-btn" title="Mute/Unmute">
-                            <i data-lucide="volume-2" id="volume-icon"></i>
-                        </button>
-                        <div class="volume-slider-container" style="flex-grow: 1; display: flex; align-items: center;">
-                            <input type="range" id="volume-slider" min="0" max="100" value="80" style="width: 100%;">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="content-grid" id="discovery-grid">
-                <div class="stations-column" style="display: none;">
-                    <div class="section-header">
-                        <h2>Discovered Stations</h2>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span id="results-count">0 stations found</span>
-                            <button class="icon-btn" onclick="toggleBothSections(this)" title="Toggle Stations & Playlist" style="border: 1px solid var(--glass-border); background: var(--glass-bg);"><i data-lucide="chevron-down"></i></button>
-                        </div>
-                    </div>
-                    <div id="stations-grid" class="stations-list">
-                        <!-- Stations will be injected here -->
-                    </div>
-                    <div class="loader-container" id="main-loader" style="display: none;">
-                        <div class="loader"></div>
-                    </div>
-                </div>
-
-                <aside class="playlist-column desktop-playlist" style="display: none;">
-                    <div class="section-header">
-                        <h2>Quick Playlist</h2>
-                    </div>
-                    <div id="quick-playlist-list" class="stations-list">
-                        <!-- Playlist items will be injected here -->
-                    </div>
-                </aside>
-            </section>
+<main class="layout">
+  <!-- ===== VIEWFINDER + CONTROLS ===== -->
+  <section>
+    <div class="stage" id="stage">
+      <video id="video" playsinline="" autoplay="" muted=""></video>
+      <div class="scanfx"></div>
+      <div class="gridfx" id="gridfx"></div>
+      <span class="corner c-tl"></span><span class="corner c-tr"></span><span class="corner c-bl"></span><span class="corner c-br"></span>
+      <div class="cross"></div>
+      <div class="hud">
+        <div class="hud-tl" id="hudCam">CAM 01 · STANDBY</div>
+        <div class="hud-rec"><i></i><span id="recTime">REC 00:00</span></div>
+        <div class="hud-bl" id="hudTime">—</div>
+        <div class="hud-br" id="hudSpec">— × —</div>
+      </div>
+      <div class="flash" id="flash"></div>
+      <div class="idle">
+        <div class="bars"></div><div class="noise"></div>
+        <div class="idle-content">
+          <div class="nosignal">NO SIGNAL</div>
+          <p>Feed processed <b>100% locally</b> in your browser · nothing is uploaded</p>
+          <button class="btn btn-big" id="btnEnable">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10.5 22 7v10l-6-3.5"/></svg>
+            ENABLE CAMERA
+          </button>
         </div>
-
-        <script>
-            function toggleBothSections(btn) {
-                const stations = document.getElementById('stations-grid');
-                const playlist = document.getElementById('quick-playlist-list');
-                
-                if (stations.style.display === 'none') {
-                    stations.style.display = 'flex';
-                    playlist.style.display = 'flex';
-                    btn.innerHTML = '<i data-lucide="chevron-down"></i>';
-                } else {
-                    stations.style.display = 'none';
-                    playlist.style.display = 'none';
-                    btn.innerHTML = '<i data-lucide="chevron-up"></i>';
-                }
-                
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-            }
-        </script>
-
-        <div id="playlist-view" style="display: none;">
-            <section class="content-grid-single">
-                <div class="section-header">
-                    <h2>Your Full Playlist</h2>
-                </div>
-                <div id="full-playlist-list" class="stations-list">
-                    <!-- Playlist will be here -->
-                </div>
-            </section>
-        </div>
-
-        <div id="scanner-view" style="display: none;">
-            <section class="scanner-container glass">
-                <div class="scanner-header">
-                    <h2>Manual FM Scanner</h2>
-                    <p>Tune into a specific frequency and add your favorite stations manually.</p>
-                </div>
-                
-                <div class="scanner-layout" style="justify-content: center;">
-                    <div class="tuner-column" style="width: 100%; max-width: 600px;">
-                        <div class="frequency-display">
-                            <span id="freq-value">91.1</span>
-                            <span class="unit">MHz</span>
-                        </div>
-                        <div class="dial-container">
-                            <input type="range" id="freq-slider" min="87.5" max="108.0" step="0.1" value="91.1">
-                        </div>
-                        <div class="scanner-visual">
-                            <div class="scan-line" id="scan-line"></div>
-                            <div class="signal-bars">
-                                <span></span><span></span><span></span><span></span><span></span>
-                            </div>
-                        </div>
-                        <div class="scanner-actions" style="margin-top: 2rem; display: flex; justify-content: center;">
-                            <button id="tune-in-btn" class="primary-btn" style="width: 100%; justify-content: center; font-size: 1.2rem; padding: 15px;">
-                                <i data-lucide="radio"></i>
-                                Tune Station
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-        <footer class="player-controls glass" style="justify-content: center; display: flex; padding-top: 15px; padding-bottom: 15px;">
-            <div class="main-controls">
-                <button id="prev-btn" class="control-btn" title="Previous">
-                    <i data-lucide="skip-back"></i>
-                </button>
-                <button id="play-pause-btn" class="control-btn play-btn" title="Play/Pause">
-                    <i data-lucide="play" id="play-icon"></i>
-                </button>
-                <button id="next-btn" class="control-btn" title="Next">
-                    <i data-lucide="skip-forward"></i>
-                </button>
-            </div>
-        </footer >
-
-        <!-- Hidden Audio Element -->
-        <audio id="audio-player" autoplay preload="auto"></audio>
+      </div>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+    <div class="deck">
+      <div class="deck-row">
+        <button class="btn btn-power" id="btnPower">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v9"/><path d="M6.4 5.5a8 8 0 1 0 11.2 0"/></svg>
+          <span id="powerLabel">START</span>
+        </button>
+        <button class="btn" id="btnShot" disabled="">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7 10 4h4l1.5 3"/></svg>
+          SNAPSHOT
+        </button>
+        <button class="btn btn-rec" id="btnRec" disabled="">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+          <span id="recLabel">RECORD</span>
+        </button>
+        <button class="btn" id="btnFlip" disabled="">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M18 2v4.5h-4.5"/></svg>
+          FLIP
+        </button>
+        <div class="devsel">
+          <label>INPUT</label>
+          <select id="devSelect" disabled=""><option>—</option></select>
+        </div>
+      </div>
+      <div class="deck-row">
+        <div class="tog-group">
+          <button class="btn tog on" id="btnMirror" title="Mirror preview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18" stroke-dasharray="2 3"/><path d="M9 6 4 12l5 6V6Z"/><path d="m15 6 5 6-5 6V6Z"/></svg>
+          </button>
+          <button class="btn tog" id="btnGrid" title="Rule-of-thirds grid">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+          </button>
+          <button class="btn tog" id="btnFull" title="Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          </button>
+        </div>
+        <div class="chips" id="filterChips">
+          <button class="chip active" data-f="standard">STANDARD</button>
+          <button class="chip" data-f="vivid">VIVID</button>
+          <button class="chip" data-f="noir">NOIR</button>
+          <button class="chip" data-f="night">NIGHT</button>
+        </div>
+        <div class="zoombox">
+          <label>ZOOM <b id="zoomVal">1.0×</b></label>
+          <input type="range" id="zoom" min="1" max="3" step="0.1" value="1" />
+        </div>
+      </div>
+    </div>
+  </section>
 
-        // --- Interactive UI Enhancements ---
-        
-        // 1. Mouse-following Blobs
-        document.addEventListener('mousemove', (e) => {
-            const x = e.clientX;
-            const y = e.clientY;
-            
-            const blob1 = document.querySelector('.blob-1');
-            const blob2 = document.querySelector('.blob-2');
-            
-            // Subtle parallax effect based on mouse position
-            if (blob1 && blob2) {
-                const moveX1 = (x - window.innerWidth / 2) * 0.05;
-                const moveY1 = (y - window.innerHeight / 2) * 0.05;
-                blob1.style.transform = `translate(${moveX1}px, ${moveY1}px)`;
-                
-                const moveX2 = (x - window.innerWidth / 2) * -0.05;
-                const moveY2 = (y - window.innerHeight / 2) * -0.05;
-                blob2.style.transform = `translate(${moveX2}px, ${moveY2}px)`;
-            }
-        });
+  <!-- ===== SIDE PANELS ===== -->
+  <aside class="side-col">
+    <section class="panel">
+      <div class="panel-head"><span class="sq"></span>LIVE TELEMETRY
+        <div class="sig" id="sig"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="panel-body">
+        <div class="trow"><span>STATUS</span><b id="tStatus" class="off">STANDBY</b></div>
+        <div class="trow"><span>RESOLUTION</span><b id="tRes">—</b></div>
+        <div class="trow"><span>FRAME RATE</span><b id="tFps">—</b></div>
+        <div class="trow"><span>UPTIME</span><b id="tUp">00:00:00</b></div>
+        <div class="trow"><span>ZOOM</span><b id="tZoom">1.0×</b></div>
+        <div class="trow"><span>SENSOR</span><b id="tFace">FRONT</b></div>
+      </div>
+    </section>
 
-        // 2. Ripple Effect on Clicks
-        document.addEventListener('mousedown', function (e) {
-            let target = e.target.closest('button, .station-item, .cat-btn');
-            if (target) {
-                let ripple = document.createElement('span');
-                ripple.classList.add('ripple-effect');
-                let rect = target.getBoundingClientRect();
-                let size = Math.max(rect.width, rect.height);
-                ripple.style.width = ripple.style.height = size + 'px';
-                ripple.style.left = e.clientX - rect.left - size / 2 + 'px';
-                ripple.style.top = e.clientY - rect.top - size / 2 + 'px';
-                
-                // Ensure target can contain the ripple
-                if (window.getComputedStyle(target).position === 'static') {
-                    target.style.position = 'relative';
-                }
-                target.style.overflow = 'hidden';
-                
-                target.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            }
-        });
-    </script>
-</body>
-</html>
+    <section class="panel">
+      <div class="panel-head"><span class="sq sq-cyan"></span>REMOTE ACCESS · IP</div>
+      <div class="panel-body">
+        <div class="kv"><span>PUBLIC IP</span><code id="pubIp">fetching…</code><button class="mini" data-copy="pubIp">COPY</button></div>
+        <div class="kv"><span>LAN IP</span><code id="lanIp">scanning…</code><button class="mini" data-copy="lanIp">COPY</button></div>
+        <div class="kv"><span>STREAM URL</span><code id="streamUrl">http://&lt;lan-ip&gt;:8080</code><button class="mini" data-copy="streamUrl">COPY</button></div>
+        <button class="btn btn-broadcast" id="btnBroadcast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12a7 7 0 0 1 14 0"/><path d="M2 12a10 10 0 0 1 20 0"/><circle cx="12" cy="14" r="2.4" fill="currentColor"/></svg>
+          <span id="bcLabel">OPEN LIVE VIEWER WINDOW</span>
+        </button>
+        <ol class="steps">
+          <li>Serve this page on your computer — run <code>npx serve -l 8080</code> in this folder.</li>
+          <li>Note your machine's LAN IP shown above.</li>
+          <li>On your phone (same Wi-Fi), open <code>http://&lt;lan-ip&gt;:8080</code> and tap <b>ENABLE CAMERA</b>.</li>
+        </ol>
+        <p class="note">🔒 All video is processed inside your browser — nothing leaves your device. Viewing from outside your network requires port-forwarding on your router.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span class="sq sq-amber"></span>CAPTURES<span class="count-badge" id="capCount">0 FILES</span></div>
+      <div class="panel-body"><div class="caps" id="caps"><div class="caps-empty">NO CAPTURES YET — TAKE A SNAPSHOT OR RECORD</div></div></div>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  SENTRYCAM v1.0 · keys  <kbd>P</kbd> power · <kbd>S</kbd> snapshot · <kbd>R</kbd> record · <kbd>G</kbd> grid · <kbd>M</kbd> mirror · <kbd>F</kbd> fullscreen
+</footer>
+
+<div class="toast" id="toast"></div>
+
+
+
+<script src="script.js"></script></body></html>

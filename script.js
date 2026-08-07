@@ -1,1310 +1,274 @@
-// Configuration
-const API_BASE = 'https://de1.api.radio-browser.info/json';
-const DEFAULT_LIMIT = 200;
-const DEFAULT_LOGO = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%93%BB%3C%2Ftext%3E%3C%2Fsvg%3E';
+const $=s=>document.querySelector(s);
+const video=$('#video'),stage=$('#stage'),idleBtn=$('#btnEnable');
+const FILTERS={standard:'none',vivid:'saturate(1.4) contrast(1.1)',noir:'grayscale(1) contrast(1.2)',
+  night:'sepia(1) hue-rotate(72deg) saturate(3.2) brightness(1.25) contrast(1.05)'};
+let stream=null,live=false,facing='user',deviceId=null,mirrored=true,filterName='standard',zoom=1;
+let recording=false,recorder=null,recChunks=[],recTimer=null,recSec=0;
+let uptimeInt=null,uptimeSec=0,fpsVal=0,fpsInt=null;
+let bcOn=false,bc=null,bcTimer=null,bcCanvas=null;
+let capN=0;
 
-// State
-let currentStations = [];
-let currentPlaylist = JSON.parse(localStorage.getItem('fm_playlist')) || [];
-let currentStationIndex = -1;
-let currentSource = 'search';
-let currentMode = 'India'; // 'Global' or 'India'
-let isMuted = false;
-let lastVolume = 80;
-let isHDEQEnabled = false;
-let isDJBoostEnabled = false;
-let isVolBoostEnabled = false;
-let isSmartScanning = true;
-let smartScanTimeout = null;
-let playCheckTimeout = null;
-let queueTickerInterval = null;
-let showingNextInQueue = true;
-let lastQuery = '';
-let lastCountry = '';
-let lastTag = '';
+/* ---------- toast ---------- */
+let toastT=null;
+function toast(msg,err){const t=$('#toast');t.textContent=msg;t.classList.toggle('err',!!err);t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);}
 
-// DOM Elements
-const audioPlayer = document.getElementById('audio-player');
-const stationsGrid = document.getElementById('stations-grid');
-const playlistList = document.getElementById('playlist-list');
-const searchInput = document.getElementById('station-search');
-const searchBtn = document.getElementById('search-btn');
-const categoriesBar = document.getElementById('categories-bar');
-const indiaCats = document.getElementById('india-cats');
-const catButtons = document.querySelectorAll('.cat-btn');
-const playPauseBtn = document.getElementById('play-pause-btn');
-const playIcon = document.getElementById('play-icon');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const muteBtn = document.getElementById('mute-btn');
-const volumeIcon = document.getElementById('volume-icon');
-const volumeSlider = document.getElementById('volume-slider');
-const playerStatus = document.getElementById('player-status');
-const currentStationName = document.getElementById('current-station-name');
-const currentStationMeta = document.getElementById('current-station-meta');
-const currentStationImg = document.getElementById('current-station-info-img');
-const addToPlaylistBtn = document.getElementById('add-to-playlist-btn');
-const resultsCount = document.getElementById('results-count');
-const mainLoader = document.getElementById('main-loader');
-const nowPlayingCard = document.querySelector('.now-playing-card');
-const fullscreenBtn = document.getElementById('fullscreen-btn');
-const refreshBtn = document.getElementById('refresh-btn');
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
-const eqHdBtn = document.getElementById('eq-hd-btn');
-const djBoostBtn = document.getElementById('dj-boost-btn');
-const volBoostCheck = document.getElementById('vol-boost-check');
-const smartAutoScanBtn = document.getElementById('smart-auto-scan-btn');
-const queueTickerText = document.getElementById('queue-ticker-text');
+/* ---------- clock ---------- */
+const p2=n=>String(n).padStart(2,'0');
+function clock(){const d=new Date();
+  $('#clockTime').textContent=p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());
+  $('#clockDate').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+  $('#hudTime').textContent=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' · '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());}
+setInterval(clock,1000);clock();
 
-// New UI Elements
-const mainTabs = document.querySelectorAll('.tab-btn:not(.action-btn)');
-const views = {
-    discovery: document.getElementById('discovery-view'),
-    playlist: document.getElementById('playlist-view'),
-    scanner: document.getElementById('scanner-view')
-};
-const quickPlaylistList = document.getElementById('quick-playlist-list');
-const fullPlaylistList = document.getElementById('full-playlist-list');
+/* ---------- camera ---------- */
+async function startCamera(){
+  if(live)return;
+  const v={width:{ideal:1920},height:{ideal:1080}};
+  if(deviceId)v.deviceId={exact:deviceId};else v.facingMode=facing;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:v,audio:false});
+  }catch(e){
+    const m={NotAllowedError:'Permission denied — allow camera access in your browser settings',
+      NotFoundError:'No camera found on this device',NotReadableError:'Camera is busy in another application',
+      SecurityError:'Camera requires HTTPS or localhost',OverconstrainedError:'Camera unavailable — retrying with defaults'}[e.name]||('Camera error: '+e.name);
+    toast(m,true);
+    if(e.name==='OverconstrainedError'&&deviceId){deviceId=null;return startCamera();}
+    return;
+  }
+  video.srcObject=stream;live=true;uptimeSec=0;
+  if(!deviceId)mirrored=(facing==='user');
+  applyVideoFX();
+  stage.classList.add('live');
+  $('#ledCam').classList.add('on');$('#sig').classList.add('on');
+  $('#tStatus').textContent='LIVE';$('#tStatus').classList.remove('off');
+  $('#tFace').textContent=(facing==='user'?'FRONT':'REAR')+(deviceId?' · EXT':'');
+  $('#hudCam').textContent='CAM 01 · '+((stream.getVideoTracks()[0]?.label||'SENSOR').toUpperCase().slice(0,26));
+  $('#powerLabel').textContent='STOP';$('#btnPower').classList.add('on');
+  ['#btnShot','#btnRec','#btnFlip'].forEach(s=>$(s).disabled=false);$('#devSelect').disabled=false;
+  $('#btnMirror').classList.toggle('on',mirrored);
+  startFPS();loadDevices();fetchLANIP();
+  uptimeInt=setInterval(()=>{uptimeSec++;$('#tUp').textContent=fmtHMS(uptimeSec);},1000);
+  stream.getVideoTracks()[0].addEventListener('ended',()=>{if(live)stopCamera(true);});
+  toast('Camera online — feed is live');
+}
+function stopCamera(silent){
+  if(recording)stopRec(true);
+  if(bcOn)stopBroadcast();
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  stream=null;live=false;video.srcObject=null;
+  clearInterval(uptimeInt);clearInterval(fpsInt);fpsVal=0;
+  stage.classList.remove('live','rec');
+  $('#ledCam').classList.remove('on');$('#sig').classList.remove('on');
+  $('#tStatus').textContent='STANDBY';$('#tStatus').classList.add('off');
+  $('#tRes').textContent='—';$('#tFps').textContent='—';$('#tUp').textContent='00:00:00';
+  $('#hudSpec').textContent='— × —';$('#hudCam').textContent='CAM 01 · STANDBY';
+  $('#powerLabel').textContent='START';$('#btnPower').classList.remove('on');
+  ['#btnShot','#btnRec','#btnFlip'].forEach(s=>$(s).disabled=true);
+  if(!silent)toast('Camera offline');
+}
+function fmtHMS(s){return p2(Math.floor(s/3600))+':'+p2(Math.floor(s/60)%60)+':'+p2(s%60);}
 
-// Scanner Elements
-const freqSlider = document.getElementById('freq-slider');
-const freqValue = document.getElementById('freq-value');
+/* ---------- FPS + spec meter ---------- */
+function startFPS(){
+  const frames=[];
+  if('requestVideoFrameCallback' in HTMLVideoElement.prototype){
+    const loop=now=>{if(!live)return;frames.push(now);
+      while(frames.length&&now-frames[0]>1000)frames.shift();
+      fpsVal=Math.max(0,frames.length-1);video.requestVideoFrameCallback(loop);};
+    video.requestVideoFrameCallback(loop);
+  }else{
+    fpsInt=setInterval(()=>{const s=stream?.getVideoTracks()[0]?.getSettings();
+      fpsVal=s&&s.frameRate?Math.round(s.frameRate):30;},1000);
+  }
+}
+setInterval(()=>{if(!live)return;
+  $('#tRes').textContent=video.videoWidth+'×'+video.videoHeight;
+  $('#tFps').textContent=fpsVal+' fps';
+  $('#tZoom').textContent=zoom.toFixed(1)+'×';
+  $('#hudSpec').textContent=video.videoWidth+'×'+video.videoHeight+' · '+fpsVal+'FPS';
+},500);
 
-const tuneInBtn = document.getElementById('tune-in-btn');
-const signalBars = document.querySelectorAll('.signal-bars span');
+/* ---------- video FX ---------- */
+function applyVideoFX(){
+  video.style.filter=FILTERS[filterName];
+  video.style.transform='scale('+zoom+') scaleX('+(mirrored?-1:1)+')';
+}
+$('#btnMirror').onclick=()=>{mirrored=!mirrored;$('#btnMirror').classList.toggle('on',mirrored);applyVideoFX();};
+$('#btnGrid').onclick=()=>{const g=$('#gridfx');g.classList.toggle('show');$('#btnGrid').classList.toggle('on',g.classList.contains('show'));};
+$('#btnFull').onclick=()=>{document.fullscreenElement?document.exitFullscreen():stage.requestFullscreen?.();};
+$('#zoom').oninput=e=>{zoom=+e.target.value;$('#zoomVal').textContent=zoom.toFixed(1)+'×';applyVideoFX();};
+$('#filterChips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');filterName=c.dataset.f;applyVideoFX();});
 
-
-const hindiDictionary = {
-    'radio': 'रेडियो',
-    'bhakti': 'भक्ति',
-    'fm': 'एफएम',
-    'live': 'लाइव',
-    'sangeet': 'संगीत',
-    'bhajan': 'भजन',
-    'aarti': 'आरती',
-    'katha': 'कथा',
-    'mantra': 'मंत्र',
-    'sai': 'साईं',
-    'ram': 'राम',
-    'krishna': 'कृष्ण',
-    'shiva': 'शिव',
-    'shiv': 'शिव',
-    'hindu': 'हिंदू',
-    'india': 'इंडिया',
-    'vani': 'वाणी',
-    'channel': 'चैनल',
-    'city': 'सिटी',
-    'mirchi': 'मिर्ची',
-    'super': 'सुपर',
-    'hits': 'हिट्स',
-    'classic': 'क्लासिक',
-    'gold': 'गोल्ड',
-    'retro': 'रेट्रो',
-    'news': 'न्यूज़',
-    'music': 'म्यूज़िक',
-    'dj': 'डीजे',
-    'remix': 'रीमिक्स',
-    'punjabi': 'पंजाबी',
-    'hindi': 'हिंदी',
-    'telugu': 'तेलुगु',
-    'tamil': 'तमिल',
-    'kannada': 'कन्नड़',
-    'malayalam': 'मलयालम',
-    'marathi': 'मराठी',
-    'gujarati': 'गुजराती',
-    'bengali': 'बंगाली',
-    'bangla': 'बांग्ला',
-    'bhojpuri': 'भोजपुरी',
-    'bollywood': 'बॉलीवुड',
-    'international': 'इंटरनेशनल',
-    'world': 'वर्ल्ड',
-    'devotional': 'भक्ति',
-    'dhun': 'धुन',
-    'sadhana': 'साधना',
-    'darshan': 'दर्शन',
-    'aashram': 'आश्रम',
-    'mandir': 'मंदिर',
-    'shri': 'श्री',
-    'hare': 'हरे',
-    'mahabharat': 'महाभारत',
-    'ramayan': 'रामायण',
-    'geeta': 'गीता',
-    'gita': 'गीता',
-    'vedas': 'वेद',
-    'vedic': 'वैदिक',
-    'gurubani': 'गुरबाणी',
-    'gurbani': 'गुरबाणी',
-    'amrit': 'अमृत',
-    'awadh': 'अवध',
-    'shakti': 'शक्ति',
-    'mata': 'माता',
-    'baba': 'बाबा',
-    'swami': 'स्वामी',
-    'guru': 'गुरु',
-    'nam': 'नाम',
-    'satnam': 'सतनाम',
-    'waheguru': 'वाहेगुरु',
-    'khalsa': 'खालसा',
-    'singh': 'सिंह',
-    'kaur': 'कौर',
-    'panth': 'पंथ',
-    'akhand': 'अखंड',
-    'kirtan': 'कीर्तन',
-    'simran': 'सिमरन',
-    'paath': 'पाठ',
-    'nitnem': 'नितनेम',
-    'japji': 'जपुजी',
-    'sahib': 'साहिब',
-    'radha': 'राधा',
-    'soami': 'स्वामी',
-    'satsang': 'सत्संग',
-    'beas': 'ब्यास',
-    'sant': 'संत',
-    'nirankari': 'निरंकारी',
-    'isha': 'ईशा',
-    'foundation': 'फाउंडेशन',
-    'sadhguru': 'सद्गुरु',
-    'art': 'आर्ट',
-    'of': 'ऑफ़',
-    'living': 'लिविंग',
-    'ravishankar': 'रविशंकर',
-    'brahma': 'ब्रह्मा',
-    'kumaris': 'कुमारीज',
-    'shivani': 'शिवानी',
-    'om': 'ओम',
-    'shanti': 'शांति',
-    'gayatri': 'गायत्री',
-    'mahamrityunjay': 'महामृत्युंजय',
-    'chalisa': 'चालीसा',
-    'hanuman': 'हनुमान',
-    'durga': 'दुर्गा',
-    'saraswati': 'सरस्वती',
-    'lakshmi': 'लक्ष्मी',
-    'ganesh': 'गणेश',
-    'ganapati': 'गणपति',
-    'vinayak': 'विनायक',
-    'kartikeya': 'कार्तिकेय',
-    'murugan': 'मुरुगन',
-    'ayyappa': 'अय्यप्पा',
-    'venkateshwara': 'वेंकटेश्वर',
-    'balaji': 'बालाजी',
-    'tirupati': 'तिरुपति',
-    'jagannath': 'जगन्नाथ',
-    'puri': 'पुरी',
-    'somnath': 'सोमनाथ',
-    'mahakaleshwar': 'महाकालेश्वर',
-    'vishwanath': 'विश्वनाथ',
-    'kashi': 'काशी',
-    'kedarnath': 'केदारनाथ',
-    'badrinath': 'बद्रीनाथ',
-    'gangotri': 'गंगोत्री',
-    'yamunotri': 'यमुनोत्री',
-    'vaishno': 'वैष्णो',
-    'devi': 'देवी',
-    'amarnath': 'अमरनाथ',
-    'meenakshi': 'मीनाक्षी',
-    'madurai': 'मदुरै',
-    'rameshwaram': 'रामेश्वरम',
-    'kanyakumari': 'कन्याकुमारी',
-    'shirdi': 'शिरडी',
-    'isckon': 'इस्कॉन',
-    'vrindavan': 'वृंदावन',
-    'mathura': 'मथुरा',
-    'ayodhya': 'अयोध्या',
-    'prayagraj': 'प्रयागराज',
-    'kumbh': 'कुंभ',
-    'mela': 'मेला',
-    'ujjain': 'उज्जैन',
-    'nashik': 'नासिक',
-    'haridwar': 'हरिद्वार',
-    'rishikesh': 'ऋषिकेश'
-};
-
-function translateToHindi(text) {
-    if (!text) return '';
-    let result = text;
-    const keys = Object.keys(hindiDictionary).sort((a, b) => b.length - a.length);
-    keys.forEach(key => {
-        const regex = new RegExp(`\\b${key}\\b`, 'gi');
-        result = result.replace(regex, hindiDictionary[key]);
-    });
-    return result;
+/* ---------- snapshot ---------- */
+function snapshot(){
+  if(!live||!video.videoWidth)return;
+  const w=video.videoWidth,h=video.videoHeight,c=document.createElement('canvas');
+  c.width=w;c.height=h;const x=c.getContext('2d');
+  if(mirrored){x.translate(w,0);x.scale(-1,1);}
+  if(FILTERS[filterName]!=='none'){try{x.filter=FILTERS[filterName];}catch(e){}}
+  x.drawImage(video,0,0,w,h);
+  c.toBlob(b=>{if(!b)return;
+    addCapture({type:'photo',url:URL.createObjectURL(b),name:fname('jpg')});
+    const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+    toast('Snapshot captured');
+  },'image/jpeg',0.92);
 }
 
-// Initialize
-function init() {
-    setupEventListeners();
-    fetchStations('', 'India', 'bhakti'); // Initial load (Bhakti)
-    renderPlaylist();
-    updateVolume(80);
-    loadTheme();
-    
-    // Status Badge Color Observer
-    const statusObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                const text = playerStatus.textContent.toLowerCase();
-                
-                if (text.includes('buffer') || text.includes('load') || text.includes('scan') || text.includes('tune')) {
-                    playerStatus.style.color = '#eab308'; // yellow
-                    playerStatus.style.background = 'rgba(234, 179, 8, 0.15)';
-                    playerStatus.style.borderColor = 'rgba(234, 179, 8, 0.3)';
-                    playerStatus.style.boxShadow = '0 0 15px rgba(234, 179, 8, 0.4)';
-                } else if (text.includes('play')) {
-                    playerStatus.style.color = '#22c55e'; // green
-                    playerStatus.style.background = 'rgba(34, 197, 94, 0.15)';
-                    playerStatus.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-                    playerStatus.style.boxShadow = '0 0 15px rgba(34, 197, 94, 0.4)';
-                } else if (text.includes('pause') || text.includes('stop') || text.includes('error') || text.includes('fail') || text.includes('stall')) {
-                    playerStatus.style.color = '#ef4444'; // red
-                    playerStatus.style.background = 'rgba(239, 68, 68, 0.15)';
-                    playerStatus.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                    playerStatus.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
-                } else {
-                    playerStatus.style.color = 'orange'; // default
-                    playerStatus.style.background = 'rgba(255, 165, 0, 0.15)';
-                    playerStatus.style.borderColor = 'rgba(255, 165, 0, 0.3)';
-                    playerStatus.style.boxShadow = '0 0 15px rgba(255, 165, 0, 0.4)';
-                }
-            }
-        });
-    });
-    statusObserver.observe(playerStatus, { childList: true, characterData: true, subtree: true });
-
-    // Auto-adjusting helper for mobile
-    window.addEventListener('resize', () => {
-        lucide.createIcons();
-    });
+/* ---------- recording ---------- */
+function pickMime(){const list=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'];
+  return list.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';}
+function toggleRec(){
+  if(!live)return toast('Start the camera first',true);
+  recording?stopRec():startRec();
+}
+function startRec(){
+  if(!window.MediaRecorder)return toast('Recording not supported in this browser',true);
+  recChunks=[];const mime=pickMime();
+  try{recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);}catch(e){return toast('Recorder failed to start',true);}
+  recorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data);};
+  recorder.onstop=()=>{
+    const blob=new Blob(recChunks,{type:recorder.mimeType||'video/webm'});
+    addCapture({type:'video',url:URL.createObjectURL(blob),name:fname(mime.includes('mp4')?'mp4':'webm')});
+    toast('Recording saved ('+(blob.size/1048576).toFixed(1)+' MB)');
+  };
+  recorder.start(250);recording=true;recSec=0;
+  stage.classList.add('rec');$('#ledRec').classList.add('on');
+  $('#btnRec').classList.add('recording');$('#recLabel').textContent='STOP';
+  recTimer=setInterval(()=>{recSec++;const t=p2(Math.floor(recSec/60))+':'+p2(recSec%60);
+    $('#recTime').textContent='REC '+t;$('#recLabel').textContent='STOP · '+t;},1000);
+}
+function stopRec(silent){
+  if(recorder&&recorder.state!=='inactive')recorder.stop();
+  recording=false;clearInterval(recTimer);
+  stage.classList.remove('rec');$('#ledRec').classList.remove('on');
+  $('#btnRec').classList.remove('recording');$('#recLabel').textContent='RECORD';
+  if(silent)toast('Recording stopped (camera closed)');
 }
 
-function setupEventListeners() {
-    searchBtn.addEventListener('click', () => {
-        const query = searchInput.value.trim();
-        const country = currentMode === 'India' ? 'India' : '';
-        fetchStations(query, country);
-        switchView('discovery');
-    });
-
-    catButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            // If dragging, let the capture phase handle prevention
-            const tag = btn.dataset.tag;
-            const country = currentMode === 'India' ? 'India' : '';
-            isSmartScanning = true;
-            fetchStations('', country, tag);
-            updateActiveCat(btn.textContent);
-            switchView('discovery');
-        });
-    });
-
-    // Drag to scroll for category bar
-    if (categoriesBar) {
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-        let isDragging = false;
-
-        categoriesBar.addEventListener('mousedown', (e) => {
-            isDown = true;
-            isDragging = false;
-            categoriesBar.style.cursor = 'grabbing';
-            startX = e.pageX - categoriesBar.offsetLeft;
-            scrollLeft = categoriesBar.scrollLeft;
-        });
-        categoriesBar.addEventListener('mouseleave', () => {
-            isDown = false;
-            categoriesBar.style.cursor = 'grab';
-        });
-        categoriesBar.addEventListener('mouseup', () => {
-            isDown = false;
-            categoriesBar.style.cursor = 'grab';
-        });
-        categoriesBar.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - categoriesBar.offsetLeft;
-            const walk = (x - startX) * 2; // Scroll-fast multiplier
-            if (Math.abs(walk) > 5) isDragging = true;
-            categoriesBar.scrollLeft = scrollLeft - walk;
-        });
-        // Prevent click if dragged
-        categoriesBar.addEventListener('click', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-    }
-
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const country = currentMode === 'India' ? 'India' : '';
-            fetchStations(searchInput.value.trim(), country);
-            switchView('discovery');
-        }
-    });
-
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            fetchStations(lastQuery, lastCountry, lastTag);
-        });
-    }
-
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        });
-    }
-
-    const stationDetailsEl = document.querySelector('.station-details');
-    if (stationDetailsEl) {
-        stationDetailsEl.addEventListener('dblclick', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-            // Clear text selection after double click
-            if (window.getSelection) {
-                window.getSelection().removeAllRanges();
-            } else if (document.selection) {
-                document.selection.empty();
-            }
-        });
-
-        // Volume drag logic
-        let isDraggingVolume = false;
-        let startX = 0;
-        let startVolume = 0;
-
-        const handleDragStart = (x) => {
-            isDraggingVolume = true;
-            startX = x;
-            startVolume = parseFloat(volumeSlider.value) || 0;
-            stationDetailsEl.style.cursor = 'ew-resize';
-        };
-
-        const handleDragMove = (x) => {
-            if (!isDraggingVolume) return;
-            const deltaX = x - startX;
-            // Map horizontal movement to volume change (approx 3px = 1%)
-            const volumeChange = deltaX * 0.33; 
-            let newVolume = startVolume + volumeChange;
-            newVolume = Math.max(0, Math.min(100, newVolume));
-            updateVolume(newVolume);
-        };
-
-        const handleDragEnd = () => {
-            isDraggingVolume = false;
-            stationDetailsEl.style.cursor = '';
-        };
-
-        // Mouse Events
-        stationDetailsEl.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return; // Left click only
-            handleDragStart(e.clientX);
-        });
-        document.addEventListener('mousemove', (e) => handleDragMove(e.clientX));
-        document.addEventListener('mouseup', handleDragEnd);
-
-        // Touch Events
-        stationDetailsEl.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                handleDragStart(e.touches[0].clientX);
-            }
-        }, { passive: true });
-        document.addEventListener('touchmove', (e) => {
-            if (isDraggingVolume && e.touches.length === 1) {
-                handleDragMove(e.touches[0].clientX);
-            }
-        }, { passive: true });
-        document.addEventListener('touchend', handleDragEnd);
-    }
-
-    document.addEventListener('fullscreenchange', () => {
-        if (document.fullscreenElement) {
-            document.body.classList.add('is-fullscreen');
-        } else {
-            document.body.classList.remove('is-fullscreen');
-        }
-    });
-
-    themeToggle.addEventListener('click', toggleTheme);
-
-    playPauseBtn.addEventListener('click', togglePlay);
-    
-    prevBtn.addEventListener('click', playPrevious);
-    nextBtn.addEventListener('click', playNext);
-
-    muteBtn.addEventListener('click', toggleMute);
-    
-    volumeSlider.addEventListener('input', (e) => {
-        updateVolume(e.target.value);
-    });
-
-    addToPlaylistBtn.addEventListener('click', () => {
-        if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
-            addToPlaylist(currentStations[currentStationIndex]);
-        }
-    });
-
-    currentStationImg.addEventListener('click', () => {
-        addToPlaylistBtn.click();
-    });
-
-    if (eqHdBtn) {
-        eqHdBtn.addEventListener('click', toggleHDEQ);
-    }
-    
-    if (djBoostBtn) {
-        djBoostBtn.addEventListener('click', toggleDJBoost);
-    }
-    
-    if (volBoostCheck) {
-        volBoostCheck.addEventListener('change', toggleVolBoost);
-    }
-
-    if (smartAutoScanBtn) {
-        smartAutoScanBtn.addEventListener('click', toggleSmartAutoScan);
-    }
-
-    // Tab Switching
-    mainTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-            switchView(target);
-        });
-    });
-
-    // Scanner Logic
-    if (freqSlider) {
-        freqSlider.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value).toFixed(1);
-            freqValue.textContent = val;
-            updateSignalStrength(val);
-        });
-    }
-
-    if (tuneInBtn) {
-        tuneInBtn.addEventListener('click', () => {
-            const freq = freqValue.textContent;
-            tuneInToFrequency(freq);
-        });
-    }
-
-    // Audio Player Events
-    audioPlayer.onplay = () => {
-        playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
-        lucide.createIcons();
-        playerStatus.textContent = 'Playing';
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-    };
-
-    audioPlayer.onplaying = () => {
-        clearTimeout(playCheckTimeout); // Clear any buffering timeouts
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-        playerStatus.textContent = 'Playing';
-        
-        if (isSmartScanning) {
-            clearTimeout(smartScanTimeout);
-            smartScanTimeout = setTimeout(() => {
-                if (!isSmartScanning) return;
-                currentStationIndex = (currentStationIndex + 1) % currentStations.length;
-                playSmartScanStation();
-            }, 8000);
-        }
-    };
-
-    audioPlayer.onpause = () => {
-        playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
-        lucide.createIcons();
-        playerStatus.textContent = 'Paused';
-        if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'paused';
-        }
-    };
-
-    audioPlayer.onwaiting = () => {
-        playerStatus.textContent = 'Buffering...';
-        
-        // If it gets stuck buffering mid-stream for more than 8.5 seconds, skip to next
-        clearTimeout(playCheckTimeout);
-        playCheckTimeout = setTimeout(() => {
-            console.log('Stream stalled mid-playback. Auto-skipping to next...');
-            playerStatus.textContent = 'Stream Stalled - Auto-skipping...';
-            playNext();
-        }, 8500);
-    };
-
-    audioPlayer.onerror = (e) => {
-        console.error('Audio playback error:', e);
-        playerStatus.textContent = 'Error Loading Stream - Skipping...';
-        playerStatus.style.color = 'var(--accent-color)';
-        setTimeout(() => {
-            playerStatus.style.color = 'var(--primary-color)';
-            playNext(); // Automatically skip on error
-        }, 1500);
-    };
-    
-    audioPlayer.onended = () => {
-        console.log('Stream ended. Skipping to next...');
-        playNext();
-    };
-
-    audioPlayer.onloadstart = () => {
-        playerStatus.textContent = 'Buffering...';
-    };
-
-    // Prevent background pausing
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !audioPlayer.paused) {
-            // Re-assert playback state to OS
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
-        }
-    });
+/* ---------- captures gallery ---------- */
+function fname(ext){const d=new Date();
+  return 'SENTRYCAM_'+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'_'+p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds())+'.'+ext;}
+function addCapture(cap){
+  const box=$('#caps');box.querySelector('.caps-empty')?.remove();
+  const el=document.createElement('div');el.className='cap';el.tabIndex=0;
+  el.innerHTML=(cap.type==='photo'
+    ?'<img src="'+cap.url+'" alt="snapshot">'
+    :'<video src="'+cap.url+'" muted playsinline loop preload="metadata"></video>')
+    +'<span class="cap-tag'+(cap.type==='video'?' vid':'')+'">'+(cap.type==='video'?'▶ CLIP':'PHOTO')+'</span>'
+    +'<div class="cap-actions">'
+    +'<a href="'+cap.url+'" download="'+cap.name+'" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg></a>'
+    +'<button title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/></svg></button>'
+    +'</div>';
+  el.querySelector('button').onclick=e=>{e.stopPropagation();URL.revokeObjectURL(cap.url);el.remove();capN--;
+    $('#capCount').textContent=capN+' FILES';if(!capN)box.innerHTML='<div class="caps-empty">NO CAPTURES YET</div>';};
+  el.onclick=()=>window.open(cap.url,'_blank');
+  if(cap.type==='video')el.querySelector('video').onmouseenter=e=>e.target.play?.();
+  box.prepend(el);capN++;$('#capCount').textContent=capN+' FILES';
 }
 
-// Custom API fetch mappings for complex categories
-const fetchMappings = {
-    'australia news': [ { tag: 'news', country: 'Australia' } ],
-    'euro news': [ { name: 'euronews' }, { tag: 'news', language: 'english' } ],
-    'bbc news': [ { name: 'bbc news' }, { name: 'bbc radio', tag: 'news' } ],
-    'us news': [ { tag: 'news', country: 'United States' }, { tag: 'news', country: 'United States of America' } ],
-    'world news': [ { tag: 'world news' }, { tag: 'international news' }, { tag: 'global news' } ],
-    'russian news': [ { tag: 'news', country: 'Russia' }, { tag: 'news', language: 'russian' } ],
-    'france news': [ { tag: 'news', country: 'France' }, { tag: 'news', language: 'french' } ],
-    'pop': [ { tag: 'pop' }, { tag: 'top 40' }, { tag: 'hits' } ],
-    'rock': [ { tag: 'rock' }, { tag: 'classic rock' }, { tag: 'hard rock' } ],
-    'jazz': [ { tag: 'jazz' }, { tag: 'smooth jazz' } ],
-    'classical': [ { tag: 'classical' }, { tag: 'symphony' } ],
-    'hip hop': [ { tag: 'hip hop' }, { tag: 'rap' }, { tag: 'rnb' } ],
-    'electronic': [ { tag: 'electronic' }, { tag: 'edm' }, { tag: 'techno' } ],
-    'ambient': [ { tag: 'ambient' }, { tag: 'chillout' }, { tag: 'relax' } ],
-    'dance music': [ { tag: 'dance' }, { tag: 'dance music' }, { tag: 'club' } ],
-    'educational': [ { tag: 'educational' }, { tag: 'education' }, { tag: 'learning' } ],
-    'sports': [ { tag: 'sports' }, { tag: 'sport' }, { tag: 'live sports' } ],
-    'talk': [ { tag: 'talk' }, { tag: 'talk radio' }, { tag: 'speech' }, { tag: 'podcast' } ],
-    'hindi': [ { tag: 'hindi', country: 'India' }, { language: 'hindi', country: 'India' }, { name: 'hindi', country: 'India' } ],
-    'tamil': [ { tag: 'tamil', country: 'India' }, { language: 'tamil', country: 'India' }, { state: 'tamil nadu', country: 'India' } ],
-    'kannada': [ { tag: 'kannada', country: 'India' }, { language: 'kannada', country: 'India' }, { state: 'karnataka', country: 'India' } ],
-    'telugu': [ { tag: 'telugu', country: 'India' }, { language: 'telugu', country: 'India' }, { state: 'telangana', country: 'India' }, { state: 'andhra pradesh', country: 'India' } ],
-    'malayalam': [ { tag: 'malayalam', country: 'India' }, { language: 'malayalam', country: 'India' }, { state: 'kerala', country: 'India' } ],
-    'marathi': [ { tag: 'marathi', country: 'India' }, { language: 'marathi', country: 'India' }, { state: 'maharashtra', country: 'India' } ],
-    'gujarati': [ { tag: 'gujarati', country: 'India' }, { language: 'gujarati', country: 'India' }, { state: 'gujarat', country: 'India' } ],
-    'bollywood': [ { tag: 'bollywood', country: 'India' }, { tag: 'hindi', country: 'India' } ]
+/* ---------- devices ---------- */
+async function loadDevices(){
+  try{
+    const ds=await navigator.mediaDevices.enumerateDevices();
+    const vs=ds.filter(d=>d.kind==='videoinput'),sel=$('#devSelect');
+    sel.innerHTML='';vs.forEach((d,i)=>{const o=document.createElement('option');
+      o.value=d.deviceId;o.textContent=d.label||('Camera '+(i+1));sel.appendChild(o);});
+    const cur=stream?.getVideoTracks()[0]?.getSettings().deviceId;
+    if(cur)sel.value=cur;
+  }catch(e){}
+}
+$('#devSelect').onchange=e=>{deviceId=e.target.value||null;if(live){stream.getTracks().forEach(t=>t.stop());live=false;startCamera();}};
+$('#btnFlip').onclick=()=>{deviceId=null;facing=facing==='user'?'environment':'user';
+  if(live){stream.getTracks().forEach(t=>t.stop());live=false;}startCamera();};
+
+/* ---------- remote access: IPs ---------- */
+fetch('https://api.ipify.org?format=json').then(r=>r.json())
+  .then(d=>$('#pubIp').textContent=d.ip).catch(()=>$('#pubIp').textContent='offline');
+async function fetchLANIP(){
+  if($('#lanIp').textContent!=='scanning…'&&$('#lanIp').textContent!=='hidden by browser')return;
+  try{
+    const pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel('');
+    await pc.setLocalDescription(await pc.createOffer());
+    const ip=await new Promise(res=>{
+      const t=setTimeout(()=>res(null),2500);
+      pc.onicecandidate=e=>{if(!e.candidate){clearTimeout(t);return res(null);}
+        const m=e.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
+        if(m&&!m[0].startsWith('0.')){clearTimeout(t);pc.close();res(m[0]);}};
+    });
+    if(ip){$('#lanIp').textContent=ip;$('#streamUrl').textContent='http://'+ip+':8080';}
+    else $('#lanIp').textContent='hidden by browser';
+  }catch(e){$('#lanIp').textContent='unavailable';}
+}
+fetchLANIP();
+document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{
+  const txt=$('#'+b.dataset.copy).textContent;
+  (navigator.clipboard?.writeText(txt)||Promise.reject()).then(()=>toast('Copied: '+txt)).catch(()=>toast('Copy failed',true));
+});
+
+/* ---------- broadcast viewer (live remote preview) ---------- */
+const VIEWER_HTML='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
++'<title>SENTRYCAM · Remote Viewer</title><style>'
++'body{margin:0;background:#0b0f13;color:#9fb0bf;font-family:monospace;display:flex;flex-direction:column;height:100vh}'
++'header{padding:10px 16px;display:flex;justify-content:space-between;font-size:12px;letter-spacing:.15em;border-bottom:1px solid #22313f}'
++'img{flex:1;object-fit:contain;background:#000;min-height:0}'
++'.dot{color:#ff5252;animation:b 1s steps(2) infinite}@keyframes b{50%{opacity:.15}}'
++'</style></head><body><header><span>SENTRYCAM // REMOTE VIEWER</span><span><span class="dot">&#9679;</span> LIVE <span id="fps"></span></span></header>'
++'<img id="feed" alt="Waiting for signal…">'
++'<script>var img=document.getElementById("feed"),n=0;'
++'setInterval(function(){document.getElementById("fps").textContent=n+" FPS";n=0;},1000);'
++'var bc=new BroadcastChannel("sentrycam");'
++'bc.onmessage=function(e){if(e.data&&e.data.t==="f"){img.src=e.data.d;n++;}};'
++'<\/script></body></html>';
+
+function startBroadcast(){
+  if(typeof BroadcastChannel==='undefined')return toast('BroadcastChannel not supported here',true);
+  bcOn=true;bc=new BroadcastChannel('sentrycam');
+  bcCanvas=document.createElement('canvas');
+  bcTimer=setInterval(()=>{
+    if(!live||!video.videoWidth)return;
+    const w=560,h=Math.round(w*video.videoHeight/video.videoWidth);
+    if(bcCanvas.width!==w){bcCanvas.width=w;bcCanvas.height=h;}
+    const x=bcCanvas.getContext('2d');
+    if(mirrored){x.save();x.translate(w,0);x.scale(-1,1);}
+    x.drawImage(video,0,0,w,h);if(mirrored)x.restore();
+    try{bc.postMessage({t:'f',d:bcCanvas.toDataURL('image/jpeg',0.5)});}catch(e){}
+  },120);
+  $('#ledLink').classList.add('on');$('#btnBroadcast').classList.add('live');
+  $('#bcLabel').textContent='STOP BROADCAST';
+}
+function stopBroadcast(){
+  bcOn=false;clearInterval(bcTimer);bc?.close();bc=null;
+  $('#ledLink').classList.remove('on');$('#btnBroadcast').classList.remove('live');
+  $('#bcLabel').textContent='OPEN LIVE VIEWER WINDOW';
+}
+$('#btnBroadcast').onclick=()=>{
+  if(!live)return toast('Start the camera first',true);
+  if(bcOn)return stopBroadcast();
+  startBroadcast();
+  const w=window.open('','_blank','width=760,height=470');
+  if(!w){
+    stopBroadcast();
+    toast('Popup blocked — allow popups to open the viewer',true);
+  }else{
+    w.document.write(VIEWER_HTML);
+    w.document.close();
+    toast('Broadcasting live feed to viewer window');
+  }
 };
 
-// API Functions
-async function fetchStations(query = '', country = '', tag = '', autoPlay = true) {
-    lastQuery = query;
-    lastCountry = country;
-    lastTag = tag;
-    
-    mainLoader.style.display = 'flex';
-    stationsGrid.innerHTML = '';
-    
-    let url = `${API_BASE}/stations/search?limit=${DEFAULT_LIMIT}&order=clickcount&reverse=true&hidebroken=true`;
-    if (country) {
-        url += `&country=${encodeURIComponent(country)}`;
-    }
-    if (tag) {
-        url += `&tag=${encodeURIComponent(tag)}`;
-    }
-    if (query) {
-        url += `&name=${encodeURIComponent(query)}`;
-    }
-
-    try {
-        if (tag.toLowerCase() === 'bhakti') {
-            const p1 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=bhakti`).then(r => r.json()).catch(() => []);
-            const p2 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=devotional`).then(r => r.json()).catch(() => []);
-            const p3 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=hindu`).then(r => r.json()).catch(() => []);
-            const p4 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=spiritual`).then(r => r.json()).catch(() => []);
-            
-            const [d1, d2, d3, d4] = await Promise.all([p1, p2, p3, p4]);
-            const combined = [...d1, ...d2, ...d3, ...d4];
-            
-            // Remove duplicates based on stationuuid
-            currentStations = combined.filter((v,i,a) => a.findIndex(t => (t.stationuuid === v.stationuuid)) === i);
-        } else if (tag.toLowerCase() === 'bangla') {
-            const p1 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=bangla`).then(r => r.json()).catch(() => []);
-            const p2 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=bengali`).then(r => r.json()).catch(() => []);
-            const p3 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&language=bengali`).then(r => r.json()).catch(() => []);
-            const p5 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&state=West%20Bengal`).then(r => r.json()).catch(() => []);
-            const p6 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=kolkata`).then(r => r.json()).catch(() => []);
-            
-            const [d1, d2, d3, d5, d6] = await Promise.all([p1, p2, p3, p5, p6]);
-            // Place Indian stations first
-            const combined = [...d1, ...d2, ...d3, ...d5, ...d6];
-            
-            // Remove duplicates
-            currentStations = combined.filter((v,i,a) => a.findIndex(t => (t.stationuuid === v.stationuuid)) === i);
-        } else if (tag.toLowerCase() === 'punjabi') {
-            const p1 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=punjabi`).then(r => r.json()).catch(() => []);
-            const p2 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&language=punjabi`).then(r => r.json()).catch(() => []);
-            const p3 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&state=Punjab`).then(r => r.json()).catch(() => []);
-            const p4 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=bhangra`).then(r => r.json()).catch(() => []);
-            
-            const [d1, d2, d3, d4] = await Promise.all([p1, p2, p3, p4]);
-            const combined = [...d1, ...d2, ...d3, ...d4];
-            currentStations = combined.filter((v,i,a) => a.findIndex(t => (t.stationuuid === v.stationuuid)) === i);
-        } else if (tag.toLowerCase() === 'bhojpuri') {
-            const p1 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=bhojpuri`).then(r => r.json()).catch(() => []);
-            const p2 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&language=bhojpuri`).then(r => r.json()).catch(() => []);
-            const p3 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=bihar`).then(r => r.json()).catch(() => []);
-            const p4 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&tag=patna`).then(r => r.json()).catch(() => []);
-            const p5 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&state=Bihar`).then(r => r.json()).catch(() => []);
-            const p6 = fetch(`${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true&country=India&name=bihar`).then(r => r.json()).catch(() => []);
-            
-            const [d1, d2, d3, d4, d5, d6] = await Promise.all([p1, p2, p3, p4, p5, p6]);
-            const combined = [...d5, ...d6, ...d4, ...d3, ...d1, ...d2];
-            currentStations = combined.filter((v,i,a) => a.findIndex(t => (t.stationuuid === v.stationuuid)) === i);
-        } else if (tag && fetchMappings[tag.toLowerCase()]) {
-            const mappings = fetchMappings[tag.toLowerCase()];
-            const promises = mappings.map(params => {
-                let pUrl = `${API_BASE}/stations/search?limit=100&order=clickcount&reverse=true&hidebroken=true`;
-                if (params.tag) pUrl += `&tag=${encodeURIComponent(params.tag)}`;
-                if (params.country) pUrl += `&country=${encodeURIComponent(params.country)}`;
-                if (params.language) pUrl += `&language=${encodeURIComponent(params.language)}`;
-                if (params.state) pUrl += `&state=${encodeURIComponent(params.state)}`;
-                if (params.name) pUrl += `&name=${encodeURIComponent(params.name)}`;
-                return fetch(pUrl).then(r => r.json()).catch(() => []);
-            });
-            
-            const results = await Promise.all(promises);
-            const combined = results.flat();
-            
-            // Remove duplicates
-            currentStations = combined.filter((v,i,a) => a.findIndex(t => (t.stationuuid === v.stationuuid)) === i);
-        } else {
-            const response = await fetch(url);
-            currentStations = await response.json();
-        }
-        
-        currentStations.forEach(station => {
-            station.originalName = station.name;
-            station.name = translateToHindi(station.name);
-        });
-        
-        renderStations();
-        resultsCount.textContent = `${currentStations.length} stations found`;
-        
-        if (currentStations.length > 0) {
-            if (autoPlay) {
-                playStation(0, 'search');
-            } else {
-                // Just set up the UI for the first station without loading the stream yet
-                currentStationIndex = 0;
-                updatePlayerUI(currentStations[0]);
-                playerStatus.textContent = 'Ready (Paused)';
-                // Remove playing class just in case
-                if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
-                audioPlayer.removeAttribute('src'); 
-            }
-        }
-    } catch (error) {
-        console.error('Failed to fetch stations:', error);
-        stationsGrid.innerHTML = '<p class="error">Failed to load stations. Please check your internet connection.</p>';
-    } finally {
-        mainLoader.style.display = 'none';
-    }
-}
-
-// Render Functions
-function renderStations() {
-    if (currentStations.length === 0) {
-        stationsGrid.innerHTML = '<div class="empty-state"><p>No stations found for this search.</p></div>';
-        return;
-    }
-
-    stationsGrid.innerHTML = currentStations.map((station, index) => `
-        <div class="station-item" onclick="playStation(${index}, 'search', this)">
-            <img src="${station.favicon || DEFAULT_LOGO}" 
-                 class="list-img" 
-                 loading="lazy"
-                 onerror="this.onerror=null; this.src='${DEFAULT_LOGO}';">
-            <div class="item-info">
-                <h4>${station.name}</h4>
-                <p>${station.country} • ${station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'Radio'}</p>
-            </div>
-            <div class="item-actions">
-                <button class="icon-btn" onclick="event.stopPropagation(); addToPlaylistById('${station.stationuuid}')">
-                    <i data-lucide="plus-circle"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
-    lucide.createIcons();
-}
-
-function renderPlaylist() {
-    const playlistHTML = currentPlaylist.length === 0 
-        ? `<div class="empty-state"><i data-lucide="list-music"></i><p>No stations saved yet</p></div>`
-        : currentPlaylist.map((station, index) => `
-            <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
-                <img src="${station.favicon || DEFAULT_LOGO}" 
-                     class="list-img" 
-                     loading="lazy"
-                     onerror="this.onerror=null; this.src='${DEFAULT_LOGO}';">
-                <div class="item-info">
-                    <h4>${station.name}</h4>
-                    <p>${station.country || 'Custom Station'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="icon-btn" onclick="event.stopPropagation(); removeFromPlaylist(${index})">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-    if (quickPlaylistList) quickPlaylistList.innerHTML = playlistHTML;
-    if (fullPlaylistList) fullPlaylistList.innerHTML = playlistHTML;
-    
-    lucide.createIcons();
-}
-
-function switchView(target) {
-    // Update Tabs
-    mainTabs.forEach(tab => {
-        if (tab.dataset.tab === target) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
-
-    // Update Views
-    Object.keys(views).forEach(key => {
-        if (key === target) {
-            views[key].style.display = 'block';
-        } else {
-            views[key].style.display = 'none';
-        }
-    });
-}
-
-function updateSignalStrength(freq) {
-    // Simulate signal strength based on frequency (just for UI)
-    const seed = Math.sin(freq * 10);
-    signalBars.forEach((bar, i) => {
-        const height = 10 + (i * 10) + (seed * 5);
-        bar.style.height = `${Math.max(5, height)}px`;
-        bar.style.opacity = seed > 0.5 ? '1' : '0.4';
-    });
-}
-
-async function tuneInToFrequency(freq) {
-    if (tuneInBtn) {
-        tuneInBtn.disabled = true;
-        tuneInBtn.innerHTML = '<i class="spin" data-lucide="refresh-cw"></i> Tuning...';
-        lucide.createIcons();
-    }
-    
-    // We fetch a station whose name contains the frequency and in the current mode (India or Global)
-    const country = currentMode === 'India' ? 'India' : '';
-    
-    // fetchStations handles UI updates for loader and playing the station automatically
-    await fetchStations(freq, country, '', true);
-    
-    if (tuneInBtn) {
-        tuneInBtn.disabled = false;
-        tuneInBtn.innerHTML = '<i data-lucide="radio"></i> Tune Station';
-        lucide.createIcons();
-    }
-    
-    if (currentStations.length === 0) {
-        alert(`No stations found for frequency ${freq} MHz.`);
-    }
-}
-
-// Playback Logic
-function playStation(index, source = 'search', element = null) {
-    currentSource = source;
-    let station;
-    if (source === 'search') {
-        station = currentStations[index];
-        currentStationIndex = index;
-    } else {
-        station = currentPlaylist[index];
-    }
-
-    if (!station) return;
-
-    // Update Player UI
-    updatePlayerUI(station);
-    
-    // Update Queue Info Text
-    if (queueTickerText) {
-        let list = source === 'search' ? currentStations : currentPlaylist;
-        if (list.length > 0) {
-            const pIdx = (index - 1 + list.length) % list.length;
-            const nIdx = (index + 1) % list.length;
-            const prevStationText = `⏮️ Prev: ${list[pIdx].name || 'Unknown'}`;
-            const nextStationText = `⏭️ Next: ${list[nIdx].name || 'Unknown'}`;
-            
-            queueTickerText.textContent = nextStationText;
-            queueTickerText.className = 'queue-next';
-            showingNextInQueue = true;
-            
-            clearInterval(queueTickerInterval);
-            queueTickerInterval = setInterval(() => {
-                queueTickerText.style.opacity = '0';
-                setTimeout(() => {
-                    if (showingNextInQueue) {
-                        queueTickerText.textContent = prevStationText;
-                        queueTickerText.className = 'queue-prev';
-                    } else {
-                        queueTickerText.textContent = nextStationText;
-                        queueTickerText.className = 'queue-next';
-                    }
-                    queueTickerText.style.opacity = '1';
-                    showingNextInQueue = !showingNextInQueue;
-                }, 300);
-            }, 4000);
-        }
-    }
-
-    // Load and Play
-    audioPlayer.src = station.url_resolved || station.url;
-    audioPlayer.load(); // Force immediate load sequence
-    
-    let autoPlayBlocked = false;
-    
-    audioPlayer.play().then(() => {
-        // Instant UI response for "quick play" feel
-        if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-    }).catch(e => {
-        console.warn('Auto-play failed, user interaction required.', e);
-        playerStatus.textContent = 'Click Play to start';
-        if (e.name === 'NotAllowedError') {
-            autoPlayBlocked = true;
-        }
-    });
-
-    // Also update button immediately before promise resolves for instant feedback
-    if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-
-    // Check if buffering takes too long (8.5 seconds auto-skip)
-    clearTimeout(playCheckTimeout);
-    playCheckTimeout = setTimeout(() => {
-        if (autoPlayBlocked) return;
-        
-        if (audioPlayer.paused || audioPlayer.readyState === 0 || audioPlayer.error) {
-            console.log('Station taking too long to buffer. Auto-skipping to next...');
-            if (!audioPlayer.error) {
-                playerStatus.textContent = 'Stream Slow - Auto-skipping...';
-            }
-            // Automatically play the next station
-            let list = source === 'search' ? currentStations : currentPlaylist;
-            if (list.length > 0) {
-                currentStationIndex = (currentStationIndex + 1) % list.length;
-                playStation(currentStationIndex, source);
-            }
-        }
-    }, 8500);
-
-    // Background Audio Support (Media Session)
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: station.name,
-            artist: station.country || 'FM Radio',
-            album: station.tags || 'Internet Radio',
-            artwork: [
-                { src: station.favicon || DEFAULT_LOGO, sizes: '200x200', type: 'image/png' }
-            ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => audioPlayer.play());
-        navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
-        navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
-        navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
-        
-        navigator.mediaSession.playbackState = 'playing';
-    }
-
-    // Add active class
-    const items = document.querySelectorAll('.station-item');
-    items.forEach(item => item.classList.remove('active'));
-    
-    if (element) {
-        element.classList.add('active');
-    } else {
-        if (items.length > index) {
-            items[index].classList.add('active');
-        }
-    }
-}
-
-function updatePlayerUI(station) {
-    const name = station.name || 'Unknown Station';
-    const country = station.country || 'Global';
-    const tags = station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'Radio';
-    const img = station.favicon || DEFAULT_LOGO;
-
-    const defaultLogo = DEFAULT_LOGO;
-    const defaultMini = DEFAULT_LOGO;
-
-    currentStationName.textContent = name;
-    
-    // Reset inline styles
-    currentStationName.style.fontSize = '';
-    
-    if (name.length >= 25) {
-        // Scroll right to left for very long names
-        currentStationName.classList.add('marquee-name');
-    } else {
-        currentStationName.classList.remove('marquee-name');
-        
-        // Decrease font size 15% for names between 16-24 characters
-        if (name.length >= 16 && name.length <= 24) {
-            currentStationName.style.fontSize = 'clamp(1.275rem, 6.8vw, 2.125rem)';
-        }
-    }
-    
-    currentStationMeta.textContent = `${country} • ${tags}`;
-    
-    // Set up main image with timeout and error fallback
-    let mainImgLoaded = false;
-    currentStationImg.onload = () => { mainImgLoaded = true; };
-    currentStationImg.onerror = () => { currentStationImg.src = defaultLogo; };
-    currentStationImg.src = img;
-    setTimeout(() => {
-        if (!mainImgLoaded && currentStationImg.src === img) {
-            currentStationImg.src = defaultLogo;
-        }
-    }, 2500); // 2.5 seconds timeout
-    
-    playerStatus.textContent = 'Loading...';
-}
-
-function togglePlay() {
-    if (audioPlayer.paused) {
-        if (!audioPlayer.getAttribute('src') && currentStations.length > 0) {
-            playStation(currentStationIndex >= 0 ? currentStationIndex : 0, 'search');
-        } else if (!audioPlayer.getAttribute('src') && currentPlaylist.length > 0) {
-            playStation(currentStationIndex >= 0 ? currentStationIndex : 0, 'playlist');
-        } else {
-            // Force a fresh connection to the live edge when resuming, avoiding stale buffer delays
-            audioPlayer.load();
-            audioPlayer.play().catch(e => console.warn('Play failed', e));
-            if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-        }
-    } else {
-        isSmartScanning = false;
-        clearTimeout(smartScanTimeout);
-        audioPlayer.pause();
-    }
-    // Double check icon (already handled by event listeners, but for responsiveness)
-    setTimeout(() => {
-        const iconName = audioPlayer.paused ? 'play' : 'pause';
-        playPauseBtn.innerHTML = `<i data-lucide="${iconName}" id="play-icon"></i>`;
-        lucide.createIcons();
-    }, 50);
-}
-
-function playNext() {
-        isSmartScanning = false;
-    clearTimeout(smartScanTimeout);
-    let list = currentSource === 'search' ? currentStations : currentPlaylist;
-    if (list.length === 0) return;
-    currentStationIndex = (currentStationIndex + 1) % list.length;
-    playStation(currentStationIndex, currentSource);
-}
-
-function playPrevious() {
-        isSmartScanning = false;
-    clearTimeout(smartScanTimeout);
-    let list = currentSource === 'search' ? currentStations : currentPlaylist;
-    if (list.length === 0) return;
-    currentStationIndex = (currentStationIndex - 1 + list.length) % list.length;
-    playStation(currentStationIndex, currentSource);
-}
-
-// Volume Controls
-function updateVolume(value) {
-    let volume = value / 100;
-    volumeSlider.value = value;
-    
-    // Apply Boosts based on active features
-    if (isVolBoostEnabled) {
-        volume = 1.0;
-    } else {
-        if (isHDEQEnabled) volume = Math.min(1.0, volume * 1.25);
-        if (isDJBoostEnabled) volume = Math.min(1.0, volume * 1.5);
-    }
-    
-    audioPlayer.volume = volume;
-    
-    let volIconName = 'volume-2';
-    if (volume === 0) {
-        volIconName = 'volume-x';
-    } else if (volume < 0.5) {
-        volIconName = 'volume-1';
-    }
-    
-    const muteBtnElement = document.getElementById('mute-btn');
-    if (muteBtnElement) {
-        muteBtnElement.innerHTML = `<i data-lucide="${volIconName}" id="volume-icon"></i>`;
-        lucide.createIcons();
-    }
-    
-    if (volume > 0) {
-        lastVolume = value;
-        isMuted = false;
-    }
-}
-
-function toggleMute() {
-    if (isMuted) {
-        updateVolume(lastVolume);
-    } else {
-        lastVolume = volumeSlider.value;
-        updateVolume(0);
-        isMuted = true;
-    }
-}
-
-// Playlist Logic
-function addToPlaylist(station) {
-    if (currentPlaylist.some(s => s.stationuuid === station.stationuuid)) {
-        alert('Station already in playlist!');
-        return;
-    }
-    currentPlaylist.push(station);
-    savePlaylist();
-    renderPlaylist();
-}
-
-function addToPlaylistById(uuid) {
-    const station = currentStations.find(s => s.stationuuid === uuid);
-    if (station) {
-        addToPlaylist(station);
-    }
-}
-
-function removeFromPlaylist(index) {
-    currentPlaylist.splice(index, 1);
-    
-    if (currentSource === 'playlist') {
-        if (currentStationIndex === index) {
-            currentStationIndex = -1; // Removed currently playing station
-        } else if (currentStationIndex > index) {
-            currentStationIndex--; // Shift index back
-        }
-    }
-    
-    savePlaylist();
-    renderPlaylist();
-}
-
-function savePlaylist() {
-    localStorage.setItem('fm_playlist', JSON.stringify(currentPlaylist));
-}
-
-function updateActiveCat(label) {
-    catButtons.forEach(btn => {
-        if (btn.textContent === label) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-}
-
-// Theme Functions
-function toggleTheme() {
-    const isLight = document.body.getAttribute('data-theme') === 'light';
-    const newTheme = isLight ? 'dark' : 'light';
-    setTheme(newTheme);
-}
-
-function setTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('fm_theme', theme);
-    
-    if (theme === 'light') {
-        themeIcon.setAttribute('data-lucide', 'sun');
-    } else {
-        themeIcon.setAttribute('data-lucide', 'moon');
-    }
-    lucide.createIcons();
-}
-
-function loadTheme() {
-    const savedTheme = localStorage.getItem('fm_theme') || 'dark';
-    setTheme(savedTheme);
-}
-
-// HD/EQ Logic
-function toggleHDEQ() {
-    isHDEQEnabled = !isHDEQEnabled;
-    if (isHDEQEnabled) {
-        eqHdBtn.style.backgroundColor = 'var(--primary-color)';
-        eqHdBtn.style.color = '#fff';
-        playerStatus.textContent = 'HD/EQ Active';
-    } else {
-        eqHdBtn.style.backgroundColor = 'transparent';
-        eqHdBtn.style.color = 'inherit';
-        playerStatus.textContent = 'HD/EQ Disabled';
-    }
-    
-    updateVolume(volumeSlider.value);
-    
-    setTimeout(() => {
-        if (audioPlayer.paused) playerStatus.textContent = 'Paused';
-        else playerStatus.textContent = 'Playing';
-    }, 2000);
-}
-
-// DJ Boost Logic
-function toggleDJBoost() {
-    isDJBoostEnabled = !isDJBoostEnabled;
-    if (isDJBoostEnabled) {
-        djBoostBtn.style.backgroundColor = 'var(--accent-color)';
-        djBoostBtn.style.color = '#fff';
-        playerStatus.textContent = 'DJ/Beats Boost ON';
-    } else {
-        djBoostBtn.style.backgroundColor = 'transparent';
-        djBoostBtn.style.color = 'inherit';
-        playerStatus.textContent = 'DJ/Beats Boost OFF';
-    }
-    
-    updateVolume(volumeSlider.value);
-    
-    setTimeout(() => {
-        if (audioPlayer.paused) playerStatus.textContent = 'Paused';
-        else playerStatus.textContent = 'Playing';
-    }, 2000);
-}
-
-// Vol Boost Logic
-function toggleVolBoost(e) {
-    isVolBoostEnabled = e.target.checked;
-    if (isVolBoostEnabled) {
-        playerStatus.textContent = 'Volume Max Boost ON';
-    } else {
-        playerStatus.textContent = 'Volume Boost OFF';
-    }
-    
-    updateVolume(volumeSlider.value);
-    
-    setTimeout(() => {
-        if (audioPlayer.paused) playerStatus.textContent = 'Paused';
-        else playerStatus.textContent = 'Playing';
-    }, 2000);
-}
-
-// Smart Auto Scan Logic
-function toggleSmartAutoScan() {
-    isSmartScanning = !isSmartScanning;
-    
-    if (isSmartScanning) {
-        smartAutoScanBtn.innerHTML = '<i data-lucide="stop-circle"></i><span>Stop Scan</span>';
-        smartAutoScanBtn.style.backgroundColor = 'var(--accent-color)';
-        smartAutoScanBtn.style.color = '#fff';
-        lucide.createIcons();
-        
-        if (currentStations.length === 0) {
-            alert('No stations in the current list to scan!');
-            toggleSmartAutoScan();
-            return;
-        }
-        
-        if (currentStationIndex < 0) currentStationIndex = 0;
-        
-        playerStatus.textContent = 'Auto Scan Started...';
-        playSmartScanStation();
-    } else {
-        smartAutoScanBtn.innerHTML = '<i data-lucide="zap"></i><span>Auto Scan</span>';
-        smartAutoScanBtn.style.backgroundColor = '';
-        smartAutoScanBtn.style.color = 'var(--primary-color)';
-        lucide.createIcons();
-        
-        clearTimeout(smartScanTimeout);
-        clearTimeout(playCheckTimeout);
-        playerStatus.textContent = 'Auto Scan Stopped';
-    }
-}
-
-function playSmartScanStation() {
-    if (!isSmartScanning) return;
-    
-    playStation(currentStationIndex, 'search');
-    
-    clearTimeout(playCheckTimeout);
-    clearTimeout(smartScanTimeout);
-    
-    // Check if station plays within 6 seconds
-    playCheckTimeout = setTimeout(() => {
-        if (!isSmartScanning) return;
-        
-        if (audioPlayer.paused || audioPlayer.readyState < 3) {
-            // Failed or taking too long
-            playerStatus.textContent = 'Skipping unresponsive station...';
-            currentStationIndex = (currentStationIndex + 1) % currentStations.length;
-            playSmartScanStation();
-        }
-    }, 6000);
-}
-
-// Start App
-init();
-
-// --- Dynamic Visualizer Logic ---
-const eqBarsList = document.querySelectorAll('.eq-bar');
-let barValues = new Array(12).fill(10);
-let barTargets = new Array(12).fill(10);
-
-function updateVisualizer() {
-    // Determine if audio is actively playing
-    const isPlaying = !audioPlayer.paused && audioPlayer.readyState >= 3;
-    const vol = audioPlayer.muted ? 0 : audioPlayer.volume;
-    const volScale = (vol * 0.8) + 0.2; // Keep some movement even at low volume
-
-    if (isPlaying) {
-        // Randomly generate new height targets for a realistic look
-        if (Math.random() > 0.4) {
-            for (let i = 0; i < 12; i++) {
-                // Creates a bell-like curve (mids bounce higher than edges)
-                const eqCurve = 1 - Math.abs(i - 5.5) / 7; 
-                const rawBounce = Math.random() * 85; // 0 to 85% extra height
-                
-                // Add some temporal randomness to simulate actual frequencies
-                barTargets[i] = 15 + (rawBounce * eqCurve * volScale);
-            }
-        }
-    } else {
-        // Flatline to base height if paused/stopped
-        for (let i = 0; i < 12; i++) {
-            barTargets[i] = 10;
-        }
-    }
-
-    // Smooth transition physics
-    for (let i = 0; i < 12; i++) {
-        // Easing factor (0.3) for smooth, fluid motion
-        barValues[i] += (barTargets[i] - barValues[i]) * 0.3; 
-        
-        if (eqBarsList[i]) {
-            eqBarsList[i].style.height = `${barValues[i]}%`;
-        }
-    }
-
-    requestAnimationFrame(updateVisualizer);
-}
-
-// Start visualizer loop
-requestAnimationFrame(updateVisualizer);
+/* ---------- main wiring ---------- */
+function togglePower(){live?stopCamera():startCamera();}
+$('#btnPower').onclick=togglePower;
+idleBtn.onclick=()=>startCamera();
+$('#btnShot').onclick=snapshot;
+$('#btnRec').onclick=toggleRec;
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
+  const k=e.key.toLowerCase();
+  if(k==='p')togglePower();else if(k==='s'&&live)snapshot();else if(k==='r')toggleRec();
+  else if(k==='g')$('#btnGrid').click();else if(k==='m')$('#btnMirror').click();else if(k==='f')$('#btnFull').click();
+});
+window.addEventListener('pagehide',()=>{if(stream)stream.getTracks().forEach(t=>t.stop());});
