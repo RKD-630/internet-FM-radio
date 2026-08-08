@@ -1,274 +1,617 @@
-const $=s=>document.querySelector(s);
-const video=$('#video'),stage=$('#stage'),idleBtn=$('#btnEnable');
-const FILTERS={standard:'none',vivid:'saturate(1.4) contrast(1.1)',noir:'grayscale(1) contrast(1.2)',
-  night:'sepia(1) hue-rotate(72deg) saturate(3.2) brightness(1.25) contrast(1.05)'};
-let stream=null,live=false,facing='user',deviceId=null,mirrored=true,filterName='standard',zoom=1;
-let recording=false,recorder=null,recChunks=[],recTimer=null,recSec=0;
-let uptimeInt=null,uptimeSec=0,fpsVal=0,fpsInt=null;
-let bcOn=false,bc=null,bcTimer=null,bcCanvas=null;
-let capN=0;
+// --- State Management ---
+    const resolutions = {
+        '240p': { width: 426, height: 240 },
+        '360p': { width: 640, height: 360 },
+        '480p': { width: 854, height: 480 },
+        '720p': { width: 1280, height: 720 },
+        '1080p': { width: 1920, height: 1080 }
+    };
 
-/* ---------- toast ---------- */
-let toastT=null;
-function toast(msg,err){const t=$('#toast');t.textContent=msg;t.classList.toggle('err',!!err);t.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);}
+    const state = {
+        isStreaming: false,
+        facingMode: 'environment',
+        settings: { resolution: '720p', facingMode: 'environment', password: '', audioEnabled: true, wakeLock: true },
+        peerId: null,
+        wakeLock: null,
+        rotation: 0
+    };
 
-/* ---------- clock ---------- */
-const p2=n=>String(n).padStart(2,'0');
-function clock(){const d=new Date();
-  $('#clockTime').textContent=p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());
-  $('#clockDate').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
-  $('#hudTime').textContent=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' · '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());}
-setInterval(clock,1000);clock();
+    let localStream = null;
+    let peer = null;
+    let dataConnections = [];
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let recordingStartTime = 0;
+    let recordingTimerInterval = null;
+    let db = null;
 
-/* ---------- camera ---------- */
-async function startCamera(){
-  if(live)return;
-  const v={width:{ideal:1920},height:{ideal:1080}};
-  if(deviceId)v.deviceId={exact:deviceId};else v.facingMode=facing;
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:v,audio:false});
-  }catch(e){
-    const m={NotAllowedError:'Permission denied — allow camera access in your browser settings',
-      NotFoundError:'No camera found on this device',NotReadableError:'Camera is busy in another application',
-      SecurityError:'Camera requires HTTPS or localhost',OverconstrainedError:'Camera unavailable — retrying with defaults'}[e.name]||('Camera error: '+e.name);
-    toast(m,true);
-    if(e.name==='OverconstrainedError'&&deviceId){deviceId=null;return startCamera();}
-    return;
-  }
-  video.srcObject=stream;live=true;uptimeSec=0;
-  if(!deviceId)mirrored=(facing==='user');
-  applyVideoFX();
-  stage.classList.add('live');
-  $('#ledCam').classList.add('on');$('#sig').classList.add('on');
-  $('#tStatus').textContent='LIVE';$('#tStatus').classList.remove('off');
-  $('#tFace').textContent=(facing==='user'?'FRONT':'REAR')+(deviceId?' · EXT':'');
-  $('#hudCam').textContent='CAM 01 · '+((stream.getVideoTracks()[0]?.label||'SENSOR').toUpperCase().slice(0,26));
-  $('#powerLabel').textContent='STOP';$('#btnPower').classList.add('on');
-  ['#btnShot','#btnRec','#btnFlip'].forEach(s=>$(s).disabled=false);$('#devSelect').disabled=false;
-  $('#btnMirror').classList.toggle('on',mirrored);
-  startFPS();loadDevices();fetchLANIP();
-  uptimeInt=setInterval(()=>{uptimeSec++;$('#tUp').textContent=fmtHMS(uptimeSec);},1000);
-  stream.getVideoTracks()[0].addEventListener('ended',()=>{if(live)stopCamera(true);});
-  toast('Camera online — feed is live');
-}
-function stopCamera(silent){
-  if(recording)stopRec(true);
-  if(bcOn)stopBroadcast();
-  if(stream)stream.getTracks().forEach(t=>t.stop());
-  stream=null;live=false;video.srcObject=null;
-  clearInterval(uptimeInt);clearInterval(fpsInt);fpsVal=0;
-  stage.classList.remove('live','rec');
-  $('#ledCam').classList.remove('on');$('#sig').classList.remove('on');
-  $('#tStatus').textContent='STANDBY';$('#tStatus').classList.add('off');
-  $('#tRes').textContent='—';$('#tFps').textContent='—';$('#tUp').textContent='00:00:00';
-  $('#hudSpec').textContent='— × —';$('#hudCam').textContent='CAM 01 · STANDBY';
-  $('#powerLabel').textContent='START';$('#btnPower').classList.remove('on');
-  ['#btnShot','#btnRec','#btnFlip'].forEach(s=>$(s).disabled=true);
-  if(!silent)toast('Camera offline');
-}
-function fmtHMS(s){return p2(Math.floor(s/3600))+':'+p2(Math.floor(s/60)%60)+':'+p2(s%60);}
+    // Viewer State
+    let viewerPeer = null;
+    let conn = null;
 
-/* ---------- FPS + spec meter ---------- */
-function startFPS(){
-  const frames=[];
-  if('requestVideoFrameCallback' in HTMLVideoElement.prototype){
-    const loop=now=>{if(!live)return;frames.push(now);
-      while(frames.length&&now-frames[0]>1000)frames.shift();
-      fpsVal=Math.max(0,frames.length-1);video.requestVideoFrameCallback(loop);};
-    video.requestVideoFrameCallback(loop);
-  }else{
-    fpsInt=setInterval(()=>{const s=stream?.getVideoTracks()[0]?.getSettings();
-      fpsVal=s&&s.frameRate?Math.round(s.frameRate):30;},1000);
-  }
-}
-setInterval(()=>{if(!live)return;
-  $('#tRes').textContent=video.videoWidth+'×'+video.videoHeight;
-  $('#tFps').textContent=fpsVal+' fps';
-  $('#tZoom').textContent=zoom.toFixed(1)+'×';
-  $('#hudSpec').textContent=video.videoWidth+'×'+video.videoHeight+' · '+fpsVal+'FPS';
-},500);
+    // --- Initialization ---
+    window.onload = () => {
+        loadSettings();
+        initDB();
+        
+        // Check for Viewer Mode via URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('viewer') === '1') {
+            switchView('viewer');
+            if (urlParams.has('peerId')) {
+                document.getElementById('viewer-peer-id').value = urlParams.get('peerId');
+            }
+        } else {
+            // Auto-start camera to trigger permission prompt immediately
+            startCamera();
+        }
 
-/* ---------- video FX ---------- */
-function applyVideoFX(){
-  video.style.filter=FILTERS[filterName];
-  video.style.transform='scale('+zoom+') scaleX('+(mirrored?-1:1)+')';
-}
-$('#btnMirror').onclick=()=>{mirrored=!mirrored;$('#btnMirror').classList.toggle('on',mirrored);applyVideoFX();};
-$('#btnGrid').onclick=()=>{const g=$('#gridfx');g.classList.toggle('show');$('#btnGrid').classList.toggle('on',g.classList.contains('show'));};
-$('#btnFull').onclick=()=>{document.fullscreenElement?document.exitFullscreen():stage.requestFullscreen?.();};
-$('#zoom').oninput=e=>{zoom=+e.target.value;$('#zoomVal').textContent=zoom.toFixed(1)+'×';applyVideoFX();};
-$('#filterChips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;
-  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
-  c.classList.add('active');filterName=c.dataset.f;applyVideoFX();});
+        // Theme Init
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-theme');
+            document.querySelector('#theme-toggle i').className = 'fas fa-sun';
+        }
 
-/* ---------- snapshot ---------- */
-function snapshot(){
-  if(!live||!video.videoWidth)return;
-  const w=video.videoWidth,h=video.videoHeight,c=document.createElement('canvas');
-  c.width=w;c.height=h;const x=c.getContext('2d');
-  if(mirrored){x.translate(w,0);x.scale(-1,1);}
-  if(FILTERS[filterName]!=='none'){try{x.filter=FILTERS[filterName];}catch(e){}}
-  x.drawImage(video,0,0,w,h);
-  c.toBlob(b=>{if(!b)return;
-    addCapture({type:'photo',url:URL.createObjectURL(b),name:fname('jpg')});
-    const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
-    toast('Snapshot captured');
-  },'image/jpeg',0.92);
-}
+        // System Stats
+        updateSystemStats();
+        setInterval(updateSystemStats, 5000);
+    };
 
-/* ---------- recording ---------- */
-function pickMime(){const list=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'];
-  return list.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';}
-function toggleRec(){
-  if(!live)return toast('Start the camera first',true);
-  recording?stopRec():startRec();
-}
-function startRec(){
-  if(!window.MediaRecorder)return toast('Recording not supported in this browser',true);
-  recChunks=[];const mime=pickMime();
-  try{recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);}catch(e){return toast('Recorder failed to start',true);}
-  recorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data);};
-  recorder.onstop=()=>{
-    const blob=new Blob(recChunks,{type:recorder.mimeType||'video/webm'});
-    addCapture({type:'video',url:URL.createObjectURL(blob),name:fname(mime.includes('mp4')?'mp4':'webm')});
-    toast('Recording saved ('+(blob.size/1048576).toFixed(1)+' MB)');
-  };
-  recorder.start(250);recording=true;recSec=0;
-  stage.classList.add('rec');$('#ledRec').classList.add('on');
-  $('#btnRec').classList.add('recording');$('#recLabel').textContent='STOP';
-  recTimer=setInterval(()=>{recSec++;const t=p2(Math.floor(recSec/60))+':'+p2(recSec%60);
-    $('#recTime').textContent='REC '+t;$('#recLabel').textContent='STOP · '+t;},1000);
-}
-function stopRec(silent){
-  if(recorder&&recorder.state!=='inactive')recorder.stop();
-  recording=false;clearInterval(recTimer);
-  stage.classList.remove('rec');$('#ledRec').classList.remove('on');
-  $('#btnRec').classList.remove('recording');$('#recLabel').textContent='RECORD';
-  if(silent)toast('Recording stopped (camera closed)');
-}
+    // --- Navigation ---
+    function switchView(viewName) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(`view-${viewName}`).classList.add('active');
+        
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const viewMap = { 'home': 0, 'camera': 1, 'network': 2, 'recordings': 3, 'settings': 4 };
+        if (viewMap[viewName] !== undefined) {
+            document.querySelectorAll('.nav-btn')[viewMap[viewName]].classList.add('active');
+        }
+    }
 
-/* ---------- captures gallery ---------- */
-function fname(ext){const d=new Date();
-  return 'SENTRYCAM_'+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'_'+p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds())+'.'+ext;}
-function addCapture(cap){
-  const box=$('#caps');box.querySelector('.caps-empty')?.remove();
-  const el=document.createElement('div');el.className='cap';el.tabIndex=0;
-  el.innerHTML=(cap.type==='photo'
-    ?'<img src="'+cap.url+'" alt="snapshot">'
-    :'<video src="'+cap.url+'" muted playsinline loop preload="metadata"></video>')
-    +'<span class="cap-tag'+(cap.type==='video'?' vid':'')+'">'+(cap.type==='video'?'▶ CLIP':'PHOTO')+'</span>'
-    +'<div class="cap-actions">'
-    +'<a href="'+cap.url+'" download="'+cap.name+'" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg></a>'
-    +'<button title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/></svg></button>'
-    +'</div>';
-  el.querySelector('button').onclick=e=>{e.stopPropagation();URL.revokeObjectURL(cap.url);el.remove();capN--;
-    $('#capCount').textContent=capN+' FILES';if(!capN)box.innerHTML='<div class="caps-empty">NO CAPTURES YET</div>';};
-  el.onclick=()=>window.open(cap.url,'_blank');
-  if(cap.type==='video')el.querySelector('video').onmouseenter=e=>e.target.play?.();
-  box.prepend(el);capN++;$('#capCount').textContent=capN+' FILES';
-}
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        const isLight = document.body.classList.contains('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        document.querySelector('#theme-toggle i').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+    }
 
-/* ---------- devices ---------- */
-async function loadDevices(){
-  try{
-    const ds=await navigator.mediaDevices.enumerateDevices();
-    const vs=ds.filter(d=>d.kind==='videoinput'),sel=$('#devSelect');
-    sel.innerHTML='';vs.forEach((d,i)=>{const o=document.createElement('option');
-      o.value=d.deviceId;o.textContent=d.label||('Camera '+(i+1));sel.appendChild(o);});
-    const cur=stream?.getVideoTracks()[0]?.getSettings().deviceId;
-    if(cur)sel.value=cur;
-  }catch(e){}
-}
-$('#devSelect').onchange=e=>{deviceId=e.target.value||null;if(live){stream.getTracks().forEach(t=>t.stop());live=false;startCamera();}};
-$('#btnFlip').onclick=()=>{deviceId=null;facing=facing==='user'?'environment':'user';
-  if(live){stream.getTracks().forEach(t=>t.stop());live=false;}startCamera();};
+    // --- Camera Functions ---
+    async function startCamera() {
+        try {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            const res = state.settings.resolution;
+            const constraints = {
+                video: {
+                    facingMode: state.facingMode,
+                    width: { ideal: resolutions[res].width },
+                    height: { ideal: resolutions[res].height }
+                },
+                audio: state.settings.audioEnabled
+            };
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            document.getElementById('local-video').srcObject = localStream;
+            state.isStreaming = true;
+            
+            document.getElementById('stat-status').innerText = 'Online';
+            document.getElementById('stat-status').className = 'online';
+            document.getElementById('stat-res').innerText = `${resolutions[res].width}×${resolutions[res].height}`;
+            
+            if (state.settings.wakeLock) requestWakeLock();
+            updateFPS();
+        } catch (err) {
+            alert('Camera access denied or not available: ' + err.message);
+        }
+    }
 
-/* ---------- remote access: IPs ---------- */
-fetch('https://api.ipify.org?format=json').then(r=>r.json())
-  .then(d=>$('#pubIp').textContent=d.ip).catch(()=>$('#pubIp').textContent='offline');
-async function fetchLANIP(){
-  if($('#lanIp').textContent!=='scanning…'&&$('#lanIp').textContent!=='hidden by browser')return;
-  try{
-    const pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel('');
-    await pc.setLocalDescription(await pc.createOffer());
-    const ip=await new Promise(res=>{
-      const t=setTimeout(()=>res(null),2500);
-      pc.onicecandidate=e=>{if(!e.candidate){clearTimeout(t);return res(null);}
-        const m=e.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
-        if(m&&!m[0].startsWith('0.')){clearTimeout(t);pc.close();res(m[0]);}};
-    });
-    if(ip){$('#lanIp').textContent=ip;$('#streamUrl').textContent='http://'+ip+':8080';}
-    else $('#lanIp').textContent='hidden by browser';
-  }catch(e){$('#lanIp').textContent='unavailable';}
-}
-fetchLANIP();
-document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{
-  const txt=$('#'+b.dataset.copy).textContent;
-  (navigator.clipboard?.writeText(txt)||Promise.reject()).then(()=>toast('Copied: '+txt)).catch(()=>toast('Copy failed',true));
-});
+    function stopCamera() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+            state.isStreaming = false;
+            document.getElementById('local-video').srcObject = null;
+            document.getElementById('stat-status').innerText = 'Offline';
+            document.getElementById('stat-status').className = 'offline';
+        }
+    }
 
-/* ---------- broadcast viewer (live remote preview) ---------- */
-const VIEWER_HTML='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-+'<title>SENTRYCAM · Remote Viewer</title><style>'
-+'body{margin:0;background:#0b0f13;color:#9fb0bf;font-family:monospace;display:flex;flex-direction:column;height:100vh}'
-+'header{padding:10px 16px;display:flex;justify-content:space-between;font-size:12px;letter-spacing:.15em;border-bottom:1px solid #22313f}'
-+'img{flex:1;object-fit:contain;background:#000;min-height:0}'
-+'.dot{color:#ff5252;animation:b 1s steps(2) infinite}@keyframes b{50%{opacity:.15}}'
-+'</style></head><body><header><span>SENTRYCAM // REMOTE VIEWER</span><span><span class="dot">&#9679;</span> LIVE <span id="fps"></span></span></header>'
-+'<img id="feed" alt="Waiting for signal…">'
-+'<script>var img=document.getElementById("feed"),n=0;'
-+'setInterval(function(){document.getElementById("fps").textContent=n+" FPS";n=0;},1000);'
-+'var bc=new BroadcastChannel("sentrycam");'
-+'bc.onmessage=function(e){if(e.data&&e.data.t==="f"){img.src=e.data.d;n++;}};'
-+'<\/script></body></html>';
+    function pauseStream() {
+        if (localStream) localStream.getVideoTracks().forEach(track => track.enabled = false);
+    }
 
-function startBroadcast(){
-  if(typeof BroadcastChannel==='undefined')return toast('BroadcastChannel not supported here',true);
-  bcOn=true;bc=new BroadcastChannel('sentrycam');
-  bcCanvas=document.createElement('canvas');
-  bcTimer=setInterval(()=>{
-    if(!live||!video.videoWidth)return;
-    const w=560,h=Math.round(w*video.videoHeight/video.videoWidth);
-    if(bcCanvas.width!==w){bcCanvas.width=w;bcCanvas.height=h;}
-    const x=bcCanvas.getContext('2d');
-    if(mirrored){x.save();x.translate(w,0);x.scale(-1,1);}
-    x.drawImage(video,0,0,w,h);if(mirrored)x.restore();
-    try{bc.postMessage({t:'f',d:bcCanvas.toDataURL('image/jpeg',0.5)});}catch(e){}
-  },120);
-  $('#ledLink').classList.add('on');$('#btnBroadcast').classList.add('live');
-  $('#bcLabel').textContent='STOP BROADCAST';
-}
-function stopBroadcast(){
-  bcOn=false;clearInterval(bcTimer);bc?.close();bc=null;
-  $('#ledLink').classList.remove('on');$('#btnBroadcast').classList.remove('live');
-  $('#bcLabel').textContent='OPEN LIVE VIEWER WINDOW';
-}
-$('#btnBroadcast').onclick=()=>{
-  if(!live)return toast('Start the camera first',true);
-  if(bcOn)return stopBroadcast();
-  startBroadcast();
-  const w=window.open('','_blank','width=760,height=470');
-  if(!w){
-    stopBroadcast();
-    toast('Popup blocked — allow popups to open the viewer',true);
-  }else{
-    w.document.write(VIEWER_HTML);
-    w.document.close();
-    toast('Broadcasting live feed to viewer window');
-  }
-};
+    function resumeStream() {
+        if (localStream) localStream.getVideoTracks().forEach(track => track.enabled = true);
+    }
 
-/* ---------- main wiring ---------- */
-function togglePower(){live?stopCamera():startCamera();}
-$('#btnPower').onclick=togglePower;
-idleBtn.onclick=()=>startCamera();
-$('#btnShot').onclick=snapshot;
-$('#btnRec').onclick=toggleRec;
-document.addEventListener('keydown',e=>{
-  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
-  const k=e.key.toLowerCase();
-  if(k==='p')togglePower();else if(k==='s'&&live)snapshot();else if(k==='r')toggleRec();
-  else if(k==='g')$('#btnGrid').click();else if(k==='m')$('#btnMirror').click();else if(k==='f')$('#btnFull').click();
-});
-window.addEventListener('pagehide',()=>{if(stream)stream.getTracks().forEach(t=>t.stop());});
+    async function switchCamera() {
+        state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
+        await startCamera();
+    }
+
+    async function toggleTorch() {
+        if (!localStream) return;
+        const track = localStream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
+        if (capabilities.torch) {
+            const current = track.getSettings().torch || false;
+            await track.applyConstraints({ advanced: [{ torch: !current }] });
+        } else {
+            alert('Torch not supported on this device');
+        }
+    }
+
+    function toggleMute() {
+        if (localStream) {
+            state.settings.audioEnabled = !state.settings.audioEnabled;
+            localStream.getAudioTracks().forEach(track => track.enabled = state.settings.audioEnabled);
+        }
+    }
+
+    function toggleQuality() {
+        const current = state.settings.resolution;
+        const next = current === '1080p' ? '480p' : '1080p';
+        state.settings.resolution = next;
+        document.getElementById('setting-resolution').value = next;
+        startCamera();
+    }
+
+    function rotateCamera() {
+        state.rotation = (state.rotation + 90) % 360;
+        document.getElementById('local-video').style.transform = `rotate(${state.rotation}deg)`;
+    }
+
+    function toggleFullscreen(elementId) {
+        const elem = document.getElementById(elementId);
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // --- Recording Functions ---
+    function toggleRecording() {
+        isRecording ? stopRecording() : startRecording();
+    }
+
+    function startRecording() {
+        if (!localStream) return;
+        recordedChunks = [];
+        const options = { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' };
+        mediaRecorder = new MediaRecorder(localStream, options);
+        
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const filename = `rec_${Date.now()}.webm`;
+            saveRecording(blob, filename);
+        };
+        
+        mediaRecorder.start(1000);
+        isRecording = true;
+        recordingStartTime = Date.now();
+        document.getElementById('recording-indicator').classList.remove('hidden');
+        document.getElementById('stat-rec').innerText = 'ON';
+        document.getElementById('stat-rec').style.color = 'var(--danger-color)';
+        
+        recordingTimerInterval = setInterval(() => {
+            const duration = ((Date.now() - recordingStartTime) / 1000).toFixed(0);
+            const mins = Math.floor(duration / 60).toString().padStart(2, '0');
+            const secs = (duration % 60).toString().padStart(2, '0');
+            document.getElementById('rec-timer').innerText = `${mins}:${secs}`;
+        }, 1000);
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            clearInterval(recordingTimerInterval);
+            document.getElementById('recording-indicator').classList.add('hidden');
+            document.getElementById('stat-rec').innerText = 'OFF';
+            document.getElementById('stat-rec').style.color = 'inherit';
+        }
+    }
+
+    function captureLocalSnapshot() {
+        const video = document.getElementById('local-video');
+        if (!video.videoWidth) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const url = canvas.toDataURL('image/jpeg');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `snapshot_${Date.now()}.jpg`;
+        a.click();
+    }
+
+    // --- WebRTC / Server Functions ---
+    function startServer() {
+        if (!localStream) {
+            alert('Please start the camera first!');
+            return;
+        }
+        document.getElementById('btn-start-server').classList.add('hidden');
+        document.getElementById('server-info').classList.remove('hidden');
+        document.getElementById('server-status').innerText = 'Running';
+        document.getElementById('server-status').className = 'status-badge online';
+        
+        // Mock IP for UI realism as per requirements
+        const mockIp = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
+        document.getElementById('display-mock-ip').innerText = mockIp;
+        
+        // Initialize PeerJS
+        peer = new Peer();
+        peer.on('open', (id) => {
+            state.peerId = id;
+            document.getElementById('display-peer-id').innerText = id;
+            generateQR(id);
+        });
+        
+        peer.on('connection', (conn) => {
+            if (state.settings.password && conn.metadata?.password !== state.settings.password) {
+                conn.send({ type: 'error', message: 'Invalid password' });
+                conn.close();
+                return;
+            }
+            dataConnections.push(conn);
+            updateDashboard();
+            
+            conn.on('data', (data) => handleRemoteCommand(data, conn));
+            conn.on('close', () => {
+                dataConnections = dataConnections.filter(c => c !== conn);
+                updateDashboard();
+            });
+        });
+        
+        peer.on('call', (call) => {
+            if (localStream) call.answer(localStream);
+        });
+    }
+
+    async function generateQR(peerId) {
+        document.getElementById('qrcode').innerHTML = '';
+        
+        let host = window.location.host;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            try {
+                const pc = new RTCPeerConnection({iceServers:[]});
+                pc.createDataChannel('');
+                await pc.setLocalDescription(await pc.createOffer());
+                const lanIp = await new Promise(res => {
+                    const t = setTimeout(() => res(null), 2500);
+                    pc.onicecandidate = e => {
+                        if (!e.candidate) { clearTimeout(t); return res(null); }
+                        const m = e.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
+                        if (m && !m[0].startsWith('0.')) { clearTimeout(t); pc.close(); res(m[0]); }
+                    };
+                });
+                if (lanIp) {
+                    host = `${lanIp}:${window.location.port || 80}`;
+                } else {
+                    const userIp = prompt("Your browser hid your local IP for security. Please enter your computer's Wi-Fi IP address (like 192.168.1.x) so we can generate the QR code:", "192.168.1.10");
+                    if (userIp) host = `${userIp.trim()}:${window.location.port || 80}`;
+                }
+            } catch(e) {}
+        }
+        
+        const baseUrl = window.location.protocol + '//' + host + window.location.pathname;
+        const url = `${baseUrl}?viewer=1&peerId=${peerId}`;
+        
+        if (host.includes('.')) {
+            document.getElementById('display-mock-ip').innerText = host.split(':')[0];
+        }
+        
+        new QRCode(document.getElementById('qrcode'), {
+            text: url, width: 150, height: 150,
+            colorDark: "#000000", colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
+    // --- Viewer Functions ---
+    let html5QrCode = null;
+    let qrFacingMode = "environment"; // Default to back camera
+
+    function startQRScanner() {
+        const containerDiv = document.getElementById('qr-scanner-container');
+        
+        if (containerDiv.style.display === 'block') {
+            // Close scanner
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(err => console.error("Failed to stop scanner", err));
+            }
+            containerDiv.style.display = 'none';
+            return;
+        }
+
+        if (typeof Html5Qrcode === 'undefined') {
+            alert('QR Scanner library is still loading. Please try again.');
+            return;
+        }
+
+        containerDiv.style.display = 'block';
+        
+        html5QrCode = new Html5Qrcode("qr-reader");
+        startQRLens();
+    }
+
+    function switchQRCamera() {
+        qrFacingMode = (qrFacingMode === "environment") ? "user" : "environment";
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                startQRLens();
+            }).catch(err => console.error("Failed to stop camera for switching", err));
+        }
+    }
+
+    function startQRLens() {
+        html5QrCode.start(
+            { facingMode: qrFacingMode },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText, decodedResult) => {
+                handleQRScanSuccess(decodedText);
+            },
+            (errorMessage) => {
+                // Ignore ongoing scan failures
+            }
+        ).catch(err => {
+            console.error("Failed to start QR scanner", err);
+            // If we failed to start the environment camera, maybe it's a device (like a laptop) without one.
+            if (qrFacingMode === "environment") {
+                qrFacingMode = "user";
+                startQRLens();
+            }
+        });
+    }
+
+    function handleQRScanSuccess(decodedText) {
+        const containerDiv = document.getElementById('qr-scanner-container');
+        
+        const finishScan = () => {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(err => console.error("Failed to stop scanner", err));
+            }
+            containerDiv.style.display = 'none';
+            connectToCamera();
+        };
+
+        try {
+            const url = new URL(decodedText);
+            const peerId = url.searchParams.get('peerId');
+            if (peerId) {
+                document.getElementById('viewer-peer-id').value = peerId;
+                finishScan();
+            } else {
+                alert('QR Code does not contain a valid Camera ID.');
+            }
+        } catch (e) {
+            if (decodedText.length > 5) { // Basic sanity check for plain ID
+                document.getElementById('viewer-peer-id').value = decodedText;
+                finishScan();
+            } else {
+                console.error('Invalid QR code format', e);
+            }
+        }
+    }
+
+    function connectToCamera() {
+        const targetId = document.getElementById('viewer-peer-id').value.trim();
+        const password = document.getElementById('viewer-password').value.trim();
+        if (!targetId) return alert('Please enter a Camera ID');
+        
+        document.getElementById('viewer-connect-panel').classList.add('hidden');
+        document.getElementById('viewer-video-panel').classList.remove('hidden');
+        
+        viewerPeer = new Peer();
+        viewerPeer.on('open', () => {
+            conn = viewerPeer.connect(targetId, { metadata: { password } });
+            conn.on('open', () => conn.send({ type: 'request_stream' }));
+            conn.on('data', (data) => {
+                if (data.type === 'error') {
+                    alert(data.message);
+                    disconnectViewer();
+                }
+            });
+        });
+        
+        viewerPeer.on('call', (call) => {
+            // Answer with a dummy audio stream to satisfy PeerJS requirements
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(dummyStream => {
+                call.answer(dummyStream);
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                    const settings = remoteStream.getVideoTracks()[0].getSettings();
+                    document.getElementById('viewer-res').innerText = `${settings.width}×${settings.height}`;
+                });
+            }).catch(() => {
+                // Fallback if mic is denied
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                });
+            });
+        });
+    }
+
+    function sendRemoteCommand(action, payload = {}) {
+        if (conn && conn.open) {
+            conn.send({ type: 'command', action, ...payload });
+        } else {
+            alert('Not connected to camera');
+        }
+    }
+
+    function disconnectViewer() {
+        if (conn) conn.close();
+        if (viewerPeer) viewerPeer.destroy();
+        document.getElementById('viewer-video-panel').classList.add('hidden');
+        document.getElementById('viewer-connect-panel').classList.remove('hidden');
+        document.getElementById('remote-video').srcObject = null;
+    }
+
+    function captureSnapshot() {
+        const video = document.getElementById('remote-video');
+        if (!video.videoWidth) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const url = canvas.toDataURL('image/jpeg');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `remote_snapshot_${Date.now()}.jpg`;
+        a.click();
+    }
+
+    // --- Host Command Handler ---
+    function handleRemoteCommand(data, conn) {
+        if (data.type === 'request_stream') {
+            if (localStream) {
+                peer.call(conn.peer, localStream);
+            } else {
+                conn.send({ type: 'error', message: 'Camera is not started on host' });
+            }
+        } else if (data.type === 'command') {
+            switch(data.action) {
+                case 'start_recording': startRecording(); break;
+                case 'stop_recording': stopRecording(); break;
+                case 'switch_camera': switchCamera(); break;
+                case 'toggle_flash': toggleTorch(); break;
+            }
+        }
+    }
+
+    // --- IndexedDB File Manager ---
+    function initDB() {
+        const request = indexedDB.open("IPCameraDB", 1);
+        request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains("recordings")) {
+                db.createObjectStore("recordings", { keyPath: "id", autoIncrement: true });
+            }
+        };
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            renderRecordings();
+        };
+    }
+
+    function saveRecording(blob, filename) {
+        const transaction = db.transaction(["recordings"], "readwrite");
+        const store = transaction.objectStore("recordings");
+        store.add({
+            name: filename, blob: blob, date: new Date().toISOString(),
+            size: blob.size, duration: (Date.now() - recordingStartTime) / 1000
+        });
+        transaction.oncomplete = () => renderRecordings();
+    }
+
+    function renderRecordings() {
+        const list = document.getElementById('recordings-list');
+        list.innerHTML = '';
+        const transaction = db.transaction(["recordings"], "readonly");
+        const store = transaction.objectStore("recordings");
+        store.getAll().onsuccess = (e) => {
+            const recordings = e.target.result.reverse();
+            if (recordings.length === 0) {
+                list.innerHTML = '<p style="opacity:0.6; text-align:center;">No recordings yet.</p>';
+                return;
+            }
+            recordings.forEach(rec => {
+                const url = URL.createObjectURL(rec.blob);
+                const div = document.createElement('div');
+                div.className = 'recording-item';
+                div.innerHTML = `
+                    <video src="${url}" style="width:80px; height:60px; object-fit:cover; border-radius:4px;"></video>
+                    <div class="rec-info">
+                        <div class="rec-name">${rec.name}</div>
+                        <div class="rec-meta">${(rec.size/1024/1024).toFixed(2)} MB • ${rec.duration.toFixed(1)}s • ${new Date(rec.date).toLocaleString()}</div>
+                    </div>
+                    <div class="rec-actions">
+                        <a href="${url}" download="${rec.name}" class="icon-btn"><i class="fas fa-download"></i></a>
+                        <button onclick="deleteRecording(${rec.id})" class="icon-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        };
+    }
+
+    function deleteRecording(id) {
+        if (!confirm('Delete this recording?')) return;
+        const transaction = db.transaction(["recordings"], "readwrite");
+        const store = transaction.objectStore("recordings");
+        store.delete(id);
+        transaction.oncomplete = () => renderRecordings();
+    }
+
+    // --- Settings & Utilities ---
+    function loadSettings() {
+        const saved = localStorage.getItem('ipcam_settings');
+        if (saved) state.settings = { ...state.settings, ...JSON.parse(saved) };
+        document.getElementById('setting-resolution').value = state.settings.resolution;
+        document.getElementById('setting-camera').value = state.settings.facingMode;
+        document.getElementById('setting-password').value = state.settings.password;
+        document.getElementById('setting-audio').checked = state.settings.audioEnabled;
+        document.getElementById('setting-wake-lock').checked = state.settings.wakeLock;
+    }
+
+    function saveSettings() {
+        state.settings.resolution = document.getElementById('setting-resolution').value;
+        state.settings.facingMode = document.getElementById('setting-camera').value;
+        state.settings.password = document.getElementById('setting-password').value;
+        state.settings.audioEnabled = document.getElementById('setting-audio').checked;
+        state.settings.wakeLock = document.getElementById('setting-wake-lock').checked;
+        localStorage.setItem('ipcam_settings', JSON.stringify(state.settings));
+        alert('Settings saved!');
+    }
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                state.wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) { console.log('Wake lock failed', err); }
+    }
+
+    function updateDashboard() {
+        document.getElementById('stat-users').innerText = dataConnections.length;
+    }
+
+    function updateSystemStats() {
+        if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
+                document.getElementById('stat-battery').innerText = `${Math.round(battery.level * 100)}%`;
+            });
+        }
+        if (navigator.connection) {
+            document.getElementById('stat-network').innerText = `${navigator.connection.downlink} Mbps`;
+            document.getElementById('stat-bitrate').innerText = `~${navigator.connection.downlink} Mbps`;
+        }
+    }
+
+    let frames = 0;
+    let lastTime = performance.now();
+    function updateFPS() {
+        if (!state.isStreaming) return;
+        frames++;
+        const now = performance.now();
+        if (now - lastTime >= 1000) {
+            document.getElementById('stat-fps').innerText = frames;
+            if (document.getElementById('viewer-fps')) document.getElementById('viewer-fps').innerText = frames;
+            frames = 0;
+            lastTime = now;
+        }
+        requestAnimationFrame(updateFPS);
+    }

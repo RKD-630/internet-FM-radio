@@ -1,158 +1,166 @@
 <!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0c1116" />
-<title>SENTRYCAM — Web IP Camera</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Mobile Web IP Camera</title>
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
 <link rel="stylesheet" href="style.css" /></head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><circle cx="15" cy="8.5" r=".8" fill="currentColor"/></svg>
-    </div>
-    <div>
-      <h1>SENTRYCAM</h1>
-      <small>WEB IP CAMERA · REMOTE VIEW</small>
-    </div>
-  </div>
-  <div class="leds">
-    <span class="led-item"><i class="led led-green" id="ledCam"></i>CAM</span>
-    <span class="led-item"><i class="led led-red" id="ledRec"></i>REC</span>
-    <span class="led-item"><i class="led led-amber" id="ledLink"></i>LINK</span>
-  </div>
-  <div class="clock"><b id="clockTime">--:--:--</b><span id="clockDate"></span></div>
+<header>
+    <h1><i class="fas fa-video"></i> Web IP Cam</h1>
+    <button id="theme-toggle" onclick="toggleTheme()" style="padding: 8px; border: none; background: transparent;"><i class="fas fa-moon"></i></button>
 </header>
 
-<main class="layout">
-  <!-- ===== VIEWFINDER + CONTROLS ===== -->
-  <section>
-    <div class="stage" id="stage">
-      <video id="video" playsinline="" autoplay="" muted=""></video>
-      <div class="scanfx"></div>
-      <div class="gridfx" id="gridfx"></div>
-      <span class="corner c-tl"></span><span class="corner c-tr"></span><span class="corner c-bl"></span><span class="corner c-br"></span>
-      <div class="cross"></div>
-      <div class="hud">
-        <div class="hud-tl" id="hudCam">CAM 01 · STANDBY</div>
-        <div class="hud-rec"><i></i><span id="recTime">REC 00:00</span></div>
-        <div class="hud-bl" id="hudTime">—</div>
-        <div class="hud-br" id="hudSpec">— × —</div>
-      </div>
-      <div class="flash" id="flash"></div>
-      <div class="idle">
-        <div class="bars"></div><div class="noise"></div>
-        <div class="idle-content">
-          <div class="nosignal">NO SIGNAL</div>
-          <p>Feed processed <b>100% locally</b> in your browser · nothing is uploaded</p>
-          <button class="btn btn-big" id="btnEnable">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10.5 22 7v10l-6-3.5"/></svg>
-            ENABLE CAMERA
-          </button>
+<main>
+    <!-- HOME VIEW (Dashboard) -->
+    <section id="view-home" class="view active">
+        <div class="dashboard-card">
+            <h2 style="margin-top:0;">Dashboard</h2>
+            <div class="stat-grid">
+                <div class="stat"><span>Camera Status</span><strong id="stat-status" class="offline">Offline</strong></div>
+                <div class="stat"><span>Connected Users</span><strong id="stat-users">0</strong></div>
+                <div class="stat"><span>Resolution</span><strong id="stat-res">-</strong></div>
+                <div class="stat"><span>FPS</span><strong id="stat-fps">0</strong></div>
+                <div class="stat"><span>Bitrate</span><strong id="stat-bitrate">-</strong></div>
+                <div class="stat"><span>Recording</span><strong id="stat-rec" style="color:inherit;">OFF</strong></div>
+                <div class="stat"><span>Battery</span><strong id="stat-battery">-</strong></div>
+                <div class="stat"><span>Temperature</span><strong>Normal</strong></div>
+            </div>
         </div>
-      </div>
-    </div>
-
-    <div class="deck">
-      <div class="deck-row">
-        <button class="btn btn-power" id="btnPower">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v9"/><path d="M6.4 5.5a8 8 0 1 0 11.2 0"/></svg>
-          <span id="powerLabel">START</span>
-        </button>
-        <button class="btn" id="btnShot" disabled="">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7 10 4h4l1.5 3"/></svg>
-          SNAPSHOT
-        </button>
-        <button class="btn btn-rec" id="btnRec" disabled="">
-          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
-          <span id="recLabel">RECORD</span>
-        </button>
-        <button class="btn" id="btnFlip" disabled="">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M18 2v4.5h-4.5"/></svg>
-          FLIP
-        </button>
-        <div class="devsel">
-          <label>INPUT</label>
-          <select id="devSelect" disabled=""><option>—</option></select>
-        </div>
-      </div>
-      <div class="deck-row">
-        <div class="tog-group">
-          <button class="btn tog on" id="btnMirror" title="Mirror preview">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18" stroke-dasharray="2 3"/><path d="M9 6 4 12l5 6V6Z"/><path d="m15 6 5 6-5 6V6Z"/></svg>
-          </button>
-          <button class="btn tog" id="btnGrid" title="Rule-of-thirds grid">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
-          </button>
-          <button class="btn tog" id="btnFull" title="Fullscreen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-          </button>
-        </div>
-        <div class="chips" id="filterChips">
-          <button class="chip active" data-f="standard">STANDARD</button>
-          <button class="chip" data-f="vivid">VIVID</button>
-          <button class="chip" data-f="noir">NOIR</button>
-          <button class="chip" data-f="night">NIGHT</button>
-        </div>
-        <div class="zoombox">
-          <label>ZOOM <b id="zoomVal">1.0×</b></label>
-          <input type="range" id="zoom" min="1" max="3" step="0.1" value="1" />
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== SIDE PANELS ===== -->
-  <aside class="side-col">
-    <section class="panel">
-      <div class="panel-head"><span class="sq"></span>LIVE TELEMETRY
-        <div class="sig" id="sig"><i></i><i></i><i></i><i></i><i></i></div>
-      </div>
-      <div class="panel-body">
-        <div class="trow"><span>STATUS</span><b id="tStatus" class="off">STANDBY</b></div>
-        <div class="trow"><span>RESOLUTION</span><b id="tRes">—</b></div>
-        <div class="trow"><span>FRAME RATE</span><b id="tFps">—</b></div>
-        <div class="trow"><span>UPTIME</span><b id="tUp">00:00:00</b></div>
-        <div class="trow"><span>ZOOM</span><b id="tZoom">1.0×</b></div>
-        <div class="trow"><span>SENSOR</span><b id="tFace">FRONT</b></div>
-      </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-head"><span class="sq sq-cyan"></span>REMOTE ACCESS · IP</div>
-      <div class="panel-body">
-        <div class="kv"><span>PUBLIC IP</span><code id="pubIp">fetching…</code><button class="mini" data-copy="pubIp">COPY</button></div>
-        <div class="kv"><span>LAN IP</span><code id="lanIp">scanning…</code><button class="mini" data-copy="lanIp">COPY</button></div>
-        <div class="kv"><span>STREAM URL</span><code id="streamUrl">http://&lt;lan-ip&gt;:8080</code><button class="mini" data-copy="streamUrl">COPY</button></div>
-        <button class="btn btn-broadcast" id="btnBroadcast">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12a7 7 0 0 1 14 0"/><path d="M2 12a10 10 0 0 1 20 0"/><circle cx="12" cy="14" r="2.4" fill="currentColor"/></svg>
-          <span id="bcLabel">OPEN LIVE VIEWER WINDOW</span>
-        </button>
-        <ol class="steps">
-          <li>Serve this page on your computer — run <code>npx serve -l 8080</code> in this folder.</li>
-          <li>Note your machine's LAN IP shown above.</li>
-          <li>On your phone (same Wi-Fi), open <code>http://&lt;lan-ip&gt;:8080</code> and tap <b>ENABLE CAMERA</b>.</li>
-        </ol>
-        <p class="note">🔒 All video is processed inside your browser — nothing leaves your device. Viewing from outside your network requires port-forwarding on your router.</p>
-      </div>
+    <!-- CAMERA VIEW -->
+    <section id="view-camera" class="view">
+        <div class="video-container">
+            <video id="local-video" autoplay="" playsinline="" muted=""></video>
+            <div id="recording-indicator" class="hidden">🔴 REC <span id="rec-timer">00:00</span></div>
+        </div>
+        <div class="controls-grid">
+            <button onclick="startCamera()"><i class="fas fa-play"></i> Start</button>
+            <button onclick="stopCamera()"><i class="fas fa-stop"></i> Stop</button>
+            <button onclick="pauseStream()"><i class="fas fa-pause"></i> Pause</button>
+            <button onclick="resumeStream()"><i class="fas fa-forward"></i> Resume</button>
+            <button onclick="switchCamera()"><i class="fas fa-sync"></i> Switch</button>
+            <button onclick="toggleTorch()"><i class="fas fa-bolt"></i> Flash</button>
+            <button onclick="toggleMute()"><i class="fas fa-microphone-slash"></i> Mute</button>
+            <button onclick="toggleQuality()"><i class="fas fa-hd"></i> HD/SD</button>
+            <button onclick="rotateCamera()"><i class="fas fa-redo"></i> Rotate</button>
+            <button onclick="toggleRecording()"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Record</button>
+            <button onclick="captureLocalSnapshot()"><i class="fas fa-camera"></i> Snap</button>
+            <button onclick="toggleFullscreen('local-video')"><i class="fas fa-expand"></i> Full</button>
+        </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-head"><span class="sq sq-amber"></span>CAPTURES<span class="count-badge" id="capCount">0 FILES</span></div>
-      <div class="panel-body"><div class="caps" id="caps"><div class="caps-empty">NO CAPTURES YET — TAKE A SNAPSHOT OR RECORD</div></div></div>
+    <!-- NETWORK VIEW -->
+    <section id="view-network" class="view">
+        <div class="network-card">
+            <h2>Camera Server</h2>
+            <div class="status-badge offline" id="server-status">Stopped</div>
+            <br />
+            <button id="btn-start-server" class="primary" onclick="startServer()" style="width:100%; margin-top:10px;">Start Camera Server</button>
+            
+            <div id="server-info" class="hidden">
+                <div class="info-row"><span>Local IP Address:</span> <strong id="display-mock-ip">192.168.1.x</strong></div>
+                <div class="info-row"><span>Port:</span> <strong>8080</strong></div>
+                <div class="info-row"><span>Camera ID:</span> <strong id="display-peer-id" style="font-size:12px; word-break:break-all;">Generating...</strong></div>
+                <div class="info-row"><span>Status:</span> <strong class="online">Online</strong></div>
+                
+                <div id="qrcode" class="qr-container"></div>
+                <p class="hint">Scan QR code with another device on the same WiFi to view the live stream instantly.</p>
+                
+                <button onclick="switchView('viewer')" style="width:100%; margin-top:15px;"><i class="fas fa-eye"></i> Open Viewer Mode</button>
+            </div>
+        </div>
     </section>
-  </aside>
+
+    <!-- RECORDINGS VIEW -->
+    <section id="view-recordings" class="view">
+        <h2>File Manager</h2>
+        <div id="recordings-list" class="recordings-list">
+            <p style="opacity:0.6; text-align:center;">No recordings yet.</p>
+        </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+        <h2>Settings</h2>
+        <div class="settings-form">
+            <label>Default Resolution
+                <select id="setting-resolution">
+                    <option value="240p">240p (Low)</option>
+                    <option value="360p">360p</option>
+                    <option value="480p">480p (SD)</option>
+                    <option value="720p" selected="">720p (HD)</option>
+                    <option value="1080p">1080p (FHD)</option>
+                </select>
+            </label>
+            <label>Default Camera
+                <select id="setting-camera">
+                    <option value="environment">Rear Camera</option>
+                    <option value="user">Front Camera</option>
+                </select>
+            </label>
+            <label>Password Protection (Optional)
+                <input type="password" id="setting-password" placeholder="Leave blank for no password" />
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="setting-audio" checked="" /> Audio Enabled
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="setting-wake-lock" checked="" /> Keep Screen On (Wake Lock)
+            </label>
+            <button class="primary" onclick="saveSettings()" style="width:100%; margin-top:10px;">Save Settings</button>
+        </div>
+    </section>
+
+    <!-- VIEWER VIEW -->
+    <section id="view-viewer" class="view">
+        <div id="viewer-connect-panel">
+            <h2>Remote Viewer</h2>
+            <p style="font-size:13px; opacity:0.7;">Enter the Camera ID shown on the host device's Network tab.</p>
+            <input type="text" id="viewer-peer-id" placeholder="Camera ID (e.g., abc-123-xyz)" />
+            <input type="password" id="viewer-password" placeholder="Password (if required)" />
+            <button class="primary" onclick="connectToCamera()" style="width:100%; margin-bottom:10px;">Connect to Camera</button>
+            <button onclick="startQRScanner()" id="btn-scan-qr" style="width:100%;"><i class="fas fa-qrcode"></i> Scan QR Code</button>
+            <div id="qr-scanner-container" style="display:none; margin-top:15px; background:white; border-radius:8px; overflow:hidden;">
+                <div id="qr-reader" style="width:100%;"></div>
+                <button onclick="switchQRCamera()" style="width:100%; border-radius:0;"><i class="fas fa-sync"></i> Switch Camera</button>
+            </div>
+        </div>
+        
+        <div id="viewer-video-panel" class="hidden">
+            <div class="viewer-stats">
+                <span><i class="fas fa-signal"></i> FPS: <strong id="viewer-fps">0</strong></span>
+                <span><i class="fas fa-desktop"></i> Res: <strong id="viewer-res">-</strong></span>
+            </div>
+            <div class="video-container">
+                <video id="remote-video" autoplay="" playsinline=""></video>
+            </div>
+            <div class="controls-grid">
+                <button onclick="captureSnapshot()"><i class="fas fa-camera"></i> Snap</button>
+                <button onclick="sendRemoteCommand('start_recording')"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Rec Start</button>
+                <button onclick="sendRemoteCommand('stop_recording')"><i class="fas fa-square"></i> Rec Stop</button>
+                <button onclick="sendRemoteCommand('switch_camera')"><i class="fas fa-sync"></i> Switch Cam</button>
+                <button onclick="sendRemoteCommand('toggle_flash')"><i class="fas fa-bolt"></i> Flash</button>
+                <button onclick="toggleFullscreen('remote-video')"><i class="fas fa-expand"></i> Full</button>
+            </div>
+            <button onclick="disconnectViewer()" style="width:100%; background:var(--danger-color); color:white; border:none; margin-top:10px;">Disconnect</button>
+        </div>
+    </section>
 </main>
 
-<footer>
-  SENTRYCAM v1.0 · keys  <kbd>P</kbd> power · <kbd>S</kbd> snapshot · <kbd>R</kbd> record · <kbd>G</kbd> grid · <kbd>M</kbd> mirror · <kbd>F</kbd> fullscreen
-</footer>
-
-<div class="toast" id="toast"></div>
+<nav class="bottom-nav">
+    <button onclick="switchView('home')" class="nav-btn active"><i class="fas fa-home"></i>Home</button>
+    <button onclick="switchView('camera')" class="nav-btn"><i class="fas fa-camera"></i>Camera</button>
+    <button onclick="switchView('network')" class="nav-btn"><i class="fas fa-wifi"></i>Network</button>
+    <button onclick="switchView('recordings')" class="nav-btn"><i class="fas fa-folder"></i>Files</button>
+    <button onclick="switchView('settings')" class="nav-btn"><i class="fas fa-cog"></i>Settings</button>
+</nav>
 
 
 
