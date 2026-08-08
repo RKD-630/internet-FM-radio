@@ -163,6 +163,28 @@
         document.getElementById('local-video').style.transform = `rotate(${state.rotation}deg)`;
     }
 
+    async function adjustZoom(step) {
+        if (!localStream) return;
+        try {
+            const track = localStream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            
+            if (!capabilities.zoom) {
+                alert("Zoom is not supported on this device/camera.");
+                return;
+            }
+            
+            const settings = track.getSettings();
+            let zoom = settings.zoom || capabilities.zoom.min;
+            zoom += step;
+            zoom = Math.max(capabilities.zoom.min, Math.min(zoom, capabilities.zoom.max));
+            
+            await track.applyConstraints({ advanced: [{ zoom: zoom }] });
+        } catch (err) {
+            console.error("Zoom failed:", err);
+        }
+    }
+
     function toggleFullscreen(elementId) {
         const elem = document.getElementById(elementId);
         if (!document.fullscreenElement) {
