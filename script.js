@@ -301,9 +301,7 @@
         const legacyIp = document.getElementById('display-mock-ip');
         if (legacyIp) legacyIp.innerText = currentMockIp;
         
-        const port = window.location.port || '8080';
-        const streamUrl = `http://${currentMockIp}:${port}`;
-        document.querySelectorAll('.display-stream-url-elem').forEach(el => el.innerText = streamUrl);
+        generateQR(state.peerId || '');
 
         return currentMockIp;
     }
@@ -362,53 +360,37 @@
         });
     }
 
-    async function generateQR(peerId) {
-        document.querySelectorAll('.qrcode-elem').forEach(el => el.innerHTML = '');
+    async function generateQR(peerId = '') {
+        const qrContainers = document.querySelectorAll('.qrcode-elem');
+        qrContainers.forEach(el => el.innerHTML = '');
         const legacyQr = document.getElementById('qrcode');
         if (legacyQr) legacyQr.innerHTML = '';
         
         let host = window.location.host;
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            try {
-                const pc = new RTCPeerConnection({iceServers:[]});
-                pc.createDataChannel('');
-                await pc.setLocalDescription(await pc.createOffer());
-                const lanIp = await new Promise(res => {
-                    const t = setTimeout(() => res(null), 2500);
-                    pc.onicecandidate = e => {
-                        if (!e.candidate) { clearTimeout(t); return res(null); }
-                        const m = e.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
-                        if (m && !m[0].startsWith('0.')) { clearTimeout(t); pc.close(); res(m[0]); }
-                    };
-                });
-                if (lanIp) {
-                    host = `${lanIp}:${window.location.port || 8080}`;
-                    currentMockIp = lanIp;
-                } else {
-                    host = `${currentMockIp}:${window.location.port || 8080}`;
-                }
-            } catch(e) {}
+            const port = window.location.port || '8080';
+            host = `${currentMockIp}:${port}`;
         }
         
         const baseUrl = window.location.protocol + '//' + host + window.location.pathname;
-        const url = `${baseUrl}?viewer=1&peerId=${peerId}`;
-        const streamUrl = `${window.location.protocol}//${host}?viewer=1&peerId=${peerId}`;
+        const streamUrl = peerId ? `${baseUrl}?viewer=1&peerId=${peerId}` : `${baseUrl}?viewer=1`;
         
         document.querySelectorAll('.display-mock-ip-elem').forEach(el => el.innerText = currentMockIp);
         document.querySelectorAll('.display-stream-url-elem').forEach(el => el.innerText = streamUrl);
         const legacyIp = document.getElementById('display-mock-ip');
         if (legacyIp) legacyIp.innerText = currentMockIp;
         
-        document.querySelectorAll('.qrcode-elem').forEach(container => {
+        qrContainers.forEach(container => {
+            container.innerHTML = '';
             new QRCode(container, {
-                text: url, width: 140, height: 140,
+                text: streamUrl, width: 140, height: 140,
                 colorDark: "#000000", colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
         });
         if (legacyQr && legacyQr.children.length === 0) {
             new QRCode(legacyQr, {
-                text: url, width: 140, height: 140,
+                text: streamUrl, width: 140, height: 140,
                 colorDark: "#000000", colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
