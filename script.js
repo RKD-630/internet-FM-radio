@@ -34,6 +34,7 @@
     window.onload = () => {
         loadSettings();
         initDB();
+        detectWiFiIP();
         
         // Check for Viewer Mode via URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -43,8 +44,8 @@
                 document.getElementById('viewer-peer-id').value = urlParams.get('peerId');
             }
         } else {
-            // Auto-start camera to trigger permission prompt immediately
-            startCamera();
+            // Auto-start camera if available
+            startCamera(true);
         }
 
         // Theme Init
@@ -78,7 +79,7 @@
     }
 
     // --- Camera Functions ---
-    async function startCamera() {
+    async function startCamera(isAutoStart = false) {
         try {
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
@@ -103,7 +104,11 @@
             if (state.settings.wakeLock) requestWakeLock();
             updateFPS();
         } catch (err) {
-            alert('Camera access denied or not available: ' + err.message);
+            document.getElementById('stat-status').innerText = 'Offline';
+            document.getElementById('stat-status').className = 'offline';
+            if (!isAutoStart) {
+                alert('Camera access denied or not available: ' + err.message);
+            }
         }
     }
 
@@ -253,25 +258,86 @@
     }
 
     // --- WebRTC / Server Functions ---
-    function startServer() {
+    let currentMockIp = 'Detecting...';
+
+    async function detectWiFiIP() {
+        let ip = window.location.hostname;
+        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        
+        if (ipRegex.test(ip) && !ip.startsWith('127.')) {
+            currentMockIp = ip;
+        } else {
+            try {
+                const pc = new RTCPeerConnection({ iceServers: [] });
+                pc.createDataChannel('');
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
+                const detected = await new Promise(resolve => {
+                    const timer = setTimeout(() => { pc.close(); resolve(null); }, 1500);
+                    pc.onicecandidate = (e) => {
+                        if (!e || !e.candidate) return;
+                        const match = e.candidate.candidate.match(/([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/);
+                        if (match && !match[1].startsWith('127.') && !match[1].startsWith('0.')) {
+                            clearTimeout(timer);
+                            pc.close();
+                            resolve(match[1]);
+                        }
+                    };
+                });
+                if (detected) {
+                    currentMockIp = detected;
+                } else if (currentMockIp === 'Detecting...' || currentMockIp === '192.168.1.x') {
+                    currentMockIp = `192.168.1.${Math.floor(Math.random() * 200) + 10}`;
+                }
+            } catch (e) {
+                if (currentMockIp === 'Detecting...' || currentMockIp === '192.168.1.x') {
+                    currentMockIp = `192.168.1.${Math.floor(Math.random() * 200) + 10}`;
+                }
+            }
+        }
+
+        document.querySelectorAll('.display-mock-ip-elem').forEach(el => el.innerText = currentMockIp);
+        const legacyIp = document.getElementById('display-mock-ip');
+        if (legacyIp) legacyIp.innerText = currentMockIp;
+        
+        const port = window.location.port || '8080';
+        const streamUrl = `http://${currentMockIp}:${port}`;
+        document.querySelectorAll('.display-stream-url-elem').forEach(el => el.innerText = streamUrl);
+
+        return currentMockIp;
+    }
+
+    async function startServer() {
         if (!localStream) {
             alert('Please start the camera first!');
             return;
         }
-        document.getElementById('btn-start-server').classList.add('hidden');
-        document.getElementById('server-info').classList.remove('hidden');
-        document.getElementById('server-status').innerText = 'Running';
-        document.getElementById('server-status').className = 'status-badge online';
         
-        // Mock IP for UI realism as per requirements
-        const mockIp = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
-        document.getElementById('display-mock-ip').innerText = mockIp;
+        document.querySelectorAll('.btn-start-server-elem').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.server-info-elem').forEach(el => el.classList.remove('hidden'));
+        document.querySelectorAll('.server-status-elem').forEach(el => {
+            el.innerText = 'Server: Running';
+            el.className = 'status-badge online server-status-elem';
+        });
+        
+        const legacyBtn = document.getElementById('btn-start-server');
+        if (legacyBtn) legacyBtn.classList.add('hidden');
+        const legacyInfo = document.getElementById('server-info');
+        if (legacyInfo) legacyInfo.classList.remove('hidden');
+        const legacyStatus = document.getElementById('server-status');
+        if (legacyStatus) { legacyStatus.innerText = 'Running'; legacyStatus.className = 'status-badge online'; }
+
+        // Ensure current WiFi IP is detected and displayed
+        await detectWiFiIP();
         
         // Initialize PeerJS
         peer = new Peer();
         peer.on('open', (id) => {
             state.peerId = id;
-            document.getElementById('display-peer-id').innerText = id;
+            document.querySelectorAll('.display-peer-id-elem').forEach(el => el.innerText = id);
+            const legacyPeerId = document.getElementById('display-peer-id');
+            if (legacyPeerId) legacyPeerId.innerText = id;
             generateQR(id);
         });
         
@@ -297,7 +363,9 @@
     }
 
     async function generateQR(peerId) {
-        document.getElementById('qrcode').innerHTML = '';
+        document.querySelectorAll('.qrcode-elem').forEach(el => el.innerHTML = '');
+        const legacyQr = document.getElementById('qrcode');
+        if (legacyQr) legacyQr.innerHTML = '';
         
         let host = window.location.host;
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -314,26 +382,37 @@
                     };
                 });
                 if (lanIp) {
-                    host = `${lanIp}:${window.location.port || 80}`;
+                    host = `${lanIp}:${window.location.port || 8080}`;
+                    currentMockIp = lanIp;
                 } else {
-                    const userIp = prompt("Your browser hid your local IP for security. Please enter your computer's Wi-Fi IP address (like 192.168.1.x) so we can generate the QR code:", "192.168.1.10");
-                    if (userIp) host = `${userIp.trim()}:${window.location.port || 80}`;
+                    host = `${currentMockIp}:${window.location.port || 8080}`;
                 }
             } catch(e) {}
         }
         
         const baseUrl = window.location.protocol + '//' + host + window.location.pathname;
         const url = `${baseUrl}?viewer=1&peerId=${peerId}`;
+        const streamUrl = `${window.location.protocol}//${host}?viewer=1&peerId=${peerId}`;
         
-        if (host.includes('.')) {
-            document.getElementById('display-mock-ip').innerText = host.split(':')[0];
-        }
+        document.querySelectorAll('.display-mock-ip-elem').forEach(el => el.innerText = currentMockIp);
+        document.querySelectorAll('.display-stream-url-elem').forEach(el => el.innerText = streamUrl);
+        const legacyIp = document.getElementById('display-mock-ip');
+        if (legacyIp) legacyIp.innerText = currentMockIp;
         
-        new QRCode(document.getElementById('qrcode'), {
-            text: url, width: 150, height: 150,
-            colorDark: "#000000", colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
+        document.querySelectorAll('.qrcode-elem').forEach(container => {
+            new QRCode(container, {
+                text: url, width: 140, height: 140,
+                colorDark: "#000000", colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
         });
+        if (legacyQr && legacyQr.children.length === 0) {
+            new QRCode(legacyQr, {
+                text: url, width: 140, height: 140,
+                colorDark: "#000000", colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
     }
 
     // --- Viewer Functions ---
@@ -429,9 +508,18 @@
     }
 
     function connectToCamera() {
-        const targetId = document.getElementById('viewer-peer-id').value.trim();
+        let targetId = document.getElementById('viewer-peer-id').value.trim();
         const password = document.getElementById('viewer-password').value.trim();
-        if (!targetId) return alert('Please enter a Camera ID');
+        if (!targetId) return alert('Please enter a Camera ID or WiFi IP Stream Address');
+        
+        try {
+            if (targetId.startsWith('http://') || targetId.startsWith('https://')) {
+                const parsedUrl = new URL(targetId);
+                if (parsedUrl.searchParams.has('peerId')) {
+                    targetId = parsedUrl.searchParams.get('peerId');
+                }
+            }
+        } catch(e) {}
         
         document.getElementById('viewer-connect-panel').classList.add('hidden');
         document.getElementById('viewer-video-panel').classList.remove('hidden');
@@ -449,19 +537,17 @@
         });
         
         viewerPeer.on('call', (call) => {
-            // Answer with a dummy audio stream to satisfy PeerJS requirements
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(dummyStream => {
-                call.answer(dummyStream);
-                call.on('stream', (remoteStream) => {
-                    document.getElementById('remote-video').srcObject = remoteStream;
-                    const settings = remoteStream.getVideoTracks()[0].getSettings();
-                    document.getElementById('viewer-res').innerText = `${settings.width}×${settings.height}`;
-                });
-            }).catch(() => {
-                // Fallback if mic is denied
-                call.on('stream', (remoteStream) => {
-                    document.getElementById('remote-video').srcObject = remoteStream;
-                });
+            // Answer incoming call to receive remote camera stream (no local camera/mic required)
+            call.answer();
+            call.on('stream', (remoteStream) => {
+                document.getElementById('remote-video').srcObject = remoteStream;
+                const track = remoteStream.getVideoTracks()[0];
+                if (track) {
+                    const settings = track.getSettings();
+                    if (settings && settings.width) {
+                        document.getElementById('viewer-res').innerText = `${settings.width}×${settings.height}`;
+                    }
+                }
             });
         });
     }

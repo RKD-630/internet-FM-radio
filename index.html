@@ -31,6 +31,28 @@
                 <div class="stat"><span>Battery</span><strong id="stat-battery">-</strong></div>
                 <div class="stat"><span>Temperature</span><strong>Normal</strong></div>
             </div>
+            <div style="margin-top: 20px;">
+                <button class="primary" onclick="switchView('viewer')" style="width:100%;"><i class="fas fa-eye"></i> Open Viewer Mode</button>
+            </div>
+        </div>
+
+        <!-- WIFI IP CAMERA STREAMING SERVER CARD ON DASHBOARD -->
+        <div class="dashboard-card" style="margin-top: 15px;">
+            <h2 style="margin-top:0;"><i class="fas fa-wifi"></i> WiFi IP Camera Stream Server</h2>
+            <p style="font-size:13px; opacity:0.8; margin-bottom: 12px;">View live IP camera streaming in any web browser on the same WiFi network.</p>
+            
+            <div class="status-badge offline server-status-elem" style="margin-bottom:12px;">Server: Stopped</div>
+            
+            <button class="primary btn-start-server-elem" onclick="startServer()" style="width:100%; margin-bottom:12px;"><i class="fas fa-play"></i> Start IP Camera Server</button>
+
+            <div class="server-info-elem hidden">
+                <div class="info-row"><span>WiFi IP Address:</span> <strong class="display-mock-ip-elem">Detecting...</strong></div>
+                <div class="info-row"><span>Web Browser Stream Link:</span> <strong class="display-stream-url-elem" style="font-size:12px; word-break:break-all; color:var(--primary-color);">http://192.168.1.x:8080</strong></div>
+                <div class="info-row"><span>Camera ID:</span> <strong class="display-peer-id-elem" style="font-size:12px; word-break:break-all;">Generating...</strong></div>
+                
+                <div class="qr-container qrcode-elem" style="display:flex; justify-content:center; margin:15px auto; padding:10px; background:#fff; border-radius:8px; width:fit-content;"></div>
+                <p class="hint" style="text-align:center; font-size:12px; opacity:0.8;">Open the stream link or scan QR code in any browser on the same WiFi network.</p>
+            </div>
         </div>
     </section>
 
@@ -91,6 +113,17 @@
     <!-- SETTINGS VIEW -->
     <section id="view-settings" class="view">
         <h2>Settings</h2>
+        
+        <div style="background: var(--surface-color); padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px;">
+            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid rgba(128,128,128,0.2); padding-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-network-wired"></i> IP Camera Network Info</span>
+                <button onclick="detectWiFiIP()" title="Refresh WiFi IP" style="background:none; border:none; padding:4px 8px; cursor:pointer; color:var(--primary-color); font-size:14px;"><i class="fas fa-sync-alt"></i> Refresh IP</button>
+            </h3>
+            <div class="info-row"><span>WiFi IP Address:</span> <strong class="display-mock-ip-elem">Detecting...</strong></div>
+            <div class="info-row"><span>Stream Link:</span> <strong class="display-stream-url-elem" style="font-size:12px; word-break:break-all; color:var(--primary-color);">http://192.168.1.x:8080</strong></div>
+            <div class="info-row"><span>Camera ID:</span> <strong class="display-peer-id-elem" style="font-size:12px; word-break:break-all;">Stopped</strong></div>
+        </div>
+
         <div class="settings-form">
             <label>Default Resolution
                 <select id="setting-resolution">
@@ -124,8 +157,8 @@
     <section id="view-viewer" class="view">
         <div id="viewer-connect-panel">
             <h2>Remote Viewer</h2>
-            <p style="font-size:13px; opacity:0.7;">Enter the Camera ID shown on the host device's Network tab.</p>
-            <input type="text" id="viewer-peer-id" placeholder="Camera ID (e.g., abc-123-xyz)" />
+            <p style="font-size:13px; opacity:0.7;">View live IP camera streaming in any web browser without needing a camera on this device. Enter the Camera ID or IP Address shown on the host device.</p>
+            <input type="text" id="viewer-peer-id" placeholder="Camera ID / IP Address (e.g. abc-123-xyz)" />
             <input type="password" id="viewer-password" placeholder="Password (if required)" />
             <button class="primary" onclick="connectToCamera()" style="width:100%; margin-bottom:10px;">Connect to Camera</button>
             <button onclick="startQRScanner()" id="btn-scan-qr" style="width:100%;"><i class="fas fa-qrcode"></i> Scan QR Code</button>
