@@ -1,208 +1,430 @@
-<!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Mobile Web IP Camera</title>
-    <!-- External Libraries -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <title>RKD FM | Next-Gen Internet Radio Discovery</title>
+    <meta name="description" content="Discover and stream world FM internet stations with RKD FM. Rapidly scan, play, and save your favorite stations with futuristic audio visualizers.">
     
-<link rel="stylesheet" href="style.css" /></head>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
-
-<header>
-    <h1><i class="fas fa-video"></i> Web IP Cam</h1>
-    <button id="theme-toggle" onclick="toggleTheme()" style="padding: 8px; border: none; background: transparent;"><i class="fas fa-moon"></i></button>
-</header>
-
-<main>
-    <!-- HOME VIEW (Dashboard) -->
-    <section id="view-home" class="view active">
-        <div class="dashboard-card">
-            <h2 style="margin-top:0;">Dashboard</h2>
-            <div class="stat-grid">
-                <div class="stat"><span>Camera Status</span><strong id="stat-status" class="offline">Offline</strong></div>
-                <div class="stat"><span>Connected Users</span><strong id="stat-users">0</strong></div>
-                <div class="stat"><span>Resolution</span><strong id="stat-res">-</strong></div>
-                <div class="stat"><span>FPS</span><strong id="stat-fps">0</strong></div>
-                <div class="stat"><span>Bitrate</span><strong id="stat-bitrate">-</strong></div>
-                <div class="stat"><span>Recording</span><strong id="stat-rec" style="color:inherit;">OFF</strong></div>
-                <div class="stat"><span>Battery</span><strong id="stat-battery">-</strong></div>
-                <div class="stat"><span>Temperature</span><strong>Normal</strong></div>
-            </div>
-            <div style="margin-top: 20px;">
-                <button class="primary" onclick="switchView('viewer')" style="width:100%;"><i class="fas fa-eye"></i> Open Viewer Mode</button>
-            </div>
-        </div>
-
-        <!-- WIFI IP CAMERA STREAMING SERVER CARD ON DASHBOARD -->
-        <div class="dashboard-card" style="margin-top: 15px;">
-            <h2 style="margin-top:0;"><i class="fas fa-wifi"></i> WiFi IP Camera Stream Server</h2>
-            <p style="font-size:13px; opacity:0.8; margin-bottom: 12px;">View live IP camera streaming in any web browser on the same WiFi network.</p>
-            
-            <div class="status-badge offline server-status-elem" style="margin-bottom:12px;">Server: Stopped</div>
-            
-            <button class="primary btn-start-server-elem" onclick="startServer()" style="width:100%; margin-bottom:12px;"><i class="fas fa-play"></i> Start IP Camera Server</button>
-
-            <div class="server-info-elem hidden">
-                <div class="info-row"><span>WiFi IP Address:</span> <strong class="display-mock-ip-elem">Detecting...</strong></div>
-                <div class="info-row"><span>Web Browser Stream Link:</span> <strong class="display-stream-url-elem" style="font-size:12px; word-break:break-all; color:var(--primary-color);">http://192.168.1.x:8080</strong></div>
-                <div class="info-row"><span>Camera ID:</span> <strong class="display-peer-id-elem" style="font-size:12px; word-break:break-all;">Generating...</strong></div>
-                
-                <div class="qr-container qrcode-elem" style="display:flex; justify-content:center; margin:15px auto; padding:10px; background:#fff; border-radius:8px; width:fit-content;"></div>
-                <p class="hint" style="text-align:center; font-size:12px; opacity:0.8;">Open the stream link or scan QR code in any browser on the same WiFi network.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- CAMERA VIEW -->
-    <section id="view-camera" class="view">
-        <div class="video-container">
-            <video id="local-video" autoplay="" playsinline="" muted=""></video>
-            <div id="recording-indicator" class="hidden">🔴 REC <span id="rec-timer">00:00</span></div>
-        </div>
-        <div class="controls-grid">
-            <button onclick="startCamera()"><i class="fas fa-play"></i> Start</button>
-            <button onclick="stopCamera()"><i class="fas fa-stop"></i> Stop</button>
-            <button onclick="pauseStream()"><i class="fas fa-pause"></i> Pause</button>
-            <button onclick="resumeStream()"><i class="fas fa-forward"></i> Resume</button>
-            <button onclick="switchCamera()"><i class="fas fa-sync"></i> Switch</button>
-            <button onclick="toggleTorch()"><i class="fas fa-bolt"></i> Flash</button>
-            <button onclick="toggleMute()"><i class="fas fa-microphone-slash"></i> Mute</button>
-            <button onclick="toggleQuality()"><i class="fas fa-hd"></i> HD/SD</button>
-            <button onclick="rotateCamera()"><i class="fas fa-redo"></i> Rotate</button>
-            <button onclick="toggleRecording()"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Record</button>
-            <button onclick="captureLocalSnapshot()"><i class="fas fa-camera"></i> Snap</button>
-            <button onclick="adjustZoom(0.5)"><i class="fas fa-search-plus"></i> Zoom +</button>
-            <button onclick="adjustZoom(-0.5)"><i class="fas fa-search-minus"></i> Zoom -</button>
-            <button onclick="toggleFullscreen('local-video')"><i class="fas fa-expand"></i> Full</button>
-        </div>
-    </section>
-
-    <!-- NETWORK VIEW -->
-    <section id="view-network" class="view">
-        <div class="network-card">
-            <h2>Camera Server</h2>
-            <div class="status-badge offline" id="server-status">Stopped</div>
-            <br />
-            <button id="btn-start-server" class="primary" onclick="startServer()" style="width:100%; margin-top:10px;">Start Camera Server</button>
-            
-            <div id="server-info" class="hidden">
-                <div class="info-row"><span>Local IP Address:</span> <strong id="display-mock-ip">192.168.1.x</strong></div>
-                <div class="info-row"><span>Port:</span> <strong>8080</strong></div>
-                <div class="info-row"><span>Camera ID:</span> <strong id="display-peer-id" style="font-size:12px; word-break:break-all;">Generating...</strong></div>
-                <div class="info-row"><span>Status:</span> <strong class="online">Online</strong></div>
-                
-                <div id="qrcode" class="qr-container"></div>
-                <p class="hint">Scan QR code with another device on the same WiFi to view the live stream instantly.</p>
-                
-                <button onclick="switchView('viewer')" style="width:100%; margin-top:15px;"><i class="fas fa-eye"></i> Open Viewer Mode</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- RECORDINGS VIEW -->
-    <section id="view-recordings" class="view">
-        <h2>File Manager</h2>
-        <div id="recordings-list" class="recordings-list">
-            <p style="opacity:0.6; text-align:center;">No recordings yet.</p>
-        </div>
-    </section>
-
-    <!-- SETTINGS VIEW -->
-    <section id="view-settings" class="view">
-        <h2>Settings</h2>
+    <div class="app-container">
+        <!-- Dynamic Background Lights -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="cyber-grid-overlay"></div>
         
-        <div style="background: var(--surface-color); padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px;">
-            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid rgba(128,128,128,0.2); padding-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <span><i class="fas fa-network-wired"></i> IP Camera Network Info</span>
-                <button onclick="detectWiFiIP()" title="Refresh WiFi IP" style="background:none; border:none; padding:4px 8px; cursor:pointer; color:var(--primary-color); font-size:14px;"><i class="fas fa-sync-alt"></i> Refresh IP</button>
-            </h3>
-            <div class="info-row"><span>WiFi IP Address:</span> <strong class="display-mock-ip-elem">Detecting...</strong></div>
-            <div class="info-row"><span>Stream Link:</span> <strong class="display-stream-url-elem" style="font-size:12px; word-break:break-all; color:var(--primary-color);">http://192.168.1.x:8080</strong></div>
-            <div class="info-row"><span>Camera ID:</span> <strong class="display-peer-id-elem" style="font-size:12px; word-break:break-all;">Stopped</strong></div>
+        <!-- Top App Header -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon-wrapper">
+                    <i data-lucide="radio"></i>
+                    <span class="logo-pulse"></span>
+                </div>
+                <div class="logo-text-group">
+                    <span class="logo-title">RKD FM</span>
+                    <span class="logo-sub">CYBER RADIO DECK</span>
+                </div>
+            </div>
+
+
+            <div class="header-controls">
+                <!-- Sleep Timer Button -->
+                <div class="sleep-timer-wrapper">
+                    <button id="sleep-timer-btn" class="icon-btn theme-btn" title="Sleep Timer">
+                        <i data-lucide="clock"></i>
+                        <span id="timer-badge" class="timer-badge" style="display: none;">OFF</span>
+                    </button>
+                    <div id="sleep-timer-menu" class="sleep-timer-menu glass" style="display: none;">
+                        <span class="menu-title">Sleep Timer</span>
+                        <button data-minutes="0" class="timer-opt active">Off</button>
+                        <button data-minutes="15" class="timer-opt">15 Min</button>
+                        <button data-minutes="30" class="timer-opt">30 Min</button>
+                        <button data-minutes="45" class="timer-opt">45 Min</button>
+                        <button data-minutes="60" class="timer-opt">60 Min</button>
+                    </div>
+                </div>
+
+                <button id="fullscreen-btn" class="icon-btn theme-btn" title="Toggle Fullscreen">
+                    <i data-lucide="maximize" id="fullscreen-icon"></i>
+                </button>
+                
+                <button id="theme-toggle" class="icon-btn theme-btn" title="Toggle Light/Dark Theme">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Navigation Bar -->
+        <nav class="main-tabs glass" id="main-tabs">
+            <button class="tab-btn action-btn auto-scan-glow" id="smart-auto-scan-btn">
+                <i data-lucide="zap"></i>
+                <span>Auto Scan</span>
+            </button>
             
-            <div style="margin-top: 15px; text-align: center;">
-                <div style="font-size:12px; opacity:0.85; margin-bottom:8px; font-weight:600;"><i class="fas fa-qrcode"></i> Streaming Link QR Code:</div>
-                <div class="qr-container qrcode-elem" style="display:flex; justify-content:center; margin:0 auto; padding:10px; background:#ffffff; border-radius:8px; width:fit-content;"></div>
-                <p class="hint" style="font-size:11px; opacity:0.7; margin-top:6px;">Scan with any phone or web browser on the same WiFi network to view stream</p>
+            <button class="tab-btn active" data-tab="discovery">
+                <i data-lucide="compass"></i>
+                <span>Discover</span>
+            </button>
+
+            <button class="tab-btn" data-tab="playlist">
+                <i data-lucide="list-music"></i>
+                <span>Playlist</span>
+                <span id="playlist-count-badge" class="pill-count">0</span>
+            </button>
+            
+            <button class="tab-btn action-btn" id="tab-refresh-btn" title="Reload Stations">
+                <i data-lucide="refresh-cw"></i>
+                <span>Refresh</span>
+            </button>
+            
+            <div class="search-bar main-search-bar">
+                <i data-lucide="search" class="search-input-icon"></i>
+                <input type="text" id="station-search" placeholder="Search station, genre, city..." autocomplete="off">
+                <button id="clear-search-btn" class="icon-btn clear-btn" title="Clear search" style="display:none;">
+                    <i data-lucide="x"></i>
+                </button>
+                <button id="search-btn" class="primary-btn" title="Search Stations">
+                    <span>Search</span>
+                </button>
             </div>
+        </nav>
+
+        <main>
+        <div id="discovery-view">
+            <!-- Category Selector Bar -->
+            <nav class="category-nav glass" id="categories-nav">
+                <button id="mode-toggle-btn" class="tab-btn action-btn india-active mode-pill-btn">
+                    <span id="mode-toggle-icon" class="flag-icon">🇮🇳</span>
+                    <span id="mode-toggle-text">India</span>
+                </button>
+                
+                <div class="cats-wrapper" id="categories-bar">
+                    <div class="cat-scroll" id="india-cats">
+                        <button class="cat-btn active" data-tag="">All</button>
+                        <button class="cat-btn" data-tag="hindi">Hindi</button>
+                        <button class="cat-btn" data-tag="bhakti">Bhakti</button>
+                        <button class="cat-btn" data-tag="news">News</button>
+                        <button class="cat-btn" data-tag="singer">Singer</button>
+                        <button class="cat-btn" data-tag="ghazal">Ghazal</button>
+                        <button class="cat-btn" data-tag="bangla">Bangla</button>
+                        <button class="cat-btn" data-tag="music">Music</button>
+                        <button class="cat-btn" data-tag="dj remix">DJ - Remix</button>
+                        <button class="cat-btn" data-tag="bollywood">Bollywood</button>
+                        <button class="cat-btn" data-tag="punjabi">Punjabi</button>
+                        <button class="cat-btn" data-tag="bhojpuri">Bhojpuri</button>
+                        <button class="cat-btn" data-tag="regional">Regional</button>
+                    </div>
+                    
+                    <div class="cat-scroll" id="global-cats" style="display: none;">
+                        <button class="cat-btn active" data-tag="">All</button>
+                        <button class="cat-btn" data-tag="australia news">Australia NEWS</button>
+                        <button class="cat-btn" data-tag="euro news">Euro NEWS</button>
+                        <button class="cat-btn" data-tag="bbc news">BBC NEWS</button>
+                        <button class="cat-btn" data-tag="us news">US NEWS</button>
+                        <button class="cat-btn" data-tag="world news">World News</button>
+                        <button class="cat-btn" data-tag="russian news">Russian NEWS</button>
+                        <button class="cat-btn" data-tag="france news">France NEWS</button>
+                        <button class="cat-btn" data-tag="pop">Pop</button>
+                        <button class="cat-btn" data-tag="rock">Rock</button>
+                        <button class="cat-btn" data-tag="jazz">Jazz</button>
+                        <button class="cat-btn" data-tag="classical">Classical</button>
+                        <button class="cat-btn" data-tag="hip hop">Hip Hop</button>
+                        <button class="cat-btn" data-tag="electronic">Electronic</button>
+                        <button class="cat-btn" data-tag="ambient">Ambient</button>
+                        <button class="cat-btn" data-tag="dance music">Dance Music</button>
+                        <button class="cat-btn" data-tag="educational">Educational</button>
+                        <button class="cat-btn" data-tag="sports">Sports</button>
+                        <button class="cat-btn" data-tag="talk">Talk</button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Cyber Deck / Now Playing Deck -->
+            <section class="hero-section">
+                <div class="now-playing-card glass">
+                    <div class="station-visual">
+                        <div class="vinyl-wrapper" id="vinyl-wrapper">
+                            <div class="vinyl-groove"></div>
+                            <img id="current-station-info-img" src="logo.png" alt="Station Logo" title="Click to save to playlist">
+                            <div class="center-spindle"></div>
+                        </div>
+                        <button id="add-to-playlist-btn" class="fav-heart-btn" title="Save to Playlist">
+                            <i data-lucide="heart" id="fav-heart-icon"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="station-details">
+                        <div class="lcd-meta-row">
+                            <span class="status-badge" id="player-status">Ready</span>
+                        </div>
+                        
+                        <h1 id="current-station-name">Choose a Station</h1>
+                        <p id="current-station-meta">Select a station to start broadcasting</p>
+                        
+                        <div id="queue-text-info">
+                            <span class="queue-text-item next-text-item" id="queue-next-item">
+                                <span class="queue-label">NEXT:</span>
+                                <span class="queue-name" id="queue-next-name">--</span>
+                            </span>
+                            <span class="queue-text-item prev-text-item" id="queue-prev-item" style="display: none;">
+                                <span class="queue-label">PREV:</span>
+                                <span class="queue-name" id="queue-prev-name">--</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="banner-right">
+                        <!-- Canvas Realtime Audio Spectrum Visualizer -->
+                        <div class="visualizer-wrapper">
+                            <canvas id="visualizer-canvas" width="240" height="110"></canvas>
+                            
+                            <!-- Fallback CSS Bars Visualizer -->
+                            <div class="equalizer-container" id="banner-equalizer-container">
+                                <div class="colorful-equalizer" id="banner-equalizer">
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                    <div class="eq-bar"></div>
+                                </div>
+                            </div>
+
+                            <!-- Visualizer Mode Controls -->
+                            <div class="viz-mode-toggles">
+                                <button class="viz-btn active" data-mode="bars" title="Frequency Bars">
+                                    <i data-lucide="bar-chart-2"></i>
+                                </button>
+                                <button class="viz-btn" data-mode="wave" title="Waveform">
+                                    <i data-lucide="activity"></i>
+                                </button>
+                                <button class="viz-btn" data-mode="circle" title="Radial Pulse">
+                                    <i data-lucide="disc"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equalizer & Master Audio Control Strip -->
+                <div class="volume-controls glass">
+                    <div class="eq-controls-row">
+                        <button id="eq-hd-btn" class="control-btn fx-btn" title="Toggle HD Sound & EQ Enhancement">
+                            <span class="fx-led"></span>
+                            <span>HD / EQ</span>
+                        </button>
+                        
+                        <button id="dj-boost-btn" class="control-btn fx-btn" title="Toggle DJ Beats & Dynamic Bass Boost">
+                            <span class="fx-led"></span>
+                            <span>DJ Boost</span>
+                        </button>
+                        
+                        <button id="3d-surround-btn" class="control-btn fx-btn" title="Toggle 3D Surround Spatial Audio">
+                            <span class="fx-led"></span>
+                            <span>3D Surround</span>
+                        </button>
+
+                        <button id="fs-refresh-btn" class="icon-btn theme-btn" title="Reload Stations">
+                            <i data-lucide="refresh-cw"></i>
+                        </button>
+                        
+                        <div class="vol-boost-check">
+                            <input type="checkbox" id="vol-boost-check">
+                            <label for="vol-boost-check">Vol Boost</label>
+                        </div>
+                    </div>
+
+                    <div class="master-volume-row">
+                        <button id="mute-btn" class="control-btn volume-mute-btn" title="Mute/Unmute">
+                            <i data-lucide="volume-2" id="volume-icon"></i>
+                        </button>
+                        
+                        <div class="volume-slider-container">
+                            <input type="range" id="volume-slider" min="0" max="100" value="30">
+                            <span id="volume-value-badge" class="vol-badge">30%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Discovered Stations Grid & Quick Playlist -->
+            <section class="content-grid" id="discovery-grid">
+                <div class="stations-column">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <h2>Discovered Stations</h2>
+                            <span id="results-count" class="results-badge">0 stations found</span>
+                        </div>
+                        
+                        <div class="section-tools">
+                            <div class="view-mode-toggle desktop-only">
+                                <button id="grid-view-btn" class="view-btn active" title="Grid View">
+                                    <i data-lucide="grid"></i>
+                                </button>
+                                <button id="list-view-btn" class="view-btn" title="List View">
+                                    <i data-lucide="list"></i>
+                                </button>
+                            </div>
+
+                            <button class="icon-btn collapse-toggle-btn" onclick="toggleBothSections(this)" title="Toggle View Sections">
+                                <i data-lucide="chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="stations-grid" class="stations-list grid-layout">
+                        <!-- Stations will be injected here -->
+                    </div>
+                    
+                    <div class="loader-container" id="main-loader" style="display: none;">
+                        <div class="loader-cyber">
+                            <div class="spinner"></div>
+                            <span>Scanning Frequencies...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Sidebar Playlist -->
+                <aside class="playlist-column desktop-playlist">
+                    <div class="section-header">
+                        <h2>Quick Favorites</h2>
+                        <span class="playlist-pill-info" id="quick-fav-count">0 items</span>
+                    </div>
+                    
+                    <div id="quick-playlist-list" class="stations-list">
+                        <!-- Playlist items will be injected here -->
+                    </div>
+                </aside>
+            </section>
         </div>
 
-        <div class="settings-form">
-            <label>Default Resolution
-                <select id="setting-resolution">
-                    <option value="240p">240p (Low)</option>
-                    <option value="360p">360p</option>
-                    <option value="480p">480p (SD)</option>
-                    <option value="720p" selected="">720p (HD)</option>
-                    <option value="1080p">1080p (FHD)</option>
-                </select>
-            </label>
-            <label>Default Camera
-                <select id="setting-camera">
-                    <option value="environment">Rear Camera</option>
-                    <option value="user">Front Camera</option>
-                </select>
-            </label>
-            <label>Password Protection (Optional)
-                <input type="password" id="setting-password" placeholder="Leave blank for no password" />
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="setting-audio" checked="" /> Audio Enabled
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="setting-wake-lock" checked="" /> Keep Screen On (Wake Lock)
-            </label>
-            <button class="primary" onclick="saveSettings()" style="width:100%; margin-top:10px;">Save Settings</button>
+        <script>
+            function toggleBothSections(btn) {
+                const stations = document.getElementById('stations-grid');
+                const playlist = document.getElementById('quick-playlist-list');
+                
+                if (stations.style.display === 'none') {
+                    stations.style.display = stations.classList.contains('grid-layout') ? 'grid' : 'flex';
+                    playlist.style.display = 'flex';
+                    btn.innerHTML = '<i data-lucide="chevron-down"></i>';
+                } else {
+                    stations.style.display = 'none';
+                    playlist.style.display = 'none';
+                    btn.innerHTML = '<i data-lucide="chevron-up"></i>';
+                }
+                
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        </script>
+
+        <!-- Full Playlist View -->
+        <div id="playlist-view" style="display: none;">
+            <section class="content-grid-single">
+                <div class="section-header">
+                    <h2>Your Saved Stations Playlist</h2>
+                </div>
+                <div id="full-playlist-list" class="stations-list">
+                    <!-- Playlist will be rendered here -->
+                </div>
+            </section>
         </div>
-    </section>
+    </main>
 
-    <!-- VIEWER VIEW -->
-    <section id="view-viewer" class="view">
-        <div id="viewer-connect-panel">
-            <h2>Remote Viewer</h2>
-            <p style="font-size:13px; opacity:0.7;">View live IP camera streaming in any web browser without needing a camera on this device. Enter the Camera ID or IP Address shown on the host device.</p>
-            <input type="text" id="viewer-peer-id" placeholder="Camera ID / IP Address (e.g. abc-123-xyz)" />
-            <input type="password" id="viewer-password" placeholder="Password (if required)" />
-            <button class="primary" onclick="connectToCamera()" style="width:100%; margin-bottom:10px;">Connect to Camera</button>
-            <button onclick="startQRScanner()" id="btn-scan-qr" style="width:100%;"><i class="fas fa-qrcode"></i> Scan QR Code</button>
-            <div id="qr-scanner-container" style="display:none; margin-top:15px; background:white; border-radius:8px; overflow:hidden;">
-                <div id="qr-reader" style="width:100%;"></div>
-                <button onclick="switchQRCamera()" style="width:100%; border-radius:0;"><i class="fas fa-sync"></i> Switch Camera</button>
+        <!-- Fixed Bottom Floating Deck Controls -->
+        <footer class="player-controls glass">
+            <div class="player-info desktop-mini-preview">
+                <img id="player-mini-img" src="logo.png" alt="Mini Station Logo">
+                <div class="player-text">
+                    <h4 id="mini-station-title">RKD FM Radio</h4>
+                    <p id="mini-station-subtitle">Ready to broadcast</p>
+                </div>
             </div>
-        </div>
-        
-        <div id="viewer-video-panel" class="hidden">
-            <div class="viewer-stats">
-                <span><i class="fas fa-signal"></i> FPS: <strong id="viewer-fps">0</strong></span>
-                <span><i class="fas fa-desktop"></i> Res: <strong id="viewer-res">-</strong></span>
+
+            <div class="main-controls">
+                <button id="prev-btn" class="control-btn nav-ctrl-btn" title="Previous Station">
+                    <i data-lucide="skip-back"></i>
+                </button>
+                
+                <button id="play-pause-btn" class="control-btn play-btn" title="Play/Pause">
+                    <i data-lucide="play" id="play-icon"></i>
+                </button>
+                
+                <button id="next-btn" class="control-btn nav-ctrl-btn" title="Next Station">
+                    <i data-lucide="skip-forward"></i>
+                </button>
             </div>
-            <div class="video-container">
-                <video id="remote-video" autoplay="" playsinline=""></video>
+
+            <div class="footer-extra-controls desktop-only">
+                <button id="mini-visualizer-toggle" class="icon-btn theme-btn" title="Toggle Visualizer Deck">
+                    <i data-lucide="activity"></i>
+                </button>
+                
+                <button id="footer-fav-btn" class="icon-btn theme-btn" title="Favorite Station">
+                    <i data-lucide="heart"></i>
+                </button>
             </div>
-            <div class="controls-grid">
-                <button onclick="captureSnapshot()"><i class="fas fa-camera"></i> Snap</button>
-                <button onclick="sendRemoteCommand('start_recording')"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Rec Start</button>
-                <button onclick="sendRemoteCommand('stop_recording')"><i class="fas fa-square"></i> Rec Stop</button>
-                <button onclick="sendRemoteCommand('switch_camera')"><i class="fas fa-sync"></i> Switch Cam</button>
-                <button onclick="sendRemoteCommand('toggle_flash')"><i class="fas fa-bolt"></i> Flash</button>
-                <button onclick="toggleFullscreen('remote-video')"><i class="fas fa-expand"></i> Full</button>
-            </div>
-            <button onclick="disconnectViewer()" style="width:100%; background:var(--danger-color); color:white; border:none; margin-top:10px;">Disconnect</button>
-        </div>
-    </section>
-</main>
+        </footer>
 
-<nav class="bottom-nav">
-    <button onclick="switchView('home')" class="nav-btn active"><i class="fas fa-home"></i>Home</button>
-    <button onclick="switchView('camera')" class="nav-btn"><i class="fas fa-camera"></i>Camera</button>
-    <button onclick="switchView('network')" class="nav-btn"><i class="fas fa-wifi"></i>Network</button>
-    <button onclick="switchView('recordings')" class="nav-btn"><i class="fas fa-folder"></i>Files</button>
-    <button onclick="switchView('settings')" class="nav-btn"><i class="fas fa-cog"></i>Settings</button>
-</nav>
+        <!-- Toast Notifications Container -->
+        <div id="toast-container" class="toast-container"></div>
 
+        <!-- Hidden Audio Element -->
+        <audio id="audio-player" autoplay preload="auto" crossorigin="anonymous"></audio>
+        <!-- Keep-Alive Audio for Background Playback -->
+        <audio id="keep-alive-audio" loop preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"></audio>
+    </div>
 
+    <script src="script.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
 
-<script src="script.js"></script></body></html>
+        // Mouse-following Parallax Glowing Blobs
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            const blob1 = document.querySelector('.blob-1');
+            const blob2 = document.querySelector('.blob-2');
+            const blob3 = document.querySelector('.blob-3');
+            
+            if (blob1 && blob2 && blob3) {
+                const moveX1 = (x - window.innerWidth / 2) * 0.04;
+                const moveY1 = (y - window.innerHeight / 2) * 0.04;
+                blob1.style.transform = `translate(${moveX1}px, ${moveY1}px)`;
+                
+                const moveX2 = (x - window.innerWidth / 2) * -0.04;
+                const moveY2 = (y - window.innerHeight / 2) * -0.04;
+                blob2.style.transform = `translate(${moveX2}px, ${moveY2}px)`;
+
+                const moveX3 = (x - window.innerWidth / 2) * 0.02;
+                const moveY3 = (y - window.innerHeight / 2) * 0.02;
+                blob3.style.transform = `translate(${moveX3}px, ${moveY3}px)`;
+            }
+        });
+
+        });
+    </script>
+</body>
+</html>
+
