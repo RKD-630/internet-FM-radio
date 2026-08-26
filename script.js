@@ -750,9 +750,10 @@ let lastCountry = '';
 let lastTag = '';
 let wakeLock = null;
 let consecutiveErrors = 0;
-let visualizerMode = 'bars'; // 'bars', 'wave', 'circle'
+let visualizerMode = 'dancefloor'; // 'dancefloor', 'bars', 'wave', 'circle'
 let sleepTimerId = null;
 let sleepTimerEndTime = null;
+let currentVolumeLevel = 30;
 
 // DOM Elements
 const audioPlayer = document.getElementById('audio-player');
@@ -788,7 +789,6 @@ const mainLoader = document.getElementById('main-loader');
 const nowPlayingCard = document.querySelector('.now-playing-card');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const tabRefreshBtn = document.getElementById('tab-refresh-btn');
-const fsRefreshBtn = document.getElementById('fs-refresh-btn');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const eqHdBtn = document.getElementById('eq-hd-btn');
@@ -815,10 +815,149 @@ const timerBadge = document.getElementById('timer-badge');
 const gridViewBtn = document.getElementById('grid-view-btn');
 const listViewBtn = document.getElementById('list-view-btn');
 
+// Hero Volume Drag Overlay DOM Elements & State
+const heroVolOverlay = document.getElementById('hero-volume-overlay');
+const heroVolText = document.getElementById('hero-volume-text');
+
+let isDraggingHeroVol = false;
+let volDragStartX = 0;
+let volDragStartValue = 30;
+let volHudTimeout = null;
+
+function showHeroVolumeHUD(value) {
+    if (!heroVolOverlay || !heroVolText) return;
+    heroVolText.textContent = `${value}%`;
+    heroVolOverlay.classList.add('visible');
+    
+    clearTimeout(volHudTimeout);
+    volHudTimeout = setTimeout(() => {
+        if (!isDraggingHeroVol) {
+            heroVolOverlay.classList.remove('visible');
+        }
+    }, 1200);
+}
+
+function setupHeroVolumeDrag() {
+    const heroSec = document.getElementById('hero-section') || document.querySelector('.hero-section');
+    if (!heroSec) return;
+
+    let volDragStartY = 0;
+    let scrollStartTop = 0;
+    let dragDirectionLocked = null; // 'horizontal' | 'vertical' | null
+
+    // Mouse Drag
+    heroSec.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn')) {
+            return;
+        }
+        isDraggingHeroVol = true;
+        dragDirectionLocked = null;
+        volDragStartX = e.clientX;
+        volDragStartY = e.clientY;
+        scrollStartTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        volDragStartValue = currentVolumeLevel;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDraggingHeroVol) return;
+        
+        const deltaX = e.clientX - volDragStartX;
+        const deltaY = e.clientY - volDragStartY;
+
+        if (!dragDirectionLocked) {
+            if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                    dragDirectionLocked = 'horizontal';
+                    if (heroSec) heroSec.classList.add('is-dragging-vol');
+                    updateVolume(volDragStartValue, true);
+                } else {
+                    dragDirectionLocked = 'vertical';
+                }
+            }
+        }
+
+        if (dragDirectionLocked === 'horizontal') {
+            e.preventDefault();
+            const volChange = Math.round(deltaX * 0.35);
+            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
+            updateVolume(newVol, true);
+        } else if (dragDirectionLocked === 'vertical') {
+            window.scrollTo(0, scrollStartTop - deltaY);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDraggingHeroVol) {
+            isDraggingHeroVol = false;
+            dragDirectionLocked = null;
+            if (heroSec) heroSec.classList.remove('is-dragging-vol');
+            volHudTimeout = setTimeout(() => {
+                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
+            }, 1000);
+        }
+    });
+
+    // Touch Drag
+    heroSec.addEventListener('touchstart', (e) => {
+        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn')) {
+            return;
+        }
+        if (e.touches.length === 1) {
+            isDraggingHeroVol = true;
+            dragDirectionLocked = null;
+            volDragStartX = e.touches[0].clientX;
+            volDragStartY = e.touches[0].clientY;
+            volDragStartValue = currentVolumeLevel;
+        }
+    }, { passive: true });
+
+    heroSec.addEventListener('touchmove', (e) => {
+        if (!isDraggingHeroVol || e.touches.length !== 1) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = currentX - volDragStartX;
+        const deltaY = currentY - volDragStartY;
+
+        if (!dragDirectionLocked) {
+            if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                    dragDirectionLocked = 'horizontal';
+                    if (heroSec) heroSec.classList.add('is-dragging-vol');
+                    updateVolume(volDragStartValue, true);
+                } else {
+                    dragDirectionLocked = 'vertical';
+                }
+            }
+        }
+
+        if (dragDirectionLocked === 'horizontal') {
+            if (e.cancelable) e.preventDefault();
+            const volChange = Math.round(deltaX * 0.35);
+            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
+            updateVolume(newVol, true);
+        }
+    }, { passive: false });
+
+    const endTouch = () => {
+        if (isDraggingHeroVol) {
+            isDraggingHeroVol = false;
+            dragDirectionLocked = null;
+            if (heroSec) heroSec.classList.remove('is-dragging-vol');
+            volHudTimeout = setTimeout(() => {
+                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
+            }, 1000);
+        }
+    };
+
+    heroSec.addEventListener('touchend', endTouch);
+    heroSec.addEventListener('touchcancel', endTouch);
+}
+
 // Initialize Application
 function init() {
     setupEventListeners();
     setupVisualizerCanvas();
+    setupHeroVolumeDrag();
     fetchStations('', 'India');
     renderPlaylist();
     updateVolume(30);
@@ -949,28 +1088,37 @@ function setupEventListeners() {
         categoriesBar.scrollLeft = scrollLeft - walk;
     });
 
-    // Refresh buttons
-    [tabRefreshBtn, fsRefreshBtn].forEach(btn => {
-        if (btn) btn.addEventListener('click', () => fetchStations(lastQuery, lastCountry, lastTag));
-    });
-
-    // Fullscreen
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-            }
-        });
+    // Refresh button
+    if (tabRefreshBtn) {
+        tabRefreshBtn.addEventListener('click', () => fetchStations(lastQuery, lastCountry, lastTag));
     }
 
-    document.addEventListener('fullscreenchange', () => {
-        if (document.fullscreenElement) {
+    // Fullscreen
+    const handleFSChange = () => {
+        const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        if (isFS) {
             document.body.classList.add('is-fullscreen');
         } else {
             document.body.classList.remove('is-fullscreen');
         }
+    };
+
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+            if (!isFS) {
+                const el = document.documentElement;
+                const reqFS = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+                if (reqFS) reqFS.call(el).catch(err => console.log(err));
+            } else {
+                const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                if (exitFS) exitFS.call(document);
+            }
+        });
+    }
+
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+        document.addEventListener(evt, handleFSChange);
     });
 
     // View Switcher (Grid / List)
@@ -994,10 +1142,10 @@ function setupEventListeners() {
     playPauseBtn.addEventListener('click', togglePlay);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
-    muteBtn.addEventListener('click', toggleMute);
+    if (muteBtn) muteBtn.addEventListener('click', toggleMute);
 
     // Volume Slider
-    volumeSlider.addEventListener('input', (e) => updateVolume(e.target.value));
+    if (volumeSlider) volumeSlider.addEventListener('input', (e) => updateVolume(e.target.value, true));
 
     // Playlist Add / Heart Button
     addToPlaylistBtn.addEventListener('click', () => {
@@ -1051,8 +1199,8 @@ function setupEventListeners() {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         switch(e.code) {
             case 'Space': e.preventDefault(); togglePlay(); break;
-            case 'ArrowUp': e.preventDefault(); updateVolume(Math.min(100, parseInt(volumeSlider.value) + 5)); break;
-            case 'ArrowDown': e.preventDefault(); updateVolume(Math.max(0, parseInt(volumeSlider.value) - 5)); break;
+            case 'ArrowUp': e.preventDefault(); updateVolume(Math.min(100, currentVolumeLevel + 5), true); break;
+            case 'ArrowDown': e.preventDefault(); updateVolume(Math.max(0, currentVolumeLevel - 5), true); break;
             case 'ArrowLeft': e.preventDefault(); playPrevious(); break;
             case 'ArrowRight': e.preventDefault(); playNext(); break;
         }
@@ -1424,10 +1572,11 @@ function playPrevious() {
 }
 
 // Volume Controls
-function updateVolume(value) {
-    let vol = value / 100;
-    volumeSlider.value = value;
-    if (volumeBadge) volumeBadge.textContent = `${value}%`;
+function updateVolume(value, showHUD = false) {
+    currentVolumeLevel = Math.min(100, Math.max(0, parseInt(value) || 0));
+    let vol = currentVolumeLevel / 100;
+    if (volumeSlider) volumeSlider.value = currentVolumeLevel;
+    if (volumeBadge) volumeBadge.textContent = `${currentVolumeLevel}%`;
 
     if (isVolBoostEnabled) vol = 1.0;
     else if (isHDEQEnabled) vol = Math.min(1.0, vol * 1.25);
@@ -1442,6 +1591,10 @@ function updateVolume(value) {
         muteBtn.innerHTML = `<i data-lucide="${icon}"></i>`;
         lucide.createIcons();
     }
+
+    if (showHUD && typeof showHeroVolumeHUD === 'function') {
+        showHeroVolumeHUD(currentVolumeLevel);
+    }
 }
 
 function toggleMute() {
@@ -1449,7 +1602,7 @@ function toggleMute() {
         updateVolume(lastVolume);
         isMuted = false;
     } else {
-        lastVolume = volumeSlider.value;
+        lastVolume = currentVolumeLevel;
         updateVolume(0);
         isMuted = true;
     }
@@ -1602,7 +1755,79 @@ function setupVisualizerCanvas() {
 
         const isPlaying = !audioPlayer.paused && audioPlayer.readyState >= 3;
 
-        if (visualizerMode === 'bars') {
+        if (visualizerMode === 'dancefloor') {
+            const time = Date.now() * 0.003;
+
+            // DJ Dance Floor Grid (6 columns x 3 rows)
+            const cols = 6;
+            const rows = 3;
+            const padding = 3;
+            const tileW = (canvas.width - (cols + 1) * padding) / cols;
+            const tileH = (canvas.height - (rows + 1) * padding) / rows;
+
+            const colors = [
+                '#00f3ff', '#ec4899', '#1BF40B', '#ff6600', 
+                '#8b5cf6', '#ffe600', '#ff0055', '#00ffcc'
+            ];
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = padding + c * (tileW + padding);
+                    const y = padding + r * (tileH + padding);
+                    
+                    const seed = c * 7 + r * 13;
+                    const energy = isPlaying 
+                        ? Math.abs(Math.sin(time * 5 + seed) * Math.cos(time * 3 + seed * 0.5))
+                        : 0.15;
+                    
+                    const colorIdx = Math.floor((time * 2 + seed) % colors.length);
+                    const baseColor = colors[colorIdx];
+
+                    ctx.save();
+                    ctx.shadowBlur = isPlaying ? (8 + energy * 16) : 3;
+                    ctx.shadowColor = baseColor;
+
+                    // Tile background fill
+                    ctx.fillStyle = baseColor;
+                    ctx.globalAlpha = isPlaying ? (0.25 + energy * 0.75) : 0.12;
+                    
+                    ctx.beginPath();
+                    if (ctx.roundRect) {
+                        ctx.roundRect(x, y, tileW, tileH, 4);
+                    } else {
+                        ctx.rect(x, y, tileW, tileH);
+                    }
+                    ctx.fill();
+
+                    // Inner neon LED border
+                    ctx.lineWidth = isPlaying ? (1 + energy * 1.5) : 1;
+                    ctx.strokeStyle = baseColor;
+                    ctx.globalAlpha = isPlaying ? (0.5 + energy * 0.5) : 0.2;
+                    ctx.stroke();
+
+                    ctx.restore();
+                }
+            }
+
+            // Overhead DJ Laser Spotlight beams sweep
+            if (isPlaying) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (let b = 0; b < 2; b++) {
+                    const beamX = (canvas.width / 2) + Math.sin(time * 3.5 + b * Math.PI) * (canvas.width * 0.42);
+                    const grad = ctx.createRadialGradient(beamX, 0, 2, beamX, canvas.height, canvas.height * 0.85);
+                    const beamColor = b === 0 ? 'rgba(0, 243, 255, 0.35)' : 'rgba(236, 72, 153, 0.35)';
+                    grad.addColorStop(0, beamColor);
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(beamX, 0, canvas.height * 0.9, 0, Math.PI);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        } else if (visualizerMode === 'bars') {
             const barWidth = (canvas.width / 24) - 2;
             for (let i = 0; i < 24; i++) {
                 const target = isPlaying ? (10 + Math.random() * (canvas.height - 20)) : 4;

@@ -152,7 +152,15 @@
             </nav>
 
             <!-- Main Cyber Deck / Now Playing Deck -->
-            <section class="hero-section">
+            <section class="hero-section" id="hero-section">
+                <!-- Hero Drag Volume Percentage Orange Circle HUD -->
+                <div id="hero-volume-overlay" class="hero-volume-overlay">
+                    <div class="volume-circle-hud">
+                        <span id="hero-volume-text" class="volume-text-num">30%</span>
+                        <span class="volume-hud-label">VOLUME</span>
+                    </div>
+                </div>
+
                 <div class="now-playing-card glass">
                     <div class="station-visual">
                         <div class="vinyl-wrapper" id="vinyl-wrapper">
@@ -210,7 +218,10 @@
 
                             <!-- Visualizer Mode Controls -->
                             <div class="viz-mode-toggles">
-                                <button class="viz-btn active" data-mode="bars" title="Frequency Bars">
+                                <button class="viz-btn active" data-mode="dancefloor" title="DJ Dance Floor Lights">
+                                    <i data-lucide="sparkles"></i>
+                                </button>
+                                <button class="viz-btn" data-mode="bars" title="Frequency Bars">
                                     <i data-lucide="bar-chart-2"></i>
                                 </button>
                                 <button class="viz-btn" data-mode="wave" title="Waveform">
@@ -241,25 +252,10 @@
                             <span class="fx-led"></span>
                             <span>3D Surround</span>
                         </button>
-
-                        <button id="fs-refresh-btn" class="icon-btn theme-btn" title="Reload Stations">
-                            <i data-lucide="refresh-cw"></i>
-                        </button>
                         
                         <div class="vol-boost-check">
                             <input type="checkbox" id="vol-boost-check">
                             <label for="vol-boost-check">Vol Boost</label>
-                        </div>
-                    </div>
-
-                    <div class="master-volume-row">
-                        <button id="mute-btn" class="control-btn volume-mute-btn" title="Mute/Unmute">
-                            <i data-lucide="volume-2" id="volume-icon"></i>
-                        </button>
-                        
-                        <div class="volume-slider-container">
-                            <input type="range" id="volume-slider" min="0" max="100" value="30">
-                            <span id="volume-value-badge" class="vol-badge">30%</span>
                         </div>
                     </div>
                 </div>
@@ -352,14 +348,6 @@
 
         <!-- Fixed Bottom Floating Deck Controls -->
         <footer class="player-controls glass">
-            <div class="player-info desktop-mini-preview">
-                <img id="player-mini-img" src="logo.png" alt="Mini Station Logo">
-                <div class="player-text">
-                    <h4 id="mini-station-title">RKD FM Radio</h4>
-                    <p id="mini-station-subtitle">Ready to broadcast</p>
-                </div>
-            </div>
-
             <div class="main-controls">
                 <button id="prev-btn" class="control-btn nav-ctrl-btn" title="Previous Station">
                     <i data-lucide="skip-back"></i>
@@ -371,16 +359,6 @@
                 
                 <button id="next-btn" class="control-btn nav-ctrl-btn" title="Next Station">
                     <i data-lucide="skip-forward"></i>
-                </button>
-            </div>
-
-            <div class="footer-extra-controls desktop-only">
-                <button id="mini-visualizer-toggle" class="icon-btn theme-btn" title="Toggle Visualizer Deck">
-                    <i data-lucide="activity"></i>
-                </button>
-                
-                <button id="footer-fav-btn" class="icon-btn theme-btn" title="Favorite Station">
-                    <i data-lucide="heart"></i>
                 </button>
             </div>
         </footer>
