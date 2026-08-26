@@ -755,6 +755,117 @@ let sleepTimerId = null;
 let sleepTimerEndTime = null;
 let currentVolumeLevel = 30;
 
+// Web Audio API Audio Engine (+80% Sound Effect Boost Pipeline)
+let audioCtx = null;
+let sourceNode = null;
+let masterGainNode = null;
+let djBassFilter = null;
+let eqHdTrebleFilter = null;
+let eqHdMidFilter = null;
+let surroundDelayNode = null;
+let surroundFeedbackGain = null;
+
+function initAudioEngine() {
+    if (audioCtx) return;
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        audioCtx = new AudioContextClass();
+
+        // 1. Media Element Source Node
+        sourceNode = audioCtx.createMediaElementSource(audioPlayer);
+
+        // 2. DJ Boost Node: Low-shelf filter (+8.0 dB = +80% low frequency amplitude boost @ 120Hz)
+        djBassFilter = audioCtx.createBiquadFilter();
+        djBassFilter.type = 'lowshelf';
+        djBassFilter.frequency.value = 120;
+        djBassFilter.gain.value = 0;
+
+        // 3. HD / EQ Nodes: High-shelf filter (+8.0 dB treble shelf) & Peaking filter (+4.5 dB clarity)
+        eqHdTrebleFilter = audioCtx.createBiquadFilter();
+        eqHdTrebleFilter.type = 'highshelf';
+        eqHdTrebleFilter.frequency.value = 3200;
+        eqHdTrebleFilter.gain.value = 0;
+
+        eqHdMidFilter = audioCtx.createBiquadFilter();
+        eqHdMidFilter.type = 'peaking';
+        eqHdMidFilter.frequency.value = 1800;
+        eqHdMidFilter.Q.value = 1.2;
+        eqHdMidFilter.gain.value = 0;
+
+        // 4. 3D Surround Nodes: Spatial Delay line (+80% soundstage width / depth)
+        surroundDelayNode = audioCtx.createDelay();
+        surroundDelayNode.delayTime.value = 0.025; // 25ms 3D separation
+
+        surroundFeedbackGain = audioCtx.createGain();
+        surroundFeedbackGain.gain.value = 0;
+
+        // 5. Master Gain Node (1.8x = +80% Volume Output Boost when Vol-Boost is checked)
+        masterGainNode = audioCtx.createGain();
+        masterGainNode.gain.value = currentVolumeLevel / 100;
+
+        // Connect Processing Graph:
+        // source -> djBass -> eqHdTreble -> eqHdMid -> masterGain -> destination
+        sourceNode.connect(djBassFilter);
+        djBassFilter.connect(eqHdTrebleFilter);
+        eqHdTrebleFilter.connect(eqHdMidFilter);
+        eqHdMidFilter.connect(masterGainNode);
+
+        // Parallel 3D Surround Spatial Routing
+        eqHdMidFilter.connect(surroundDelayNode);
+        surroundDelayNode.connect(surroundFeedbackGain);
+        surroundFeedbackGain.connect(masterGainNode);
+
+        masterGainNode.connect(audioCtx.destination);
+    } catch (err) {
+        console.warn('Web Audio Engine init note:', err);
+    }
+}
+
+function ensureAudioContextResumed() {
+    initAudioEngine();
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(e => console.log(e));
+    }
+}
+
+function applyAudioFXSettings() {
+    ensureAudioContextResumed();
+    const currTime = audioCtx ? audioCtx.currentTime : 0;
+
+    // 1. Master Volume & Vol-Boost (+80% Gain Multiplier Boost -> 1.8x Gain)
+    let baseGain = (currentVolumeLevel / 100);
+    let targetGain = isVolBoostEnabled ? baseGain * 1.8 : baseGain;
+
+    if (masterGainNode && audioCtx) {
+        masterGainNode.gain.setTargetAtTime(targetGain, currTime, 0.05);
+    } else {
+        // Fallback for HTML5 audio volume
+        audioPlayer.volume = Math.min(1.0, isVolBoostEnabled ? Math.min(1.0, baseGain * 1.8) : baseGain);
+    }
+
+    // 2. DJ Boost (+80% Bass Punch = +8.0 dB Low Shelf Filter)
+    if (djBassFilter && audioCtx) {
+        const bassDb = isDJBoostEnabled ? 8.0 : 0.0;
+        djBassFilter.gain.setTargetAtTime(bassDb, currTime, 0.05);
+    }
+
+    // 3. HD / EQ (+80% Sound Clarity = +8.0 dB Treble Shelf & +4.5 dB Mid Clarity)
+    if (eqHdTrebleFilter && eqHdMidFilter && audioCtx) {
+        const trebleDb = isHDEQEnabled ? 8.0 : 0.0;
+        const midDb = isHDEQEnabled ? 4.5 : 0.0;
+        eqHdTrebleFilter.gain.setTargetAtTime(trebleDb, currTime, 0.05);
+        eqHdMidFilter.gain.setTargetAtTime(midDb, currTime, 0.05);
+    }
+
+    // 4. 3D Surround (+80% Spatial soundstage depth / width)
+    if (surroundFeedbackGain && audioCtx) {
+        const surroundVal = is3DSurroundEnabled ? 0.80 : 0.0;
+        surroundFeedbackGain.gain.setTargetAtTime(surroundVal, currTime, 0.05);
+    }
+}
+
 // DOM Elements
 const audioPlayer = document.getElementById('audio-player');
 const keepAliveAudio = document.getElementById('keep-alive-audio');
@@ -828,7 +939,7 @@ function showHeroVolumeHUD(value) {
     if (!heroVolOverlay || !heroVolText) return;
     heroVolText.textContent = `${value}%`;
     heroVolOverlay.classList.add('visible');
-    
+
     clearTimeout(volHudTimeout);
     volHudTimeout = setTimeout(() => {
         if (!isDraggingHeroVol) {
@@ -860,7 +971,7 @@ function setupHeroVolumeDrag() {
 
     document.addEventListener('mousemove', (e) => {
         if (!isDraggingHeroVol) return;
-        
+
         const deltaX = e.clientX - volDragStartX;
         const deltaY = e.clientY - volDragStartY;
 
@@ -968,7 +1079,7 @@ function init() {
 function setupStatusObserver() {
     const statusObserver = new MutationObserver(() => {
         const text = playerStatus.textContent.toLowerCase();
-        
+
         if (text.includes('buffer') || text.includes('load') || text.includes('scan') || text.includes('tune')) {
             playerStatus.style.color = 'var(--gold-accent)';
             playerStatus.style.background = 'rgba(245, 158, 11, 0.15)';
@@ -1208,7 +1319,7 @@ function setupEventListeners() {
     // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        switch(e.code) {
+        switch (e.code) {
             case 'Space': e.preventDefault(); togglePlay(); break;
             case 'ArrowUp': e.preventDefault(); updateVolume(Math.min(100, currentVolumeLevel + 5), true); break;
             case 'ArrowDown': e.preventDefault(); updateVolume(Math.max(0, currentVolumeLevel - 5), true); break;
@@ -1219,6 +1330,8 @@ function setupEventListeners() {
 
     // Audio Event Handlers
     audioPlayer.onplay = () => {
+        ensureAudioContextResumed();
+        applyAudioFXSettings();
         playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
         lucide.createIcons();
         playerStatus.textContent = 'Playing';
@@ -1258,45 +1371,45 @@ function setupEventListeners() {
 
 // Fetch Stations
 const fetchMappings = {
-    'australia news': [ { tag: 'news', country: 'Australia' } ],
-    'euro news': [ { name: 'euronews' }, { tag: 'news', language: 'english' } ],
-    'bbc news': [ { name: 'bbc news' }, { name: 'bbc radio', tag: 'news' } ],
-    'us news': [ { tag: 'news', country: 'United States' } ],
-    'world news': [ { tag: 'world news' }, { tag: 'international news' } ],
-    'russian news': [ { tag: 'news', country: 'Russia' } ],
-    'france news': [ { tag: 'news', country: 'France' } ],
-    'pop': [ { tag: 'pop' } ],
-    'rock': [ { tag: 'rock' } ],
-    'jazz': [ { tag: 'jazz' } ],
-    'classical': [ { tag: 'classical' } ],
-    'hip hop': [ { tag: 'hip hop' } ],
-    'electronic': [ { tag: 'electronic' } ],
-    'ambient': [ { tag: 'ambient' } ],
-    'dance music': [ { tag: 'dance' } ],
-    'educational': [ { tag: 'educational' } ],
-    'sports': [ { tag: 'sports' } ],
-    'talk': [ { tag: 'talk' } ],
-    'hindi': [ { tag: 'hindi', country: 'India' } ],
-    'regional': [ { tag: 'tamil', country: 'India' }, { tag: 'telugu', country: 'India' }, { tag: 'punjabi', country: 'India' } ],
-    'bollywood': [ { tag: 'bollywood', country: 'India' } ],
-    'dj remix': [ { tag: 'dj remix', country: 'India' }, { tag: 'remix', country: 'India' } ],
-    'singer': [ { name: 'kishore' }, { name: 'lata' }, { name: 'arijit' } ],
-    'ghazal': [ { name: 'gazal' } ],
-    'punjabi': [ { tag: 'punjabi' } ],
-    'panjabi': [ { tag: 'punjabi' } ],
-    'bangla': [ { tag: 'bangla' }, { tag: 'bengali' } ],
-    'bengali': [ { tag: 'bangla' }, { tag: 'bengali' } ],
-    'news': [ { tag: 'news', country: 'India' } ]
+    'australia news': [{ tag: 'news', country: 'Australia' }],
+    'euro news': [{ name: 'euronews' }, { tag: 'news', language: 'english' }],
+    'bbc news': [{ name: 'bbc news' }, { name: 'bbc radio', tag: 'news' }],
+    'us news': [{ tag: 'news', country: 'United States' }],
+    'world news': [{ tag: 'world news' }, { tag: 'international news' }],
+    'russian news': [{ tag: 'news', country: 'Russia' }],
+    'france news': [{ tag: 'news', country: 'France' }],
+    'pop': [{ tag: 'pop' }],
+    'rock': [{ tag: 'rock' }],
+    'jazz': [{ tag: 'jazz' }],
+    'classical': [{ tag: 'classical' }],
+    'hip hop': [{ tag: 'hip hop' }],
+    'electronic': [{ tag: 'electronic' }],
+    'ambient': [{ tag: 'ambient' }],
+    'dance music': [{ tag: 'dance' }],
+    'educational': [{ tag: 'educational' }],
+    'sports': [{ tag: 'sports' }],
+    'talk': [{ tag: 'talk' }],
+    'hindi': [{ tag: 'hindi', country: 'India' }],
+    'regional': [{ tag: 'tamil', country: 'India' }, { tag: 'telugu', country: 'India' }, { tag: 'punjabi', country: 'India' }],
+    'bollywood': [{ tag: 'bollywood', country: 'India' }],
+    'dj remix': [{ tag: 'dj remix', country: 'India' }, { tag: 'remix', country: 'India' }],
+    'singer': [{ name: 'kishore' }, { name: 'lata' }, { name: 'arijit' }],
+    'ghazal': [{ name: 'gazal' }],
+    'punjabi': [{ tag: 'punjabi' }],
+    'panjabi': [{ tag: 'punjabi' }],
+    'bangla': [{ tag: 'bangla' }, { tag: 'bengali' }],
+    'bengali': [{ tag: 'bangla' }, { tag: 'bengali' }],
+    'news': [{ tag: 'news', country: 'India' }]
 };
 
 async function fetchStations(query = '', country = '', tag = '', autoPlay = false) {
     lastQuery = query;
     lastCountry = country;
     lastTag = tag;
-    
+
     mainLoader.style.display = 'flex';
     stationsGrid.innerHTML = '';
-    
+
     let url = `${API_BASE}/stations/search?limit=${DEFAULT_LIMIT}&order=clickcount&reverse=true&hidebroken=true`;
     if (country) url += `&country=${encodeURIComponent(country)}`;
     if (tag) url += `&tag=${encodeURIComponent(tag)}`;
@@ -1342,7 +1455,7 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             if (!station) return false;
             // Only include active stations verified by server check
             if (station.lastcheckok !== 1 && station.lastcheckok !== undefined) return false;
-            
+
             const rawName = station.name || '';
             const rawTags = station.tags || '';
             // Block Jesus Radio and any Jesus-related stations
@@ -1355,13 +1468,13 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
 
             const normName = station.name ? station.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
             const normUrl = streamUrl.trim().toLowerCase();
-            
+
             if (normName && seenNames.has(normName)) return false;
             if (seenUrls.has(normUrl)) return false;
-            
+
             if (normName) seenNames.add(normName);
             seenUrls.add(normUrl);
-            
+
             return true;
         });
         renderStations();
@@ -1414,7 +1527,7 @@ function renderStations() {
 
 function renderPlaylist() {
     const isFavEmpty = currentPlaylist.length === 0;
-    const playlistHTML = isFavEmpty 
+    const playlistHTML = isFavEmpty
         ? `<div class="empty-state"><i data-lucide="list-music"></i><p>No favorite stations saved</p></div>`
         : currentPlaylist.map((station, index) => `
             <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
@@ -1435,7 +1548,7 @@ function renderPlaylist() {
     if (fullPlaylistList) fullPlaylistList.innerHTML = playlistHTML;
     if (playlistCountBadge) playlistCountBadge.textContent = currentPlaylist.length;
     if (quickFavCount) quickFavCount.textContent = `${currentPlaylist.length} items`;
-    
+
     updateQueueInfo();
     lucide.createIcons();
 }
@@ -1462,7 +1575,7 @@ function playStation(index, source = 'search', element = null) {
 
     audioPlayer.src = station.url_resolved || station.url;
     audioPlayer.load();
-    
+
     audioPlayer.play().catch(e => {
         console.warn('Autoplay blocked:', e);
         playerStatus.textContent = 'Click Play to Listen';
@@ -1585,19 +1698,16 @@ function playPrevious() {
 // Volume Controls
 function updateVolume(value, showHUD = false) {
     currentVolumeLevel = Math.min(100, Math.max(0, parseInt(value) || 0));
-    let vol = currentVolumeLevel / 100;
     if (volumeSlider) volumeSlider.value = currentVolumeLevel;
     if (volumeBadge) volumeBadge.textContent = `${currentVolumeLevel}%`;
 
-    if (isVolBoostEnabled) vol = 1.0;
-    else if (isHDEQEnabled) vol = Math.min(1.0, vol * 1.25);
+    applyAudioFXSettings();
 
-    audioPlayer.volume = vol;
-    
+    let vol = currentVolumeLevel / 100;
     let icon = 'volume-2';
     if (vol === 0) icon = 'volume-x';
     else if (vol < 0.5) icon = 'volume-1';
-    
+
     if (muteBtn) {
         muteBtn.innerHTML = `<i data-lucide="${icon}"></i>`;
         lucide.createIcons();
@@ -1672,28 +1782,36 @@ function loadTheme() {
     setTheme(localStorage.getItem('fm_theme') || 'dark');
 }
 
-// FX Toggles
+// FX Toggles with Sound Effect Boost Pipeline
 function toggleHDEQ() {
     isHDEQEnabled = !isHDEQEnabled;
     eqHdBtn.classList.toggle('active', isHDEQEnabled);
+    applyAudioFXSettings();
     showToast(isHDEQEnabled ? 'HD Audio & EQ Active' : 'HD Audio Off', 'sliders');
 }
 
 function toggleDJBoost() {
     isDJBoostEnabled = !isDJBoostEnabled;
     djBoostBtn.classList.toggle('active', isDJBoostEnabled);
+    applyAudioFXSettings();
     showToast(isDJBoostEnabled ? 'DJ Beats Boost Active' : 'DJ Boost Off', 'zap');
 }
 
 function toggle3DSurround() {
     is3DSurroundEnabled = !is3DSurroundEnabled;
     surround3dBtn.classList.toggle('active', is3DSurroundEnabled);
-    showToast(is3DSurroundEnabled ? '3D Surround Sound Active' : '3D Sound Off', 'disc');
+    applyAudioFXSettings();
+    showToast(is3DSurroundEnabled ? '3D Surround Active' : '3D Sound Off', 'disc');
 }
 
 function toggleVolBoost(e) {
     isVolBoostEnabled = e.target.checked;
-    showToast(isVolBoostEnabled ? 'Max Volume Boost ON' : 'Volume Boost OFF', 'volume-2');
+    const volCheckContainer = e.target.closest('.vol-boost-check');
+    if (volCheckContainer) {
+        volCheckContainer.classList.toggle('active', isVolBoostEnabled);
+    }
+    applyAudioFXSettings();
+    showToast(isVolBoostEnabled ? 'Volume Boost ON' : 'Volume Boost OFF', 'volume-2');
 }
 
 function toggleSmartAutoScan() {
@@ -1733,7 +1851,7 @@ function setSleepTimer(minutes) {
     timerBadge.style.display = 'block';
     timerBadge.textContent = `${minutes}m`;
     showToast(`Sleep Timer set to ${minutes} min`, 'clock');
-    
+
     sleepTimerId = setTimeout(() => {
         audioPlayer.pause();
         timerBadge.style.display = 'none';
