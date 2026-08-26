@@ -868,6 +868,18 @@ header {
     justify-content: center;
 }
 
+.station-audio-aura {
+    position: absolute;
+    inset: -12px;
+    border-radius: 1.75rem;
+    background: radial-gradient(circle, var(--cyan-accent) 0%, var(--accent-color) 50%, var(--primary-color) 100%);
+    opacity: 0.25;
+    filter: blur(18px);
+    z-index: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease;
+}
+
 .vinyl-wrapper {
     position: relative;
     width: 100%;
@@ -1091,12 +1103,7 @@ h1#current-station-name {
     text-overflow: ellipsis;
 }
 
-/* Audio Visualizer Column */
-.banner-right {
-    margin-left: auto;
-    width: 240px;
-    flex-shrink: 0;
-}
+/* Audio Visualizer */
 
 .visualizer-wrapper {
     position: relative;
@@ -1195,38 +1202,38 @@ h1#current-station-name {
 
 /* Audio Controls & FX Strip */
 .volume-controls {
-    margin: 1.25rem auto 0 auto;
-    padding: 1rem 1.5rem;
-    max-width: 1000px;
+    margin: 0.8rem auto 0 auto;
+    padding: 0.5rem 1rem;
+    max-width: 650px;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
 }
 
 .eq-controls-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.5rem;
     width: 100%;
     flex-wrap: wrap;
 }
 
 .fx-btn {
     flex: 1 1 0%;
-    min-width: 130px;
+    min-width: 85px;
     border: 1px solid var(--glass-border);
-    border-radius: 0.75rem;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
+    border-radius: 0.55rem;
+    padding: 0.38rem 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     background: rgba(255, 255, 255, 0.03);
     color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     cursor: pointer;
     transition: var(--transition-fast);
     white-space: nowrap;
@@ -1239,8 +1246,8 @@ h1#current-station-name {
 }
 
 .fx-led {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
@@ -1261,18 +1268,18 @@ h1#current-station-name {
 
 .vol-boost-check {
     flex: 1 1 0%;
-    min-width: 130px;
+    min-width: 85px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    gap: 0.4rem;
+    font-size: 0.75rem;
     font-weight: 700;
     margin-left: 0;
     color: var(--text-secondary);
     border: 1px solid var(--glass-border);
-    border-radius: 0.75rem;
-    padding: 0.6rem 1rem;
+    border-radius: 0.55rem;
+    padding: 0.38rem 0.65rem;
     background: rgba(255, 255, 255, 0.03);
     cursor: pointer;
     transition: var(--transition-fast);
@@ -1287,8 +1294,8 @@ h1#current-station-name {
 
 .vol-boost-check input {
     accent-color: var(--accent-color);
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     cursor: pointer;
 }
 
@@ -1675,10 +1682,6 @@ input[type="range"]::-webkit-slider-thumb {
         display: none;
     }
 
-    .banner-right {
-        display: none;
-    }
-
     .now-playing-card {
         flex-direction: column;
         text-align: center;
@@ -1724,53 +1727,86 @@ input[type="range"]::-webkit-slider-thumb {
 /* ==========================================================================
    FULLSCREEN MODE STYLES
    ========================================================================== */
-body.is-fullscreen .category-nav,
 body.is-fullscreen .content-grid,
 body.is-fullscreen .content-grid-single,
-body.is-fullscreen #playlist-view,
-:fullscreen .category-nav,
-:fullscreen .content-grid,
-:fullscreen .content-grid-single,
-:fullscreen #playlist-view,
-:-webkit-full-screen .category-nav,
-:-webkit-full-screen .content-grid,
-:-webkit-full-screen .content-grid-single,
-:-webkit-full-screen #playlist-view {
+body.is-fullscreen #playlist-view {
     display: none !important;
 }
 
-/* In Fullscreen mode: keep main-tabs visible below header, displaying Auto Scan, Refresh & Search bar, but hiding tab view buttons */
-body.is-fullscreen .main-tabs,
-:fullscreen .main-tabs,
-:-webkit-full-screen .main-tabs {
+/* In Fullscreen mode: fix category-nav glass at the top of application */
+body.is-fullscreen .category-nav {
     display: flex !important;
-    margin-top: 0.75rem;
-    margin-bottom: 1.25rem;
-}
-
-body.is-fullscreen .main-tabs .tab-btn[data-tab],
-:fullscreen .main-tabs .tab-btn[data-tab],
-:-webkit-full-screen .main-tabs .tab-btn[data-tab] {
-    display: none !important;
-}
-
-body.is-fullscreen .hero-section,
-:fullscreen .hero-section,
-:-webkit-full-screen .hero-section {
-    margin-top: 1rem;
-    margin-bottom: 8rem;
-}
-
-/* In Fullscreen mode: fix volume-controls glass together with player-controls glass at the bottom */
-body.is-fullscreen .volume-controls,
-:fullscreen .volume-controls,
-:-webkit-full-screen .volume-controls {
     position: fixed;
-    bottom: 82px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
     max-width: 1440px;
+    z-index: 1002;
+    margin: 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* In Fullscreen mode: keep main-tabs visible below header, displaying buttons with icons only */
+body.is-fullscreen .main-tabs {
+    display: flex !important;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    gap: 0.5rem;
+}
+
+body.is-fullscreen .main-tabs .tab-btn span,
+body.is-fullscreen .main-tabs #search-btn span {
+    display: none !important;
+}
+
+body.is-fullscreen .main-tabs .tab-btn {
+    padding: 0.35rem 0.55rem;
+    min-height: 30px;
+    border-radius: 0.55rem;
+    justify-content: center;
+}
+
+body.is-fullscreen .main-tabs .tab-btn i,
+body.is-fullscreen .main-tabs .tab-btn svg {
+    width: 13px;
+    height: 13px;
+}
+
+body.is-fullscreen .main-tabs .main-search-bar {
+    display: none !important;
+}
+
+body.is-fullscreen .hero-section {
+    margin-top: 60px;
+    margin-bottom: 145px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+body.is-fullscreen .now-playing-card {
+    flex: 1;
+    min-height: calc(100vh - 290px);
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 2.5rem;
+}
+
+body.is-fullscreen .visualizer-wrapper {
+    height: 160px;
+}
+
+/* In Fullscreen mode: fix volume-controls glass together with player-controls glass at the bottom */
+body.is-fullscreen .volume-controls {
+    position: fixed;
+    bottom: 78px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
+    max-width: 650px;
     z-index: 1001;
     margin: 0;
     border-bottom-left-radius: 0;
@@ -1778,9 +1814,7 @@ body.is-fullscreen .volume-controls,
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
 }
 
-body.is-fullscreen .player-controls,
-:fullscreen .player-controls,
-:-webkit-full-screen .player-controls {
+body.is-fullscreen .player-controls {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }

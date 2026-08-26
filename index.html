@@ -163,6 +163,7 @@
 
                 <div class="now-playing-card glass">
                     <div class="station-visual">
+                        <div class="station-audio-aura" id="station-audio-aura"></div>
                         <div class="vinyl-wrapper" id="vinyl-wrapper">
                             <div class="vinyl-groove"></div>
                             <img id="current-station-info-img" src="logo.png" alt="Station Logo" title="Click to save to playlist">
@@ -192,47 +193,6 @@
                             </span>
                         </div>
                     </div>
-
-                    <div class="banner-right">
-                        <!-- Canvas Realtime Audio Spectrum Visualizer -->
-                        <div class="visualizer-wrapper">
-                            <canvas id="visualizer-canvas" width="240" height="110"></canvas>
-                            
-                            <!-- Fallback CSS Bars Visualizer -->
-                            <div class="equalizer-container" id="banner-equalizer-container">
-                                <div class="colorful-equalizer" id="banner-equalizer">
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                    <div class="eq-bar"></div>
-                                </div>
-                            </div>
-
-                            <!-- Visualizer Mode Controls -->
-                            <div class="viz-mode-toggles">
-                                <button class="viz-btn active" data-mode="dancefloor" title="DJ Dance Floor Lights">
-                                    <i data-lucide="sparkles"></i>
-                                </button>
-                                <button class="viz-btn" data-mode="bars" title="Frequency Bars">
-                                    <i data-lucide="bar-chart-2"></i>
-                                </button>
-                                <button class="viz-btn" data-mode="wave" title="Waveform">
-                                    <i data-lucide="activity"></i>
-                                </button>
-                                <button class="viz-btn" data-mode="circle" title="Radial Pulse">
-                                    <i data-lucide="disc"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Equalizer & Master Audio Control Strip -->
@@ -254,8 +214,8 @@
                         </button>
                         
                         <div class="vol-boost-check">
-                            <input type="checkbox" id="vol-boost-check">
-                            <label for="vol-boost-check">Vol Boost</label>
+                            <input type="checkbox" id="vol-boost-check-input">
+                            <label for="vol-boost-check-input">Vol Boost</label>
                         </div>
                     </div>
                 </div>

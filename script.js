@@ -794,7 +794,7 @@ const themeIcon = document.getElementById('theme-icon');
 const eqHdBtn = document.getElementById('eq-hd-btn');
 const djBoostBtn = document.getElementById('dj-boost-btn');
 const surround3dBtn = document.getElementById('3d-surround-btn');
-const volBoostCheck = document.getElementById('vol-boost-check');
+const volBoostCheck = document.getElementById('vol-boost-check-input');
 const smartAutoScanBtn = document.getElementById('smart-auto-scan-btn');
 const queueTickerText = document.getElementById('queue-ticker-text');
 const digitalFreqReadout = document.getElementById('digital-freq-readout');
@@ -956,7 +956,7 @@ function setupHeroVolumeDrag() {
 // Initialize Application
 function init() {
     setupEventListeners();
-    setupVisualizerCanvas();
+    setupStationAudioAura();
     setupHeroVolumeDrag();
     fetchStations('', 'India');
     renderPlaylist();
@@ -1103,19 +1103,30 @@ function setupEventListeners() {
         }
     };
 
+    // Fullscreen Toggle Helper
+    const toggleFullscreen = () => {
+        const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        if (!isFS) {
+            const el = document.documentElement;
+            const reqFS = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (reqFS) reqFS.call(el).catch(err => console.log(err));
+        } else {
+            const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exitFS) exitFS.call(document);
+        }
+    };
+
     if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-            if (!isFS) {
-                const el = document.documentElement;
-                const reqFS = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-                if (reqFS) reqFS.call(el).catch(err => console.log(err));
-            } else {
-                const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-                if (exitFS) exitFS.call(document);
-            }
-        });
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
     }
+
+    // Double click window to enter / exit fullscreen
+    document.addEventListener('dblclick', (e) => {
+        if (e.target.closest('button, input, a, label, textarea, select, .viz-btn, .fav-heart-btn, .cat-btn')) {
+            return;
+        }
+        toggleFullscreen();
+    });
 
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
         document.addEventListener(evt, handleFSChange);
@@ -1741,139 +1752,33 @@ function releaseWakeLock() {
     if (wakeLock) { wakeLock.release(); wakeLock = null; }
 }
 
-// Visualizer Canvas Render Loop
-function setupVisualizerCanvas() {
-    const canvas = document.getElementById('visualizer-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+// Dynamic Station Audio Background Light Aura Render Loop
+function setupStationAudioAura() {
+    const stationAudioAura = document.getElementById('station-audio-aura');
+    if (!stationAudioAura) return;
 
-    let bars = new Array(24).fill(5);
-
-    function draw() {
-        requestAnimationFrame(draw);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    function animateAura() {
+        requestAnimationFrame(animateAura);
         const isPlaying = !audioPlayer.paused && audioPlayer.readyState >= 3;
+        if (isPlaying) {
+            const time = Date.now() * 0.004;
+            const pulse = 1 + Math.abs(Math.sin(time * 6) * Math.cos(time * 3)) * 0.22;
+            const blur = 16 + pulse * 14;
+            const opacity = 0.5 + pulse * 0.45;
+            const hueShift = (time * 60) % 360;
 
-        if (visualizerMode === 'dancefloor') {
-            const time = Date.now() * 0.003;
-
-            // DJ Dance Floor Grid (6 columns x 3 rows)
-            const cols = 6;
-            const rows = 3;
-            const padding = 3;
-            const tileW = (canvas.width - (cols + 1) * padding) / cols;
-            const tileH = (canvas.height - (rows + 1) * padding) / rows;
-
-            const colors = [
-                '#00f3ff', '#ec4899', '#1BF40B', '#ff6600', 
-                '#8b5cf6', '#ffe600', '#ff0055', '#00ffcc'
-            ];
-
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const x = padding + c * (tileW + padding);
-                    const y = padding + r * (tileH + padding);
-                    
-                    const seed = c * 7 + r * 13;
-                    const energy = isPlaying 
-                        ? Math.abs(Math.sin(time * 5 + seed) * Math.cos(time * 3 + seed * 0.5))
-                        : 0.15;
-                    
-                    const colorIdx = Math.floor((time * 2 + seed) % colors.length);
-                    const baseColor = colors[colorIdx];
-
-                    ctx.save();
-                    ctx.shadowBlur = isPlaying ? (8 + energy * 16) : 3;
-                    ctx.shadowColor = baseColor;
-
-                    // Tile background fill
-                    ctx.fillStyle = baseColor;
-                    ctx.globalAlpha = isPlaying ? (0.25 + energy * 0.75) : 0.12;
-                    
-                    ctx.beginPath();
-                    if (ctx.roundRect) {
-                        ctx.roundRect(x, y, tileW, tileH, 4);
-                    } else {
-                        ctx.rect(x, y, tileW, tileH);
-                    }
-                    ctx.fill();
-
-                    // Inner neon LED border
-                    ctx.lineWidth = isPlaying ? (1 + energy * 1.5) : 1;
-                    ctx.strokeStyle = baseColor;
-                    ctx.globalAlpha = isPlaying ? (0.5 + energy * 0.5) : 0.2;
-                    ctx.stroke();
-
-                    ctx.restore();
-                }
-            }
-
-            // Overhead DJ Laser Spotlight beams sweep
-            if (isPlaying) {
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                for (let b = 0; b < 2; b++) {
-                    const beamX = (canvas.width / 2) + Math.sin(time * 3.5 + b * Math.PI) * (canvas.width * 0.42);
-                    const grad = ctx.createRadialGradient(beamX, 0, 2, beamX, canvas.height, canvas.height * 0.85);
-                    const beamColor = b === 0 ? 'rgba(0, 243, 255, 0.35)' : 'rgba(236, 72, 153, 0.35)';
-                    grad.addColorStop(0, beamColor);
-                    grad.addColorStop(1, 'rgba(0,0,0,0)');
-                    
-                    ctx.fillStyle = grad;
-                    ctx.beginPath();
-                    ctx.arc(beamX, 0, canvas.height * 0.9, 0, Math.PI);
-                    ctx.fill();
-                }
-                ctx.restore();
-            }
-        } else if (visualizerMode === 'bars') {
-            const barWidth = (canvas.width / 24) - 2;
-            for (let i = 0; i < 24; i++) {
-                const target = isPlaying ? (10 + Math.random() * (canvas.height - 20)) : 4;
-                bars[i] += (target - bars[i]) * 0.25;
-
-                const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
-                gradient.addColorStop(0, '#06b6d4');
-                gradient.addColorStop(0.5, '#6366f1');
-                gradient.addColorStop(1, '#ec4899');
-
-                ctx.fillStyle = gradient;
-                ctx.fillRect(i * (barWidth + 2), canvas.height - bars[i], barWidth, bars[i]);
-            }
-        } else if (visualizerMode === 'wave') {
-            ctx.beginPath();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = '#00ffcc';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00ffcc';
-
-            const time = Date.now() * 0.005;
-            for (let x = 0; x < canvas.width; x += 4) {
-                const amp = isPlaying ? 25 : 2;
-                const y = (canvas.height / 2) + Math.sin(x * 0.05 + time) * amp * Math.cos(time * 0.5);
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-        } else if (visualizerMode === 'circle') {
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            const radius = isPlaying ? (20 + Math.random() * 15) : 15;
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#ec4899';
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#ec4899';
-            ctx.stroke();
-            ctx.shadowBlur = 0;
+            stationAudioAura.style.transform = `scale(${pulse})`;
+            stationAudioAura.style.filter = `blur(${blur}px)`;
+            stationAudioAura.style.opacity = opacity;
+            stationAudioAura.style.background = `radial-gradient(circle, hsl(${hueShift}, 100%, 60%) 0%, hsl(${(hueShift + 60) % 360}, 100%, 55%) 50%, hsl(${(hueShift + 120) % 360}, 100%, 50%) 100%)`;
+        } else {
+            stationAudioAura.style.transform = 'scale(0.95)';
+            stationAudioAura.style.filter = 'blur(12px)';
+            stationAudioAura.style.opacity = '0.2';
         }
     }
 
-    draw();
+    animateAura();
 }
 
 // Start
