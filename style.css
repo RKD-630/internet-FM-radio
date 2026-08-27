@@ -77,6 +77,33 @@
     border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
+/* White/Light Theme Station Queue Colors */
+[data-theme="light"] .prev-text-item {
+    color: #991b1b !important;
+}
+
+[data-theme="light"] .prev-text-item .queue-label {
+    color: #b91c1c !important;
+}
+
+[data-theme="light"] .prev-text-item .queue-name {
+    color: #991b1b !important;
+    font-weight: 700;
+}
+
+[data-theme="light"] .next-text-item {
+    color: #166534 !important;
+}
+
+[data-theme="light"] .next-text-item .queue-label {
+    color: #15803d !important;
+}
+
+[data-theme="light"] .next-text-item .queue-name {
+    color: #166534 !important;
+    font-weight: 700;
+}
+
 /* Base Styles */
 * {
     margin: 0;
@@ -1752,63 +1779,24 @@ body.is-fullscreen #playlist-view {
     display: none !important;
 }
 
-/* In Fullscreen mode: fix category-nav glass at the top of application */
+/* In Fullscreen mode: standard size category-nav glass at top */
 body.is-fullscreen .category-nav {
     display: flex !important;
     position: fixed;
-    top: 10px;
+    top: 12px;
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
-    max-width: 1440px;
+    width: calc(100% - 2 * clamp(1rem, 3vw, 2rem));
+    max-width: 1100px;
     z-index: 1003;
     margin: 0;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 0.45rem 1rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
-/* In Fullscreen mode: fix main-tabs glass neatly below category-nav glass */
+/* In Fullscreen mode: hide main-tabs glass completely */
 body.is-fullscreen .main-tabs {
-    display: flex !important;
-    position: fixed;
-    top: 62px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
-    max-width: 1440px;
-    z-index: 1002;
-    margin: 0;
-    padding: 0.35rem 0.75rem;
-    gap: 0.5rem;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    transition: var(--transition-smooth);
-}
-
-body.is-fullscreen:has(.now-playing-card.playing) .main-tabs {
-    border-color: rgba(0, 243, 255, 0.35);
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
-}
-
-body.is-fullscreen .main-tabs .tab-btn span,
-body.is-fullscreen .main-tabs #search-btn span {
-    display: none !important;
-}
-
-body.is-fullscreen .main-tabs .tab-btn {
-    padding: 0.35rem 0.55rem;
-    min-height: 30px;
-    border-radius: 0.55rem;
-    justify-content: center;
-}
-
-body.is-fullscreen .main-tabs .tab-btn i,
-body.is-fullscreen .main-tabs .tab-btn svg {
-    width: 13px;
-    height: 13px;
-}
-
-body.is-fullscreen .main-tabs .main-search-bar {
     display: none !important;
 }
 
@@ -1829,16 +1817,17 @@ body.is-fullscreen #discovery-view {
     justify-content: center;
     align-items: center;
     position: relative;
-    padding-top: 115px; /* Space reserved for fixed top category-nav and main-tabs glass */
-    padding-bottom: 145px; /* Space reserved for fixed bottom volume-controls and player-controls glass */
+    padding-top: 64px;
+    padding-bottom: 140px;
     box-sizing: border-box;
 }
 
+/* In Fullscreen mode: standard size hero-section */
 body.is-fullscreen .hero-section {
-    width: 100%;
-    max-width: 1000px;
-    height: calc(100vh - 260px);
-    max-height: calc(100vh - 260px);
+    width: calc(100% - 2 * clamp(1rem, 3vw, 2rem));
+    max-width: 1100px;
+    height: calc(100vh - 215px);
+    max-height: calc(100vh - 215px);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -1852,7 +1841,8 @@ body.is-fullscreen .now-playing-card {
     min-height: 0;
     align-items: center;
     justify-content: space-between;
-    padding: 1.5rem 2.5rem;
+    padding: 1.75rem 2.5rem;
+    border-radius: 1.5rem;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     background: linear-gradient(135deg, rgba(18, 24, 38, 0.90) 0%, rgba(12, 16, 26, 0.82) 100%);
@@ -1870,33 +1860,18 @@ body.is-fullscreen .visualizer-wrapper {
     height: 160px;
 }
 
-body.is-fullscreen main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-body.is-fullscreen #discovery-view {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    padding-bottom: 140px; /* Reserved space for fixed volume-controls and player-controls glass */
-}
-
-/* In Fullscreen mode: fix volume-controls glass together with player-controls glass at the bottom */
+/* In Fullscreen mode: standard size volume-controls & player-controls glass */
 body.is-fullscreen .volume-controls {
     position: fixed;
-    bottom: 78px;
+    bottom: 76px;
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
-    max-width: 650px;
+    width: calc(100% - 2 * clamp(1rem, 3vw, 2rem));
+    max-width: 600px;
     z-index: 1001;
     margin: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    padding: 0.45rem 1.25rem;
+    border-radius: 1rem 1rem 0 0;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
@@ -1908,11 +1883,11 @@ body.is-fullscreen .player-controls {
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
-    max-width: 1440px;
+    width: calc(100% - 2 * clamp(1rem, 3vw, 2rem));
+    max-width: 1100px;
     z-index: 1000;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+    padding: 0.8rem 1.5rem;
+    border-radius: 1.25rem 1.25rem 0 0;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     transition: var(--transition-smooth);
