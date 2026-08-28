@@ -179,6 +179,55 @@
     font-weight: 700;
 }
 
+/* White/Light Theme Equalizer & FX Controls Row */
+[data-theme="light"] .eq-controls-row,
+body.is-fullscreen[data-theme="light"] .eq-controls-row {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .eq-controls-row .fx-btn,
+[data-theme="light"] .eq-controls-row .vol-boost-check {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: #334155 !important;
+}
+
+[data-theme="light"] .eq-controls-row .fx-btn:hover,
+[data-theme="light"] .eq-controls-row .vol-boost-check:hover {
+    background: #f8fafc !important;
+    border-color: var(--primary-color) !important;
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .eq-controls-row .fx-led {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .eq-controls-row .fx-btn.active {
+    background: rgba(99, 102, 241, 0.12) !important;
+    border-color: #6366f1 !important;
+    color: #4f46e5 !important;
+}
+
+[data-theme="light"] .eq-controls-row .fx-btn.active .fx-led {
+    background: #10b981 !important;
+    box-shadow: 0 0 6px #10b981 !important;
+}
+
+[data-theme="light"] .eq-controls-row .vol-boost-check.active {
+    background: rgba(236, 72, 153, 0.12) !important;
+    border-color: #ec4899 !important;
+    color: #db2777 !important;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.2) !important;
+}
+
+body.is-fullscreen[data-theme="light"]:has(.now-playing-card.playing) .eq-controls-row {
+    border-color: rgba(0, 243, 255, 0.5) !important;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), 0 5px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
 /* Base Styles */
 * {
     margin: 0;
@@ -969,8 +1018,10 @@ header {
     width: 100%;
     height: 100%;
     border-radius: 1rem;
-    object-fit: cover;
-    background: #1e293b;
+    object-fit: contain !important;
+    background: #0f172a;
+    padding: 6px;
+    box-sizing: border-box;
     z-index: 1;
     border: 2px solid rgba(255, 255, 255, 0.15);
 }
@@ -1375,8 +1426,11 @@ h1#current-station-name {
     width: 52px;
     height: 52px;
     border-radius: 0.85rem;
-    object-fit: cover;
-    background: #1e293b;
+    object-fit: contain !important;
+    background: #0f172a;
+    padding: 4px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
 }
@@ -1541,15 +1595,10 @@ h1#current-station-name {
 
 
 
-/* Toast Notifications */
-.toast-container {
-    position: fixed;
-    bottom: 100px;
-    right: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    z-index: 2000;
+/* Toast Notifications Container (Disabled) */
+.toast-container,
+.toast {
+    display: none !important;
 }
 
 .toast {
@@ -1777,4 +1826,28 @@ body.is-fullscreen:has(.now-playing-card.playing) .eq-controls-row,
 body.is-fullscreen:has(.now-playing-card.playing) .player-controls {
     border-color: rgba(0, 243, 255, 0.38);
     box-shadow: 0 0 25px rgba(0, 243, 255, 0.2), 0 -15px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ==========================================================================
+   Station Logo Frame Fitting & Capital Station Names Rules
+   ========================================================================== */
+.station-visual img,
+.list-img,
+.station-item img,
+#current-station-info-img {
+    object-fit: contain !important;
+    background-clip: padding-box;
+}
+
+#current-station-name,
+.item-info h4,
+.queue-name,
+#queue-next-name,
+#queue-prev-name,
+.station-item h4,
+.station-details h1,
+.lcd-meta-row h1,
+.station-title {
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px;
 }

@@ -37,7 +37,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-mohammed-rafi-radio',
         name: 'Mohammed Rafi Hits',
-        url_resolved: 'https://stream.zeno.fm/65q831c260hvv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodmohammedrafi/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mohammed-rafi.jpg',
         country: 'India',
         tags: 'singer, mohammed rafi, hindi, classics, oldies',
@@ -46,7 +46,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-arijit-singh-radio',
         name: 'Arijit Singh Hits',
-        url_resolved: 'https://stream.zeno.fm/w062e7pf7tzuv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlove/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/arijit-singh.jpg',
         country: 'India',
         tags: 'singer, arijit singh, hindi, romantic, bollywood',
@@ -55,7 +55,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-asha-bhosle-radio',
         name: 'Asha Bhosle Hits',
-        url_resolved: 'https://stream.zeno.fm/f2wvbbscrs8uv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodashabhosle/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/asha-bhosle.jpg',
         country: 'India',
         tags: 'singer, asha bhosle, hindi, classics, retro',
@@ -82,7 +82,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-udit-narayan-radio',
         name: 'Udit Narayan Hits',
-        url_resolved: 'https://stream.zeno.fm/54ecvca0b0hvv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywooduditnarayan/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/udit-narayan.jpg',
         country: 'India',
         tags: 'singer, udit narayan, 90s, hindi, bollywood',
@@ -91,7 +91,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-alka-yagnik-radio',
         name: 'Alka Yagnik Radio',
-        url_resolved: 'https://stream.zeno.fm/k2k4vbbscrs8uv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodalkayagnik/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/alka-yagnik.jpg',
         country: 'India',
         tags: 'singer, alka yagnik, 90s, hindi, melodies',
@@ -109,7 +109,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-sonu-nigam-radio',
         name: 'Sonu Nigam Special',
-        url_resolved: 'https://stream.zeno.fm/g3w1cca0b0hvv',
+        url_resolved: 'https://streaming.exclusive.radio/uber/bollywoodsonunigam/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/sonu-nigam.jpg',
         country: 'India',
         tags: 'singer, sonu nigam, hindi, romantic',
@@ -118,7 +118,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-ar-rahman-radio',
         name: 'AR Rahman Hits',
-        url_resolved: 'https://stream.zeno.fm/w0k0cda0b0hvv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodarrahman/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/ar-rahman.jpg',
         country: 'India',
         tags: 'singer, ar rahman, hindi, melody, hits',
@@ -136,7 +136,7 @@ const CUSTOM_SINGER_STATIONS = [
     {
         stationuuid: 'custom-easy-96-radio',
         name: 'Easy 96 Radio',
-        url_resolved: 'https://ice8.securenetsystems.net/EASY96',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
         tags: 'singer, hindi, easy 96, classics',
@@ -148,7 +148,7 @@ const CUSTOM_GHAZAL_STATIONS = [
     {
         stationuuid: 'custom-easy-punjabi-radio',
         name: 'Easy Punjabi Radio',
-        url_resolved: 'https://ice24.securenetsystems.net/CKYE',
+        url_resolved: 'https://ais-sa1.streamon.fm/7676_48k.aac',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
         tags: 'ghazal, punjabi, easy punjabi, poetry, melody, classic',
@@ -283,7 +283,7 @@ const CUSTOM_GHAZAL_STATIONS = [
     {
         stationuuid: 'custom-classic-hindi-ghazals',
         name: 'Classic Hindi Ghazals FM',
-        url_resolved: 'https://stream.zeno.fm/f2wvbbscrs8uv',
+        url_resolved: 'https://drive.uber.radio/uber/lrbollywood/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/classic-ghazal.jpg',
         country: 'India',
         tags: 'ghazal, hindi, poetry, retro, melodies',
@@ -292,7 +292,7 @@ const CUSTOM_GHAZAL_STATIONS = [
     {
         stationuuid: 'custom-sufi-ghazal-radio',
         name: 'Sufi & Ghazal Radio',
-        url_resolved: 'https://stream.zeno.fm/w062e7pf7tzuv',
+        url_resolved: 'https://a4.asurahosting.com:8940/radio.mp3',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/sufi-ghazal.jpg',
         country: 'India',
         tags: 'ghazal, sufi, hindi, spiritual, poetry',
@@ -301,7 +301,7 @@ const CUSTOM_GHAZAL_STATIONS = [
     {
         stationuuid: 'custom-chitra-singh-ghazals',
         name: 'Chitra Singh Ghazal Hits',
-        url_resolved: 'https://stream.zeno.fm/65q831c260hvv',
+        url_resolved: 'https://drive.uber.radio/uber/lrbollywood/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/chitra-singh.jpg',
         country: 'India',
         tags: 'ghazal, chitra singh, hindi, duet, poetry',
@@ -310,7 +310,7 @@ const CUSTOM_GHAZAL_STATIONS = [
     {
         stationuuid: 'custom-easy-96-radio',
         name: 'Easy 96 Radio',
-        url_resolved: 'https://ice8.securenetsystems.net/EASY96',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
         tags: 'ghazal, hindi, easy 96, classics, poetry',
@@ -322,7 +322,7 @@ const CUSTOM_PUNJABI_STATIONS = [
     {
         stationuuid: 'custom-easy-punjabi-radio',
         name: 'Easy Punjabi Radio',
-        url_resolved: 'https://ice24.securenetsystems.net/CKYE',
+        url_resolved: 'https://ais-sa1.streamon.fm/7676_48k.aac',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
         tags: 'punjabi, easy punjabi, pop, folk, ghazal',
@@ -413,9 +413,72 @@ const CUSTOM_PUNJABI_STATIONS = [
 
 const CUSTOM_BHAKTI_STATIONS = [
     {
+        stationuuid: 'custom-bhakti-world-media-bhagavad-gita',
+        name: 'Bhakti World Media Bhagavad Gita',
+        url_resolved: 'https://stream.zeno.fm/ijklcild1wrtv',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
+        country: 'India',
+        tags: 'bhakti, bhagavad gita, gita, devotional, hindi',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bhajans-devotional-radio',
+        name: 'Bhajans Devotional Radio',
+        url_resolved: 'https://stream.zeno.fm/syu0rdutvxhvv',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/07/bhajan-radio-guyana.jpg',
+        country: 'India',
+        tags: 'bhakti, bhajans, devotional, hindi, sangeet',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-classic-radio-bhakti-sangeet',
+        name: 'Classic Radio Bhakti Sangeet',
+        url_resolved: 'https://stream.zeno.fm/epylmeu4zf7vv',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
+        country: 'India',
+        tags: 'bhakti, classic, bhakti sangeet, devotional, hindi',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bhagavad-gita-radio',
+        name: 'Bhagavad Gita Radio',
+        url_resolved: 'https://stream.zeno.fm/pg7cf4xyw8quv',
+        favicon: 'https://radio.garden/public/icons/ios/ios-appicon-152-152.png',
+        country: 'India',
+        tags: 'bhakti, bhagavad gita, gita, spiritual, sanskrit',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-shaiva-lahari',
+        name: 'Shaiva Lahari',
+        url_resolved: 'https://radio.shaivam.org/listen/shiva-tattvam/radio.mp3',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
+        country: 'India',
+        tags: 'bhakti, shaiva, shiva, lahari, devotional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-2b-radio-sangam-ganesha',
+        name: '2B! Radio Sangam Ganesha',
+        url_resolved: 'http://radio2bindia.out.airtime.pro:8000/radio2bindia_a',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
+        country: 'India',
+        tags: 'bhakti, ganesha, sangam, devotional, mantra',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-2b-radio-sangam-meditation',
+        name: '2B! Radio Sangam Meditation',
+        url_resolved: 'https://streaming.positivity.radio/pr/posimeditation/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
+        country: 'India',
+        tags: 'bhakti, meditation, sangam, spiritual, peace',
+        lastcheckok: 1
+    },
+    {
         stationuuid: 'custom-easy-96-radio',
         name: 'Easy 96 Radio',
-        url_resolved: 'https://ice8.securenetsystems.net/EASY96',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
         tags: 'bhakti, devotional, hindi, easy 96',
@@ -424,7 +487,7 @@ const CUSTOM_BHAKTI_STATIONS = [
     {
         stationuuid: 'custom-bhajans-radio-guyana',
         name: 'Bhajans Radio Guyana',
-        url_resolved: 'https://s5.citrus3.com:8148/stream',
+        url_resolved: 'https://s3.citrus3.com:8042/stream',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/07/bhajan-radio-guyana.jpg',
         country: 'India',
         tags: 'bhakti, bhajans, guyana, devotional',
@@ -433,7 +496,7 @@ const CUSTOM_BHAKTI_STATIONS = [
     {
         stationuuid: 'custom-radio-krishna',
         name: 'Radio Krishna',
-        url_resolved: 'https://millenniumhits.out.airtime.pro:8000/millenniumhits_a',
+        url_resolved: 'https://stream.zeno.fm/k4hwu4qa4qzuv',
         favicon: 'https://radio.garden/public/icons/ios/ios-appicon-152-152.png',
         country: 'India',
         tags: 'bhakti, krishna, devotional, hindu',
@@ -451,7 +514,7 @@ const CUSTOM_BHAKTI_STATIONS = [
     {
         stationuuid: 'custom-bhaktisudha',
         name: 'Bhaktisudha',
-        url_resolved: 'https://n0a.radiojar.com/cfqyfcspcv8uv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlove/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
         country: 'India',
         tags: 'bhakti, bhaktisudha, devotional, hindi',
@@ -478,7 +541,7 @@ const CUSTOM_BHAKTI_STATIONS = [
     {
         stationuuid: 'custom-bhakti-world-media-shiva',
         name: 'Bhakti World Media - Shiva',
-        url_resolved: 'http://hot.out.airtime.pro:8000/hot_a',
+        url_resolved: 'https://radio.shaivam.org/listen/shiva-tattvam/radio.mp3',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bhakthisudha-hindi.jpg',
         country: 'India',
         tags: 'bhakti, shiva, mantra, hindi',
@@ -499,7 +562,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-easy-96-radio',
         name: 'Easy 96 Radio',
-        url_resolved: 'https://ice8.securenetsystems.net/EASY96',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
         tags: 'hindi, easy 96, pop, bollywood, bhakti',
@@ -508,7 +571,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-radio-mirchi-hindi',
         name: 'Radio Mirchi Hindi',
-        url_resolved: 'https://stream.zeno.fm/f3wvbbscrs8uv',
+        url_resolved: 'https://eu8.fastcast4u.com/proxy/clyedupq/stream',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
         country: 'India',
         tags: 'hindi, bollywood, mirchi, top 40',
@@ -517,7 +580,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-mirchi-love',
         name: 'Mirchi Love Hindi',
-        url_resolved: 'https://stream.zeno.fm/3r01bca0b0hvv',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlove/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mirchi-love-hindi.jpg',
         country: 'India',
         tags: 'hindi, romantic, love, bollywood',
@@ -526,7 +589,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-red-fm-hindi',
         name: 'Red FM 93.5',
-        url_resolved: 'https://stream.zeno.fm/0885zpy3x0hvv',
+        url_resolved: 'https://funasia.streamguys1.com/live9',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/red-fm.jpg',
         country: 'India',
         tags: 'hindi, superhits, red fm, bajate raho',
@@ -535,7 +598,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-radio-city-hindi',
         name: 'Radio City Hindi',
-        url_resolved: 'https://stream.zeno.fm/54ecvca0b0hvv',
+        url_resolved: 'http://162.244.80.118:9460/stream.mp3',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-city-hindi.jpg',
         country: 'India',
         tags: 'hindi, city, bollywood, hits',
@@ -544,7 +607,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-big-fm-hindi',
         name: '92.7 BIG FM',
-        url_resolved: 'https://stream.zeno.fm/k2k4vbbscrs8uv',
+        url_resolved: 'https://ice10.securenetsystems.net/CKYR',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/big-fm.jpg',
         country: 'India',
         tags: 'hindi, big fm, retro, classic',
@@ -553,7 +616,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-vividh-bharati',
         name: 'Vividh Bharati AIR',
-        url_resolved: 'https://air.dattaradio.com/vividhbharati/stream',
+        url_resolved: 'https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
         country: 'India',
         tags: 'hindi, air, doordarshan, news, oldies',
@@ -562,7 +625,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-air-gold-fm',
         name: 'AIR FM Gold Hindi',
-        url_resolved: 'https://air.dattaradio.com/airgold/stream',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio011/hlspbaudio011_Auto.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
         country: 'India',
         tags: 'hindi, air gold, classics, bollywood',
@@ -571,7 +634,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-radio-one-hindi',
         name: '94.3 Radio One Hindi',
-        url_resolved: 'https://stream.zeno.fm/w0k0cda0b0hvv',
+        url_resolved: 'https://streams.radio.co/s8d06d0298/listen',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-one-hindi.jpg',
         country: 'India',
         tags: 'hindi, radio one, retro, international',
@@ -580,7 +643,7 @@ const CUSTOM_HINDI_STATIONS = [
     {
         stationuuid: 'custom-fever-104-fm',
         name: 'Fever 104 FM',
-        url_resolved: 'https://stream.zeno.fm/g3w1cca0b0hvv',
+        url_resolved: 'https://radio.canstream.co.uk:8115/live.mp3',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/fever-104-fm.jpg',
         country: 'India',
         tags: 'hindi, fever 104, bollywood, pop',
@@ -1227,10 +1290,19 @@ const CUSTOM_BANGLA_STATIONS = [
 
 const CUSTOM_DJ_REMIX_STATIONS = [
     {
+        stationuuid: 'custom-anbu-fm-hindi',
+        name: 'Anbu FM Hindi',
+        url_resolved: 'https://stream.zeno.fm/u7yaqq493v8uv',
+        favicon: 'https://radiosindia.com/images/anbufmhindi.jpg',
+        country: 'India',
+        tags: 'dj remix, remix, anbu fm, hindi, party',
+        lastcheckok: 1
+    },
+    {
         stationuuid: 'custom-radio-deewana',
         name: 'Radio Deewana',
         url_resolved: 'https://stream.zeno.fm/x1q3r3qdxy8uv',
-        favicon: 'logo.png',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/deewana.jpg',
         country: 'India',
         tags: 'dj remix, remix, bollywood, deewana, party',
         lastcheckok: 1
@@ -1239,7 +1311,7 @@ const CUSTOM_DJ_REMIX_STATIONS = [
         stationuuid: 'custom-bollywood-beyond',
         name: 'Bollywood Beyond',
         url_resolved: 'https://s6.yesstreaming.net/proxy/john1237?mp=/live',
-        favicon: 'logo.png',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-beyond.jpg',
         country: 'India',
         tags: 'dj remix, remix, bollywood beyond, dance, party',
         lastcheckok: 1
@@ -1248,25 +1320,34 @@ const CUSTOM_DJ_REMIX_STATIONS = [
         stationuuid: 'custom-goldy-blast',
         name: 'Goldy Blast',
         url_resolved: 'https://stream.zeno.fm/d0rwvvwa6p8uv',
-        favicon: 'logo.png',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/goldy-blast.jpg',
         country: 'India',
         tags: 'dj remix, remix, goldy blast, hits, energy',
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-anbu-fm-hindi',
-        name: 'Anbu FM Hindi',
-        url_resolved: 'https://stream.zeno.fm/u7yaqq493v8uv',
-        favicon: 'logo.png',
+        stationuuid: 'custom-bollywood-workout',
+        name: 'Bollywood Workout',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodworkout/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-workout.jpg',
         country: 'India',
-        tags: 'dj remix, remix, anbu fm, hindi, top 40',
+        tags: 'dj remix, remix, workout, fitness, high energy, bollywood',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bombaybeats',
+        name: 'Bombaybeats',
+        url_resolved: 'https://strmreg.1.fm/bombaybeats_mobile_mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/1.FM_Logo.svg/512px-1.FM_Logo.svg.png',
+        country: 'India',
+        tags: 'dj remix, remix, bombaybeats, 1.fm, dance, hits',
         lastcheckok: 1
     },
     {
         stationuuid: 'custom-bolly923fm',
         name: 'Bolly 92.3 FM',
         url_resolved: 'https://stream.zeno.fm/k4hwu4qa4qzuv',
-        favicon: 'logo.png',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bolly923fm.jpg',
         country: 'India',
         tags: 'dj remix, remix, bolly923fm, bollywood, hits',
         lastcheckok: 1
@@ -1646,18 +1727,8 @@ function setupStatusObserver() {
 }
 
 function showToast(message, icon = 'info') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
-    container.appendChild(toast);
-    lucide.createIcons();
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(50px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 2800);
+    // Disabled all button click notifications/popups as requested
+    return;
 }
 
 function setupEventListeners() {
@@ -1876,12 +1947,19 @@ function setupEventListeners() {
 
     audioPlayer.onplaying = () => {
         consecutiveErrors = 0;
-        clearTimeout(playCheckTimeout);
+        if (playCheckTimeout) {
+            clearTimeout(playCheckTimeout);
+            playCheckTimeout = null;
+        }
         if (nowPlayingCard) nowPlayingCard.classList.add('playing');
         playerStatus.textContent = 'Playing';
     };
 
     audioPlayer.onpause = () => {
+        if (playCheckTimeout) {
+            clearTimeout(playCheckTimeout);
+            playCheckTimeout = null;
+        }
         playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
         lucide.createIcons();
         playerStatus.textContent = 'Paused';
@@ -1891,6 +1969,10 @@ function setupEventListeners() {
     };
 
     audioPlayer.onerror = () => {
+        if (playCheckTimeout) {
+            clearTimeout(playCheckTimeout);
+            playCheckTimeout = null;
+        }
         consecutiveErrors++;
         if (consecutiveErrors < 8) {
             playerStatus.textContent = 'Stream Error - Auto reconnecting...';
@@ -2027,11 +2109,12 @@ function renderStations() {
 
     stationsGrid.innerHTML = currentStations.map((station, index) => {
         const isFav = currentPlaylist.some(s => s.stationuuid === station.stationuuid);
+        const nameUpper = (station.name || '').toUpperCase();
         return `
             <div class="station-item ${currentStationIndex === index && currentSource === 'search' ? 'active' : ''}" onclick="playStation(${index}, 'search', this)">
                 <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="lazy" onerror="this.src='${DEFAULT_LOGO}';">
                 <div class="item-info">
-                    <h4>${station.name}</h4>
+                    <h4>${nameUpper}</h4>
                     <p>${station.country || 'Global'} • ${station.tags ? station.tags.split(',')[0] : 'FM'}</p>
                 </div>
                 <div class="item-actions">
@@ -2050,11 +2133,13 @@ function renderPlaylist() {
     const isFavEmpty = currentPlaylist.length === 0;
     const playlistHTML = isFavEmpty
         ? `<div class="empty-state"><i data-lucide="list-music"></i><p>No favorite stations saved</p></div>`
-        : currentPlaylist.map((station, index) => `
+        : currentPlaylist.map((station, index) => {
+            const nameUpper = (station.name || '').toUpperCase();
+            return `
             <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
                 <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="lazy" onerror="this.src='${DEFAULT_LOGO}';">
                 <div class="item-info">
-                    <h4>${station.name}</h4>
+                    <h4>${nameUpper}</h4>
                     <p>${station.country || 'Custom Station'}</p>
                 </div>
                 <div class="item-actions">
@@ -2063,7 +2148,8 @@ function renderPlaylist() {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
     if (quickPlaylistList) quickPlaylistList.innerHTML = playlistHTML;
     if (fullPlaylistList) fullPlaylistList.innerHTML = playlistHTML;
@@ -2096,6 +2182,21 @@ function playStation(index, source = 'search', element = null) {
 
     const streamUrl = station.url_resolved || station.url;
     if (!streamUrl) return;
+
+    // Clear existing play check timeout if any
+    if (playCheckTimeout) {
+        clearTimeout(playCheckTimeout);
+        playCheckTimeout = null;
+    }
+
+    // Set 4.5 second auto-skip timeout if station does not start playing
+    playCheckTimeout = setTimeout(() => {
+        if (audioPlayer.paused || audioPlayer.currentTime === 0 || audioPlayer.readyState < 3) {
+            console.warn('Station did not play within 4.5 seconds. Auto-skipping to next station...');
+            if (playerStatus) playerStatus.textContent = 'Stream Timeout - Playing Next...';
+            playNext();
+        }
+    }, 4500);
 
     // Instant status and visual feedback
     if (playerStatus) playerStatus.textContent = 'Connecting...';
@@ -2184,8 +2285,8 @@ function updateQueueInfo() {
     const prevStation = list[prevIndex];
     const nextStation = list[nextIndex];
 
-    if (queuePrevName) queuePrevName.textContent = prevStation ? prevStation.name : '--';
-    if (queueNextName) queueNextName.textContent = nextStation ? nextStation.name : '--';
+    if (queuePrevName) queuePrevName.textContent = prevStation ? prevStation.name.toUpperCase() : '--';
+    if (queueNextName) queueNextName.textContent = nextStation ? nextStation.name.toUpperCase() : '--';
 
     // Reset rotation state: start with NEXT showing first
     showingNextInQueue = true;
@@ -2211,7 +2312,7 @@ function updateQueueInfo() {
 }
 
 function updatePlayerUI(station) {
-    const name = station.name || 'Unknown Station';
+    const name = (station.name || 'Unknown Station').toUpperCase();
     const country = station.country || 'Global';
     const tags = station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'FM Radio';
     const img = station.favicon || DEFAULT_LOGO;
