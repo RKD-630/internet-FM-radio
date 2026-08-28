@@ -832,6 +832,7 @@ header {
     color: var(--text-secondary);
     transition: var(--transition-fast);
     white-space: nowrap;
+    text-transform: uppercase;
 }
 
 .cat-btn:hover {

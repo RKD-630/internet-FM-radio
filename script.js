@@ -71,24 +71,6 @@ const CUSTOM_SINGER_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-kumar-sanu-radio',
-        name: 'Kumar Sanu Hits',
-        url_resolved: 'https://stream.zeno.fm/4r530f2a9f0uv',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/kumar-sanu.jpg',
-        country: 'India',
-        tags: 'singer, kumar sanu, 90s, hindi, romance',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-udit-narayan-radio',
-        name: 'Udit Narayan Hits',
-        url_resolved: 'https://drive.uber.radio/uber/bollywooduditnarayan/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/udit-narayan.jpg',
-        country: 'India',
-        tags: 'singer, udit narayan, 90s, hindi, bollywood',
-        lastcheckok: 1
-    },
-    {
         stationuuid: 'custom-alka-yagnik-radio',
         name: 'Alka Yagnik Radio',
         url_resolved: 'https://drive.uber.radio/uber/bollywoodalkayagnik/icecast.audio',
@@ -116,15 +98,6 @@ const CUSTOM_SINGER_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-ar-rahman-radio',
-        name: 'AR Rahman Hits',
-        url_resolved: 'https://drive.uber.radio/uber/bollywoodarrahman/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/ar-rahman.jpg',
-        country: 'India',
-        tags: 'singer, ar rahman, hindi, melody, hits',
-        lastcheckok: 1
-    },
-    {
         stationuuid: 'custom-jagjit-singh-radio',
         name: 'Jagjit Singh Ghazals',
         url_resolved: 'https://stream.zeno.fm/syu0rdutvxhvv',
@@ -132,46 +105,10 @@ const CUSTOM_SINGER_STATIONS = [
         country: 'India',
         tags: 'singer, ghazal, jagjit singh, hindi',
         lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-easy-96-radio',
-        name: 'Easy 96 Radio',
-        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
-        country: 'India',
-        tags: 'singer, hindi, easy 96, classics',
-        lastcheckok: 1
     }
 ];
 
 const CUSTOM_GHAZAL_STATIONS = [
-    {
-        stationuuid: 'custom-easy-punjabi-radio',
-        name: 'Easy Punjabi Radio',
-        url_resolved: 'https://ais-sa1.streamon.fm/7676_48k.aac',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
-        country: 'India',
-        tags: 'ghazal, punjabi, easy punjabi, poetry, melody, classic',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-punjabi-ghazal-sufi',
-        name: 'Punjabi Ghazal & Sufi FM',
-        url_resolved: 'https://stream.zeno.fm/0ghtfp8ztm0uv',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/sufi-ghazal.jpg',
-        country: 'India',
-        tags: 'ghazal, punjabi, sufi, poetry, classic',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-jagjit-singh-punjabi-ghazals',
-        name: 'Jagjit Singh Punjabi Ghazals',
-        url_resolved: 'https://stream.zeno.fm/syu0rdutvxhvv',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/jagjit-singh.jpg',
-        country: 'India',
-        tags: 'ghazal, punjabi, jagjit singh, poetry, classical',
-        lastcheckok: 1
-    },
     {
         stationuuid: 'custom-gazal-radio-london',
         name: 'Gazal Radio London',
@@ -182,138 +119,12 @@ const CUSTOM_GHAZAL_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-radio-panjabi-ghazal',
-        name: 'Radio Panjabi Ghazal & Folk',
-        url_resolved: 'https://s20.reliastream.com/stream/8134',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-panjabi.jpg',
+        stationuuid: 'custom-radio-gyansthali-896-fm',
+        name: 'Radio Gyansthali 89.6 FM',
+        url_resolved: 'https://streamasiacdn.atc-labs.com/gyansthali.aac',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radiogyansthali.jpg',
         country: 'India',
-        tags: 'ghazal, punjabi, radio panjabi, folk, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-harman-radio-punjabi',
-        name: 'Harman Radio Punjabi',
-        url_resolved: 'http://harmanradio.net:8000/channel1_HQ.mp3',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/harman-radio.jpg',
-        country: 'Australia',
-        tags: 'ghazal, punjabi, harman, folk, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-sher-e-punjab-radio',
-        name: 'Sher E Punjab AM 600',
-        url_resolved: 'https://ais-sa1.streamon.fm/7676_48k.aac',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/sher-e-punjab.jpg',
-        country: 'Canada',
-        tags: 'ghazal, punjabi, sher e punjab, talk, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-radio-chann-pardesi',
-        name: 'Radio Chann Pardesi',
-        url_resolved: 'http://mehramedia.com:8021/;',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/chann-pardesi.jpg',
-        country: 'India',
-        tags: 'ghazal, punjabi, chann, pardesi, folk, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-akash-radio-punjabi',
-        name: 'Akash Radio Punjabi',
-        url_resolved: 'http://c2.radioboss.fm:8276/stream',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/akash-radio.jpg',
-        country: 'UK',
-        tags: 'ghazal, punjabi, akash, asian, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-akash-radio-london-punjabi',
-        name: 'Akash Radio London Punjabi',
-        url_resolved: 'http://radio.canstream.co.uk:8161/stream',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/akash-london.jpg',
-        country: 'UK',
-        tags: 'ghazal, punjabi, akash london, asian',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-radio-panj-punjabi',
-        name: 'Radio Panj 1521AM',
-        url_resolved: 'http://s3.voscast.com:11264/stream',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-panj.jpg',
-        country: 'UK',
-        tags: 'ghazal, punjabi, radio panj, asian, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-myradio-580am-punjabi',
-        name: 'MyRadio 580 AM Punjabi',
-        url_resolved: 'http://ais-sa1.streamon.fm/7681_64k.mp3',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/myradio-580.jpg',
-        country: 'Canada',
-        tags: 'ghazal, punjabi, 580am, classic, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-pankaj-udhas-ghazals',
-        name: 'Pankaj Udhas Ghazal Special',
-        url_resolved: 'https://stream.zeno.fm/epylmeu4zf7vv',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/pankaj-udhas.jpg',
-        country: 'India',
-        tags: 'ghazal, pankaj udhas, hindi, romantic, retro',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-ghulam-ali-ghazals',
-        name: 'Ghulam Ali Ghazal Station',
-        url_resolved: 'https://stream.zeno.fm/g95zm67prfhvv',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/ghulam-ali.jpg',
-        country: 'India',
-        tags: 'ghazal, ghulam ali, hindi, classical, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-mehdi-hassan-ghazals',
-        name: 'Mehdi Hassan Ghazal Classics',
-        url_resolved: 'https://stream.zeno.fm/87xam8pf7tzuv',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mehdi-hassan.jpg',
-        country: 'India',
-        tags: 'ghazal, mehdi hassan, hindi, classical, oldies',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-classic-hindi-ghazals',
-        name: 'Classic Hindi Ghazals FM',
-        url_resolved: 'https://drive.uber.radio/uber/lrbollywood/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/classic-ghazal.jpg',
-        country: 'India',
-        tags: 'ghazal, hindi, poetry, retro, melodies',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-sufi-ghazal-radio',
-        name: 'Sufi & Ghazal Radio',
-        url_resolved: 'https://a4.asurahosting.com:8940/radio.mp3',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/sufi-ghazal.jpg',
-        country: 'India',
-        tags: 'ghazal, sufi, hindi, spiritual, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-chitra-singh-ghazals',
-        name: 'Chitra Singh Ghazal Hits',
-        url_resolved: 'https://drive.uber.radio/uber/lrbollywood/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/chitra-singh.jpg',
-        country: 'India',
-        tags: 'ghazal, chitra singh, hindi, duet, poetry',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-easy-96-radio',
-        name: 'Easy 96 Radio',
-        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
-        country: 'India',
-        tags: 'ghazal, hindi, easy 96, classics, poetry',
+        tags: 'ghazal, gazal, gyansthali, 89.6 fm, hindi',
         lastcheckok: 1
     }
 ];
@@ -647,6 +458,42 @@ const CUSTOM_HINDI_STATIONS = [
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/fever-104-fm.jpg',
         country: 'India',
         tags: 'hindi, fever 104, bollywood, pop',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-udaan-hindi',
+        name: 'Radio Udaan Hindi',
+        url_resolved: 'https://stream.radioudaan.com/listen/radio_udaan/radio.mp3',
+        favicon: 'https://radioudaan.com/sites/default/files/Radioudaan%20small%202_0.png',
+        country: 'India',
+        tags: 'hindi, radio udaan, talk, music, bollywood',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-24-hindi',
+        name: 'Radio 24 Hindi',
+        url_resolved: 'https://s7.everestcast.com:1155/stream',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-24.jpg',
+        country: 'India',
+        tags: 'hindi, radio 24, hits, pop, classics',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bollywood-2010s',
+        name: 'Bollywood 2010s Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood2010s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, 2010s, romantic, pop',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-maharani',
+        name: 'Radio Maharani',
+        url_resolved: 'https://streamasiacdn.atc-labs.com/radiomaharani.aac',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-maharani.jpg',
+        country: 'India',
+        tags: 'hindi, maharani, classic, folk, melodies',
         lastcheckok: 1
     }
 ];
@@ -1211,12 +1058,30 @@ const CUSTOM_GLOBAL_POP_STATIONS = [
 
 const CUSTOM_NEWS_STATIONS = [
     {
+        stationuuid: 'custom-republic-bharat-tv',
+        name: 'Republic Bharat TV',
+        url_resolved: 'https://streams.tangotv.in/REPUBLICBHARAT/ORIGIN/index.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Republic_Bharat_Logo.svg/512px-Republic_Bharat_Logo.svg.png',
+        country: 'India',
+        tags: 'news, tv, hindi, republic bharat',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-zee-news',
+        name: 'Zee News',
+        url_resolved: 'https://dknttpxmr0dwf.cloudfront.net/index_57.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Zee_News_logo.svg/512px-Zee_News_logo.svg.png',
+        country: 'India',
+        tags: 'news, tv, hindi, zee news',
+        lastcheckok: 1
+    },
+    {
         stationuuid: 'dd-national',
         name: 'DD National HD',
         url_resolved: 'https://mumt01.tangotv.in/O5aw8Zn3DDNATIONALHD/index.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/DD_National.svg/512px-DD_National.svg.png',
         country: 'India',
-        tags: 'tv, doordarshan, hindi',
+        tags: 'tv, doordarshan, hindi, news',
         lastcheckok: 1
     },
     {
@@ -1228,14 +1093,76 @@ const CUSTOM_NEWS_STATIONS = [
         tags: 'tv, doordarshan, hindi, news',
         lastcheckok: 1
     },
-
     {
         stationuuid: 'dd-india',
         name: 'DD India',
         url_resolved: 'https://d2gvyg6lvauoko.cloudfront.net/230226/ddindia/chunks.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/DD_India_logo.svg/512px-DD_India_logo.svg.png',
         country: 'India',
-        tags: 'tv, doordarshan, hindi',
+        tags: 'tv, doordarshan, hindi, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-delhi-fm-gold',
+        name: 'AIR Delhi FM Gold',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, air, delhi, fm gold',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-news-247',
+        name: 'AIR News 24/7',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio00264kbps.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, air, 24/7, live news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-delhi-indraprastha',
+        name: 'AIR DELHI INDRAPRASTHA',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio002_Auto.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, air, delhi, indraprastha',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-warangal',
+        name: 'Akashvani Warangal',
+        url_resolved: 'https://radio.wavespb.com/live/deae7120a205bfff/deae7120a205bfff.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, akashvani, warangal, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-anantapur',
+        name: 'Akashvani Anantapur',
+        url_resolved: 'https://radio.wavespb.com/live/3bcd83926d6c3cca/3bcd83926d6c3cca.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, akashvani, anantapur, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-nizamabad',
+        name: 'Akashvani Nizamabad',
+        url_resolved: 'https://radio.wavespb.com/live/5d9989b5189a8f4a/5d9989b5189a8f4a.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, akashvani, nizamabad, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-wion-live-tv',
+        name: 'WION LIVE TV',
+        url_resolved: 'https://d7x8z4yuq42qn.cloudfront.net/index_3.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/WION_Logo.svg/512px-WION_Logo.svg.png',
+        country: 'India',
+        tags: 'news, tv, english, wion',
         lastcheckok: 1
     }
 ];
@@ -1278,12 +1205,48 @@ const CUSTOM_BANGLA_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-mellow-bangla',
-        name: 'Mellow Bangla',
-        url_resolved: 'https://radio.mellowbangla.com/stream',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mellow-bangla.jpg',
-        country: 'Bangladesh',
-        tags: 'bangla, mellow, romantic, folk, bengali',
+        stationuuid: 'custom-air-akashvani-maitree-kolkata',
+        name: 'AIR Akashvani Maitree Kolkata',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio245/hlspbaudio24564kbps.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'bangla, maitree, kolkata, air, news, culture',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-siliguri',
+        name: 'Akashvani Siliguri',
+        url_resolved: 'https://air.pc.cdn.bitgravity.com/air/live/pbaudio164/playlist.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'bangla, siliguri, akashvani, regional, news, music',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-mixify-bengali-hits',
+        name: 'Mixify Bengali Hits',
+        url_resolved: 'https://server.mixify.in/listen/bangla/radio.mp3',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mixify-bengali.jpg',
+        country: 'India',
+        tags: 'bangla, mixify, bengali, hits, pop, classic',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-hot-now-bangla',
+        name: 'Hot Now Bangla',
+        url_resolved: 'https://stream.radiotreetal.com/listen',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/hot-now-bangla.jpg',
+        country: 'India',
+        tags: 'bangla, hot now, bengali, entertainment, music',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-bongonet-robichhaya',
+        name: 'Radio BongOnet Robichhaya',
+        url_resolved: 'http://radio.rudeep.ru:8000/stream',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/robichhaya.jpg',
+        country: 'India',
+        tags: 'bangla, rabindra sangeet, robichhaya, bengali, classic',
         lastcheckok: 1
     }
 ];
@@ -2005,8 +1968,7 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
         const lowerQuery = query.toLowerCase();
 
         if (lowerTag === 'ghazal' || lowerTag === 'gazal' || lowerQuery.includes('ghazal') || lowerQuery.includes('gazal')) {
-            const resp = await fetch(url).then(r => r.json()).catch(() => []);
-            currentStations = [...CUSTOM_GHAZAL_STATIONS, ...resp];
+            currentStations = [...CUSTOM_GHAZAL_STATIONS];
         } else if (lowerTag === 'punjabi' || lowerTag === 'panjabi' || lowerQuery.includes('punjabi') || lowerQuery.includes('panjabi')) {
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_PUNJABI_STATIONS, ...resp];
@@ -2044,11 +2006,20 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_EURO_NEWS_STATIONS, ...resp];
         } else if (lowerTag.includes('news') || lowerQuery.includes('news')) {
-            const resp = await fetch(url).then(r => r.json()).catch(() => []);
-            currentStations = [...CUSTOM_WORLD_NEWS_STATIONS, ...CUSTOM_US_NEWS_STATIONS, ...CUSTOM_BBC_UK_NEWS_STATIONS, ...CUSTOM_AUSTRALIAN_NEWS_STATIONS, ...CUSTOM_EURO_NEWS_STATIONS, ...CUSTOM_NEWS_STATIONS, ...resp];
+            if (country === 'India' || currentMode === 'India') {
+                currentStations = [...CUSTOM_NEWS_STATIONS];
+            } else {
+                const resp = await fetch(url).then(r => r.json()).catch(() => []);
+                currentStations = [...CUSTOM_WORLD_NEWS_STATIONS, ...CUSTOM_US_NEWS_STATIONS, ...CUSTOM_BBC_UK_NEWS_STATIONS, ...CUSTOM_AUSTRALIAN_NEWS_STATIONS, ...CUSTOM_EURO_NEWS_STATIONS, ...CUSTOM_NEWS_STATIONS, ...resp];
+            }
         } else {
             const response = await fetch(url);
-            currentStations = await response.json();
+            const apiRes = await response.json().catch(() => []);
+            if (country === 'India' || currentMode === 'India') {
+                currentStations = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...apiRes];
+            } else {
+                currentStations = apiRes;
+            }
         }
 
         // Enforce STRICT Active Station Filtering (lastcheckok === 1), Unique Channel Verification, and Block List
@@ -2064,6 +2035,23 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             // Block Jesus Radio and any Jesus-related stations
             if (rawName.toLowerCase().includes('jesus') || rawTags.toLowerCase().includes('jesus')) {
                 return false;
+            }
+
+            // Exclude London, Bangladesh, and China radio stations in India mode
+            if (currentMode === 'India' || country === 'India') {
+                const sCountry = (station.country || '').toLowerCase();
+                const sName = (station.name || '').toLowerCase();
+                const sTags = (station.tags || '').toLowerCase();
+
+                if (sCountry.includes('bangladesh') || sCountry.includes('china') || sCountry.includes('uk') || sCountry.includes('united kingdom')) {
+                    return false;
+                }
+                if (sName.includes('bangladesh') || sName.includes('china') || sName.includes('london') || sName.includes('landon') || sName.includes('chinese')) {
+                    return false;
+                }
+                if (sTags.includes('bangladesh') || sTags.includes('china') || sTags.includes('london')) {
+                    return false;
+                }
             }
 
             const streamUrl = station.url_resolved || station.url;
