@@ -11,7 +11,6 @@ const API_ENDPOINTS = [
 ];
 let currentApiIndex = 0;
 let API_BASE = API_ENDPOINTS[currentApiIndex];
-let retryCount = 0;
 
 const DEFAULT_LIMIT = 200;
 const DEFAULT_LOGO = 'logo.png';
@@ -589,6 +588,564 @@ const CUSTOM_HINDI_STATIONS = [
     }
 ];
 
+const CUSTOM_AUSTRALIAN_NEWS_STATIONS = [
+    {
+        stationuuid: 'custom-abc-news-radio',
+        name: 'ABC NewsRadio Australia',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/PBW/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/ABC_NewsRadio_logo.svg/512px-ABC_NewsRadio_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, abc, newsradio, fm, english',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-abc-radio-national',
+        name: 'ABC Radio National (RN)',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/2RN/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/ABC_RN_logo.svg/512px-ABC_RN_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, politics, culture, abc',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-sbs-news-affairs',
+        name: 'SBS News & Current Affairs Australia',
+        url_resolved: 'https://sbs-ice.streamguys1.com/sbs-news-current-affairs',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/SBS_logo_2019.svg/512px-SBS_logo_2019.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, sbs, current affairs, english',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-3aw-693-melbourne',
+        name: '3AW News Talk 693 Melbourne',
+        url_resolved: 'https://stream.revma.ihrhls.com/zc7056',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/3AW_logo.svg/512px-3AW_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, melbourne, 3aw',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-2gb-873-sydney',
+        name: '2GB News Talk 873 AM Sydney',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/2GB/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/2GB_logo.svg/512px-2GB_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, sydney, 2gb',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-702-abc-sydney',
+        name: '702 ABC Radio News Sydney',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/2BL/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/ABC_RN_logo.svg/512px-ABC_RN_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, sydney, abc',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-774-abc-melbourne',
+        name: '774 ABC Radio News Melbourne',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/3LO/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/ABC_RN_logo.svg/512px-ABC_RN_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, melbourne, abc',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-612-abc-brisbane',
+        name: '612 ABC Radio News Brisbane',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/4QR/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/ABC_RN_logo.svg/512px-ABC_RN_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, brisbane, abc',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-720-abc-perth',
+        name: '720 ABC Radio News Perth',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/6WF/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/ABC_RN_logo.svg/512px-ABC_RN_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, perth, abc',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-891-abc-adelaide',
+        name: '891 ABC Radio News Adelaide',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/5AN/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/ABC_RN_logo.svg/512px-ABC_RN_logo.svg.png',
+        country: 'Australia',
+        tags: 'news, australia news, talk, adelaide, abc',
+        lastcheckok: 1
+    }
+];
+
+const CUSTOM_EURO_NEWS_STATIONS = [
+    {
+        stationuuid: 'custom-euronews-radio',
+        name: 'Euronews Radio International',
+        url_resolved: 'https://euronews-01.stream.publicradio.net/euronews/mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Euronews_logo_2016.svg/512px-Euronews_logo_2016.svg.png',
+        country: 'France',
+        tags: 'news, euro news, europe, english, world news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-france-info-fm',
+        name: 'France Info 105.5 FM',
+        url_resolved: 'https://icecast.radiofrance.fr/franceinfo-midfi.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/France_Info_logo_2016.svg/512px-France_Info_logo_2016.svg.png',
+        country: 'France',
+        tags: 'news, euro news, france, french, 24/7 news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bbc-world-service-euro',
+        name: 'BBC World Service Europe',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/BBC_World_Service_2022.svg/512px-BBC_World_Service_2022.svg.png',
+        country: 'UK',
+        tags: 'news, euro news, bbc, uk, global news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-deutsche-welle-radio',
+        name: 'Deutsche Welle DW Radio',
+        url_resolved: 'https://dw-world-live.stream.publicradio.net/dw/mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Deutsche_Welle_logo.svg/512px-Deutsche_Welle_logo.svg.png',
+        country: 'Germany',
+        tags: 'news, euro news, germany, dw, english',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-rfi-monde-radio',
+        name: 'RFI Monde Radio France Intl',
+        url_resolved: 'https://icecast.radiofrance.fr/rfimonde-midfi.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/RFI_logo.svg/512px-RFI_logo.svg.png',
+        country: 'France',
+        tags: 'news, euro news, rfi, france, world news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-rai-radio1-italy',
+        name: 'Rai Radio 1 News Italy',
+        url_resolved: 'https://icestreaming.rai.it/1.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Rai_Radio_1_logo.svg/512px-Rai_Radio_1_logo.svg.png',
+        country: 'Italy',
+        tags: 'news, euro news, italy, rai, italian',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-rne-radio-nacional-spain',
+        name: 'RNE Radio Nacional España',
+        url_resolved: 'https://rtvestream.rtve.es/rne/rne_r1_main.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/RNE_logo.svg/512px-RNE_logo.svg.png',
+        country: 'Spain',
+        tags: 'news, euro news, spain, spanish, rne',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-europe1-france',
+        name: 'Europe 1 News France',
+        url_resolved: 'https://europe1.lmn.cloud/europe1.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Europe_1_logo_2018.svg/512px-Europe_1_logo_2018.svg.png',
+        country: 'France',
+        tags: 'news, euro news, france, french, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-deutschlandfunk-news',
+        name: 'Deutschlandfunk News Germany',
+        url_resolved: 'https://dlf-stream.deutschlandradio.de/dlf/01/128/mp3/stream.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Deutschlandfunk_logo.svg/512px-Deutschlandfunk_logo.svg.png',
+        country: 'Germany',
+        tags: 'news, euro news, germany, german, dlf',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-rte-radio1-ireland',
+        name: 'RTÉ Radio 1 News Ireland',
+        url_resolved: 'https://icecast2.rte.ie/radio1',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/RT%C3%89_Radio_1_logo.svg/512px-RT%C3%89_Radio_1_logo.svg.png',
+        country: 'Ireland',
+        tags: 'news, euro news, ireland, english, rte',
+        lastcheckok: 1
+    }
+];
+
+const CUSTOM_BBC_UK_NEWS_STATIONS = [
+    {
+        stationuuid: 'custom-bbc-world-service-uk',
+        name: 'BBC World Service UK',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/BBC_World_Service_2022.svg/512px-BBC_World_Service_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, bbc, news, world service',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bbc-radio-4-news',
+        name: 'BBC Radio 4 News & Speech',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BBC_Radio_4_2022.svg/512px-BBC_Radio_4_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, radio 4, news, talk, politics',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bbc-radio-5-live',
+        name: 'BBC Radio 5 Live News & Sport',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_five_live',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/BBC_Radio_5_Live_2022.svg/512px-BBC_Radio_5_Live_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, 5 live, news, sport, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-lbc-uk-news-973',
+        name: 'LBC UK News & Talk 97.3 FM',
+        url_resolved: 'https://icecast.globalht.com/LBCUK',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/LBC_logo_2014.svg/512px-LBC_logo_2014.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, lbc, london, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-lbc-news-247',
+        name: 'LBC News 24/7 UK',
+        url_resolved: 'https://icecast.globalht.com/LBCNews',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/LBC_logo_2014.svg/512px-LBC_logo_2014.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, lbc news, rolling news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-times-radio-uk',
+        name: 'Times Radio UK',
+        url_resolved: 'https://stream.times.radio/live',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Times_Radio_logo.svg/512px-Times_Radio_logo.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, times radio, politics, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-talkradio-uk',
+        name: 'talkRADIO UK',
+        url_resolved: 'https://stream.talk.radio/live',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/TalkRadio_logo_2022.svg/512px-TalkRadio_logo_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, british, talkradio, debate, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bbc-radio-scotland-news',
+        name: 'BBC Radio Scotland News',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_scotland_fm',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/BBC_Radio_Scotland_2022.svg/512px-BBC_Radio_Scotland_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, scotland, british, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bbc-radio-wales-news',
+        name: 'BBC Radio Wales News',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_wales_fm',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/BBC_Radio_Wales_2022.svg/512px-BBC_Radio_Wales_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, wales, british, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bbc-radio-ulster-news',
+        name: 'BBC Radio Ulster News',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_ulster',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/BBC_Radio_Ulster_2022.svg/512px-BBC_Radio_Ulster_2022.svg.png',
+        country: 'UK',
+        tags: 'bbc news, uk news, ulster, ireland, british, news',
+        lastcheckok: 1
+    }
+];
+
+const CUSTOM_US_NEWS_STATIONS = [
+    {
+        stationuuid: 'custom-npr-wnyc-939',
+        name: 'NPR WNYC 93.9 FM New York',
+        url_resolved: 'https://fm939.wnyc.org/wnyc-fm939',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, npr, wnyc, news, talk, public radio',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bloomberg-radio-1130',
+        name: 'Bloomberg Radio 1130 AM News',
+        url_resolved: 'https://stream.bloomberg.com/radio',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Bloomberg_News_logo.svg/512px-Bloomberg_News_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, bloomberg, business, news, finance',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-fox-news-radio-247',
+        name: 'FOX News Radio 24/7',
+        url_resolved: 'https://icecast.fnr.stream.fnr.com/foxnewsradio',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Fox_News_Channel_logo.svg/512px-Fox_News_Channel_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, fox news, fox, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-cbs-news-radio-net',
+        name: 'CBS News Radio Network',
+        url_resolved: 'https://cbsnews.streamguys1.com/cbsnews-radio',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/CBS_News_logo.svg/512px-CBS_News_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, cbs news, cbs, news, national',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-790-kabc-los-angeles',
+        name: '790 KABC News Talk Los Angeles',
+        url_resolved: 'https://stream.revma.ihrhls.com/zc193',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, kabc, los angeles, talk, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-wgn-radio-720-chicago',
+        name: 'WGN Radio 720 AM Chicago',
+        url_resolved: 'https://wgnradio.streamguys1.com/wgnradio',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, wgn, chicago, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-kgo-810-san-francisco',
+        name: 'KGO 810 AM News San Francisco',
+        url_resolved: 'https://stream.revma.ihrhls.com/zc197',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, kgo, san francisco, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-wbur-909-boston-npr',
+        name: 'WBUR 90.9 FM Boston NPR',
+        url_resolved: 'https://wbur-live.streamguys1.com/wbur',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, npr, wbur, boston, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-kqed-885-san-francisco-npr',
+        name: 'KQED 88.5 FM San Francisco NPR',
+        url_resolved: 'https://kqed-ice.streamguys1.com/kqedradio',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, kqed, npr, san francisco, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-voa-voice-of-america-news',
+        name: 'Voice of America VOA News',
+        url_resolved: 'https://voa-28.akacast.akamaistream.net/7/775/322037/v1/ibb.akamaistream.net/voa-28',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Voice_of_America_logo.svg/512px-Voice_of_America_logo.svg.png',
+        country: 'USA',
+        tags: 'us news, usa news, voa, voice of america, world news',
+        lastcheckok: 1
+    }
+];
+
+const CUSTOM_WORLD_NEWS_STATIONS = [
+    {
+        stationuuid: 'custom-al-jazeera-english-news',
+        name: 'Al Jazeera English News',
+        url_resolved: 'https://live-hls-web-aje.akamaized.net/custom/eng/med.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Al_Jazeera_English_logo.svg/512px-Al_Jazeera_English_logo.svg.png',
+        country: 'Qatar',
+        tags: 'world news, global news, al jazeera, news, middle east, english',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-nhk-world-japan-news',
+        name: 'NHK World Japan News',
+        url_resolved: 'https://nhkworld.cb.idm.cdn.nakanohito.jp/nhkworld/app/live/radio/index.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/NHK_World-Japan_logo.svg/512px-NHK_World-Japan_logo.svg.png',
+        country: 'Japan',
+        tags: 'world news, global news, nhk, japan, asia, english',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-cbc-radio-one-canada',
+        name: 'CBC Radio One Canada',
+        url_resolved: 'https://cbclive.akamaized.net/hls/live/2040529/toronto/master.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/CBC_logo_1992.svg/512px-CBC_logo_1992.svg.png',
+        country: 'Canada',
+        tags: 'world news, global news, cbc, canada, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-rnz-national-new-zealand',
+        name: 'RNZ National New Zealand',
+        url_resolved: 'https://stream-ice.radio.net/rnz-national.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Radio_New_Zealand_logo.svg/512px-Radio_New_Zealand_logo.svg.png',
+        country: 'New Zealand',
+        tags: 'world news, global news, rnz, new zealand, news, talk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-trt-world-radio-turkey',
+        name: 'TRT World Radio',
+        url_resolved: 'https://radiotrtworld.medya.trt.com.tr/trtworld/index.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/TRT_World_logo.svg/512px-TRT_World_logo.svg.png',
+        country: 'Turkey',
+        tags: 'world news, global news, trt, turkey, news, english',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-china-plus-cri-news',
+        name: 'China Plus CRI World News',
+        url_resolved: 'https://live.chinaplus.cri.cn/news/index.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/China_Radio_International_logo.svg/512px-China_Radio_International_logo.svg.png',
+        country: 'China',
+        tags: 'world news, global news, china plus, cri, asia, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-sabc-news-south-africa',
+        name: 'SABC News Radio South Africa',
+        url_resolved: 'https://stream.zeno.fm/0540wpyyq8quv',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/SABC_logo.svg/512px-SABC_logo.svg.png',
+        country: 'South Africa',
+        tags: 'world news, global news, sabc, africa, south africa, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-external-services-world',
+        name: 'AIR External Services World Radio',
+        url_resolved: 'https://air.ebsd.in/live/esd/master.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'world news, global news, air, india, external services, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-srf-4-news-switzerland',
+        name: 'SRF 4 News Switzerland',
+        url_resolved: 'https://stream.srg-ssr.ch/m/srf4news/mp3_128',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/SRF_4_News_logo.svg/512px-SRF_4_News_logo.svg.png',
+        country: 'Switzerland',
+        tags: 'world news, global news, srf, switzerland, europe, news',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-sweden-news',
+        name: 'Radio Sweden News',
+        url_resolved: 'https://sverigesradio.se/topsy/direkt/sraudio/2562.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Sveriges_Radio_logo.svg/512px-Sveriges_Radio_logo.svg.png',
+        country: 'Sweden',
+        tags: 'world news, global news, radio sweden, sweden, news, english',
+        lastcheckok: 1
+    }
+];
+
+const CUSTOM_GLOBAL_POP_STATIONS = [
+    {
+        stationuuid: 'custom-bbc-radio-1-uk',
+        name: 'BBC Radio 1 Pop Hits UK',
+        url_resolved: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/BBC_Radio_1_2021.svg/512px-BBC_Radio_1_2021.svg.png',
+        country: 'UK',
+        tags: 'pop, top40, hits, uk, bbc, radio 1',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-capital-fm-london',
+        name: 'Capital FM 95.8 London Pop',
+        url_resolved: 'https://icecast.globalht.com/CapitalUK',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Capital_FM_logo.svg/512px-Capital_FM_logo.svg.png',
+        country: 'UK',
+        tags: 'pop, top40, hit music, london, capital fm',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-z100-new-york-pop',
+        name: 'Z100 New York Top 40 Pop',
+        url_resolved: 'https://stream.revma.ihrhls.com/zc1481',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Z100_logo.svg/512px-Z100_logo.svg.png',
+        country: 'USA',
+        tags: 'pop, top40, z100, new york, usa',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-kiis-1027-los-angeles',
+        name: 'KIIS 102.7 FM Los Angeles',
+        url_resolved: 'https://stream.revma.ihrhls.com/zc185',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/KIIS-FM_logo.svg/512px-KIIS-FM_logo.svg.png',
+        country: 'USA',
+        tags: 'pop, top40, kiis fm, los angeles, usa',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-nrj-france-1003-fm',
+        name: 'NRJ France 100.3 FM Pop',
+        url_resolved: 'https://cdn.nrjaudio.fm/audio/fnac/fr/40001/mp3_128.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/NRJ_logo.svg/512px-NRJ_logo.svg.png',
+        country: 'France',
+        tags: 'pop, hit music, nrj, france, europe',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-1046-rtl-berlin-pop',
+        name: '104.6 RTL Berlin Pop Hits',
+        url_resolved: 'https://stream.104.6rtl.com/rtl-live/mp3-128',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/RTL_Group_logo_2021.svg/512px-RTL_Group_logo_2021.svg.png',
+        country: 'Germany',
+        tags: 'pop, top40, rtl, berlin, germany',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-kiss-fm-uk-pop',
+        name: 'KISS FM UK Pop & Hits',
+        url_resolved: 'https://stream-al.planetradio.co.uk/kissnational.mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Kiss_%20UK_logo.svg/512px-Kiss_%20UK_logo.svg.png',
+        country: 'UK',
+        tags: 'pop, dance pop, top40, kiss fm, uk',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-tokyo-pop-fm-1003',
+        name: 'Tokyo Pop FM 100.3',
+        url_resolved: 'https://stream.zeno.fm/54ecvsyyr8quv',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/NHK_World-Japan_logo.svg/512px-NHK_World-Japan_logo.svg.png',
+        country: 'Japan',
+        tags: 'pop, j-pop, tokyo, japan, pop hits',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-nova-969-sydney-pop',
+        name: 'Nova 96.9 FM Sydney Pop',
+        url_resolved: 'https://live-radio01.mediahubaustralia.com/2SYD/mp3/',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Nova_Entertainment_logo.svg/512px-Nova_Entertainment_logo.svg.png',
+        country: 'Australia',
+        tags: 'pop, top40, nova, sydney, australia',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-los40-spain-pop',
+        name: 'LOS40 Spain Global Pop',
+        url_resolved: 'https://25263.live.streamtheworld.com/LOS40_SC',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/LOS40_logo_2016.svg/512px-LOS40_logo_2016.svg.png',
+        country: 'Spain',
+        tags: 'pop, latin pop, los40, spain, top40',
+        lastcheckok: 1
+    }
+];
+
 const CUSTOM_NEWS_STATIONS = [
     {
         stationuuid: 'dd-national',
@@ -608,15 +1165,7 @@ const CUSTOM_NEWS_STATIONS = [
         tags: 'tv, doordarshan, hindi, news',
         lastcheckok: 1
     },
-    {
-        stationuuid: 'dd-news-hd',
-        name: 'DD News HD',
-        url_resolved: 'https://cdn-2.pishow.tv/live/12/master.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/DD_News_Logo.svg/512px-DD_News_Logo.svg.png',
-        country: 'India',
-        tags: 'tv, doordarshan, hindi, news, hd',
-        lastcheckok: 1
-    },
+
     {
         stationuuid: 'dd-india',
         name: 'DD India',
@@ -750,9 +1299,7 @@ let lastCountry = '';
 let lastTag = '';
 let wakeLock = null;
 let consecutiveErrors = 0;
-let visualizerMode = 'dancefloor'; // 'dancefloor', 'bars', 'wave', 'circle'
 let sleepTimerId = null;
-let sleepTimerEndTime = null;
 let currentVolumeLevel = 30;
 
 // Web Audio API Audio Engine (+80% Sound Effect Boost Pipeline)
@@ -868,6 +1415,7 @@ function applyAudioFXSettings() {
 
 // DOM Elements
 const audioPlayer = document.getElementById('audio-player');
+let hlsInstance = null;
 const keepAliveAudio = document.getElementById('keep-alive-audio');
 const stationsGrid = document.getElementById('stations-grid');
 const searchInput = document.getElementById('station-search');
@@ -883,16 +1431,10 @@ const catButtons = document.querySelectorAll('.cat-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
-const muteBtn = document.getElementById('mute-btn');
-const volumeSlider = document.getElementById('volume-slider');
-const volumeBadge = document.getElementById('volume-value-badge');
 const playerStatus = document.getElementById('player-status');
 const currentStationName = document.getElementById('current-station-name');
 const currentStationMeta = document.getElementById('current-station-meta');
 const currentStationImg = document.getElementById('current-station-info-img');
-const miniStationImg = document.getElementById('player-mini-img');
-const miniStationTitle = document.getElementById('mini-station-title');
-const miniStationSubtitle = document.getElementById('mini-station-subtitle');
 const addToPlaylistBtn = document.getElementById('add-to-playlist-btn');
 const favHeartIcon = document.getElementById('fav-heart-icon');
 const resultsCount = document.getElementById('results-count');
@@ -907,8 +1449,6 @@ const djBoostBtn = document.getElementById('dj-boost-btn');
 const surround3dBtn = document.getElementById('3d-surround-btn');
 const volBoostCheck = document.getElementById('vol-boost-check-input');
 const smartAutoScanBtn = document.getElementById('smart-auto-scan-btn');
-const queueTickerText = document.getElementById('queue-ticker-text');
-const digitalFreqReadout = document.getElementById('digital-freq-readout');
 
 const mainTabs = document.querySelectorAll('.tab-btn:not(.action-btn)');
 const views = {
@@ -1207,11 +1747,15 @@ function setupEventListeners() {
     // Fullscreen
     const handleFSChange = () => {
         const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        const fsIcon = document.getElementById('fullscreen-icon');
         if (isFS) {
             document.body.classList.add('is-fullscreen');
+            if (fsIcon) fsIcon.setAttribute('data-lucide', 'minimize');
         } else {
             document.body.classList.remove('is-fullscreen');
+            if (fsIcon) fsIcon.setAttribute('data-lucide', 'maximize');
         }
+        if (window.lucide) lucide.createIcons();
     };
 
     // Fullscreen Toggle Helper
@@ -1231,11 +1775,12 @@ function setupEventListeners() {
         fullscreenBtn.addEventListener('click', toggleFullscreen);
     }
 
-    // Double click window to enter / exit fullscreen
+    // Double click window / hero section to toggle fullscreen
     document.addEventListener('dblclick', (e) => {
-        if (e.target.closest('button, input, a, label, textarea, select, .viz-btn, .fav-heart-btn, .cat-btn')) {
+        if (e.target.closest('input, textarea, select, button, a, label, .fav-heart-btn')) {
             return;
         }
+        e.preventDefault();
         toggleFullscreen();
     });
 
@@ -1264,10 +1809,6 @@ function setupEventListeners() {
     playPauseBtn.addEventListener('click', togglePlay);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
-    if (muteBtn) muteBtn.addEventListener('click', toggleMute);
-
-    // Volume Slider
-    if (volumeSlider) volumeSlider.addEventListener('input', (e) => updateVolume(e.target.value, true));
 
     // Playlist Add / Heart Button
     addToPlaylistBtn.addEventListener('click', () => {
@@ -1302,14 +1843,7 @@ function setupEventListeners() {
         });
     }
 
-    // Visualizer Mode Switches
-    document.querySelectorAll('.viz-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.viz-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            visualizerMode = btn.dataset.mode;
-        });
-    });
+
 
     // Main Tabs
     mainTabs.forEach(tab => {
@@ -1370,37 +1904,6 @@ function setupEventListeners() {
 }
 
 // Fetch Stations
-const fetchMappings = {
-    'australia news': [{ tag: 'news', country: 'Australia' }],
-    'euro news': [{ name: 'euronews' }, { tag: 'news', language: 'english' }],
-    'bbc news': [{ name: 'bbc news' }, { name: 'bbc radio', tag: 'news' }],
-    'us news': [{ tag: 'news', country: 'United States' }],
-    'world news': [{ tag: 'world news' }, { tag: 'international news' }],
-    'russian news': [{ tag: 'news', country: 'Russia' }],
-    'france news': [{ tag: 'news', country: 'France' }],
-    'pop': [{ tag: 'pop' }],
-    'rock': [{ tag: 'rock' }],
-    'jazz': [{ tag: 'jazz' }],
-    'classical': [{ tag: 'classical' }],
-    'hip hop': [{ tag: 'hip hop' }],
-    'electronic': [{ tag: 'electronic' }],
-    'ambient': [{ tag: 'ambient' }],
-    'dance music': [{ tag: 'dance' }],
-    'educational': [{ tag: 'educational' }],
-    'sports': [{ tag: 'sports' }],
-    'talk': [{ tag: 'talk' }],
-    'hindi': [{ tag: 'hindi', country: 'India' }],
-    'regional': [{ tag: 'tamil', country: 'India' }, { tag: 'telugu', country: 'India' }, { tag: 'punjabi', country: 'India' }],
-    'bollywood': [{ tag: 'bollywood', country: 'India' }],
-    'dj remix': [{ tag: 'dj remix', country: 'India' }, { tag: 'remix', country: 'India' }],
-    'singer': [{ name: 'kishore' }, { name: 'lata' }, { name: 'arijit' }],
-    'ghazal': [{ name: 'gazal' }],
-    'punjabi': [{ tag: 'punjabi' }],
-    'panjabi': [{ tag: 'punjabi' }],
-    'bangla': [{ tag: 'bangla' }, { tag: 'bengali' }],
-    'bengali': [{ tag: 'bangla' }, { tag: 'bengali' }],
-    'news': [{ tag: 'news', country: 'India' }]
-};
 
 async function fetchStations(query = '', country = '', tag = '', autoPlay = false) {
     lastQuery = query;
@@ -1440,9 +1943,27 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
         } else if (lowerTag === 'bhakti' || lowerTag === 'devotional' || lowerQuery.includes('bhakti')) {
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_BHAKTI_STATIONS, ...resp];
-        } else if (lowerTag === 'news') {
+        } else if (lowerTag === 'pop' || lowerQuery.includes('pop')) {
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
-            currentStations = [...CUSTOM_NEWS_STATIONS, ...resp];
+            currentStations = [...CUSTOM_GLOBAL_POP_STATIONS, ...resp];
+        } else if (lowerTag === 'world news' || lowerQuery.includes('world news')) {
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...CUSTOM_WORLD_NEWS_STATIONS, ...CUSTOM_BBC_UK_NEWS_STATIONS, ...CUSTOM_EURO_NEWS_STATIONS, ...CUSTOM_US_NEWS_STATIONS, ...CUSTOM_AUSTRALIAN_NEWS_STATIONS, ...resp];
+        } else if (lowerTag.includes('us ') || lowerTag === 'us news' || lowerQuery.includes('us news') || lowerTag.includes('usa')) {
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...CUSTOM_US_NEWS_STATIONS, ...resp];
+        } else if (lowerTag.includes('bbc') || lowerTag.includes('uk') || lowerTag.includes('british') || lowerQuery.includes('bbc')) {
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...CUSTOM_BBC_UK_NEWS_STATIONS, ...resp];
+        } else if (lowerTag.includes('australia') || lowerQuery.includes('australia')) {
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...CUSTOM_AUSTRALIAN_NEWS_STATIONS, ...resp];
+        } else if (lowerTag.includes('euro') || lowerQuery.includes('euro')) {
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...CUSTOM_EURO_NEWS_STATIONS, ...resp];
+        } else if (lowerTag.includes('news') || lowerQuery.includes('news')) {
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...CUSTOM_WORLD_NEWS_STATIONS, ...CUSTOM_US_NEWS_STATIONS, ...CUSTOM_BBC_UK_NEWS_STATIONS, ...CUSTOM_AUSTRALIAN_NEWS_STATIONS, ...CUSTOM_EURO_NEWS_STATIONS, ...CUSTOM_NEWS_STATIONS, ...resp];
         } else {
             const response = await fetch(url);
             currentStations = await response.json();
@@ -1562,8 +2083,9 @@ function switchView(target) {
     });
 }
 
-// Playback Engine
+// Playback Engine - Instant Super Fast Radio Playback
 function playStation(index, source = 'search', element = null) {
+    ensureAudioContextResumed();
     currentSource = source;
     const list = source === 'search' ? currentStations : currentPlaylist;
     const station = list[index];
@@ -1571,27 +2093,76 @@ function playStation(index, source = 'search', element = null) {
 
     currentStationIndex = index;
     updatePlayerUI(station);
-    updateDigitalFrequency();
 
-    audioPlayer.src = station.url_resolved || station.url;
-    audioPlayer.load();
+    const streamUrl = station.url_resolved || station.url;
+    if (!streamUrl) return;
 
-    audioPlayer.play().catch(e => {
-        console.warn('Autoplay blocked:', e);
-        playerStatus.textContent = 'Click Play to Listen';
-    });
+    // Instant status and visual feedback
+    if (playerStatus) playerStatus.textContent = 'Connecting...';
+    if (nowPlayingCard) nowPlayingCard.classList.add('playing');
+    if (playPauseBtn) {
+        playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // Configure fast audio player attributes
+    audioPlayer.preload = 'auto';
+    audioPlayer.autoplay = true;
+
+    // Destroy existing HLS instance if any
+    if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+    }
+
+    // Fast HLS Stream (.m3u8) Playback Optimization
+    if (streamUrl.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
+        hlsInstance = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+            backBufferLength: 10,
+            maxBufferLength: 3,
+            maxMaxBufferLength: 6,
+            liveSyncDurationCount: 2,
+            liveMaxLatencyDurationCount: 4,
+            startFragPrefetch: true
+        });
+        hlsInstance.loadSource(streamUrl);
+        hlsInstance.attachMedia(audioPlayer);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+            audioPlayer.play().catch(e => console.warn('Autoplay error:', e));
+        });
+        hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                switch (data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        hlsInstance.startLoad();
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        hlsInstance.recoverMediaError();
+                        break;
+                    default:
+                        hlsInstance.destroy();
+                        hlsInstance = null;
+                        audioPlayer.src = streamUrl;
+                        audioPlayer.play().catch(e => console.warn('Direct fallback error:', e));
+                        break;
+                }
+            }
+        });
+    } else {
+        audioPlayer.src = streamUrl;
+        audioPlayer.play().catch(e => {
+            console.warn('Autoplay blocked:', e);
+            if (playerStatus) playerStatus.textContent = 'Click Play to Listen';
+        });
+    }
 
     const items = document.querySelectorAll('.station-item');
     items.forEach(item => item.classList.remove('active'));
     if (element) element.classList.add('active');
 }
 
-function updateDigitalFrequency() {
-    if (!digitalFreqReadout) return;
-    // Generate a random frequency readout for retro FM feel
-    const randomFreq = (87.5 + Math.random() * 20.4).toFixed(1);
-    digitalFreqReadout.textContent = randomFreq;
-}
 
 function updateQueueInfo() {
     const queuePrevItem = document.getElementById('queue-prev-item');
@@ -1651,12 +2222,6 @@ function updatePlayerUI(station) {
         currentStationImg.src = img;
         currentStationImg.onerror = () => { currentStationImg.src = DEFAULT_LOGO; };
     }
-    if (miniStationImg) {
-        miniStationImg.src = img;
-        miniStationImg.onerror = () => { miniStationImg.src = DEFAULT_LOGO; };
-    }
-    if (miniStationTitle) miniStationTitle.textContent = name;
-    if (miniStationSubtitle) miniStationSubtitle.textContent = country;
 
     const isFav = currentPlaylist.some(s => s.stationuuid === station.stationuuid);
     if (favHeartIcon) {
@@ -1670,10 +2235,11 @@ function updatePlayerUI(station) {
 }
 
 function togglePlay() {
+    ensureAudioContextResumed();
     if (audioPlayer.paused) {
         if (!audioPlayer.src && currentStations.length > 0) {
             playStation(0, 'search');
-        } else {
+        } else if (audioPlayer.src) {
             audioPlayer.play().catch(e => console.warn(e));
         }
     } else {
@@ -1698,34 +2264,10 @@ function playPrevious() {
 // Volume Controls
 function updateVolume(value, showHUD = false) {
     currentVolumeLevel = Math.min(100, Math.max(0, parseInt(value) || 0));
-    if (volumeSlider) volumeSlider.value = currentVolumeLevel;
-    if (volumeBadge) volumeBadge.textContent = `${currentVolumeLevel}%`;
-
     applyAudioFXSettings();
-
-    let vol = currentVolumeLevel / 100;
-    let icon = 'volume-2';
-    if (vol === 0) icon = 'volume-x';
-    else if (vol < 0.5) icon = 'volume-1';
-
-    if (muteBtn) {
-        muteBtn.innerHTML = `<i data-lucide="${icon}"></i>`;
-        lucide.createIcons();
-    }
 
     if (showHUD && typeof showHeroVolumeHUD === 'function') {
         showHeroVolumeHUD(currentVolumeLevel);
-    }
-}
-
-function toggleMute() {
-    if (isMuted) {
-        updateVolume(lastVolume);
-        isMuted = false;
-    } else {
-        lastVolume = currentVolumeLevel;
-        updateVolume(0);
-        isMuted = true;
     }
 }
 
@@ -1877,6 +2419,12 @@ function setupStationAudioAura() {
 
     function animateAura() {
         requestAnimationFrame(animateAura);
+        if (document.body.getAttribute('data-theme') === 'light') {
+            stationAudioAura.style.display = 'none';
+            return;
+        }
+        stationAudioAura.style.display = 'block';
+
         const isPlaying = !audioPlayer.paused && audioPlayer.readyState >= 3;
         if (isPlaying) {
             const time = Date.now() * 0.004;
@@ -1897,6 +2445,27 @@ function setupStationAudioAura() {
     }
 
     animateAura();
+}
+
+// Toggle discovery grid & playlist sections
+function toggleBothSections(btn) {
+    const stations = document.getElementById('stations-grid');
+    const playlist = document.getElementById('quick-playlist-list');
+    if (!stations || !playlist) return;
+
+    if (stations.style.display === 'none') {
+        stations.style.display = stations.classList.contains('grid-layout') ? 'grid' : 'flex';
+        playlist.style.display = 'flex';
+        if (btn) btn.innerHTML = '<i data-lucide="chevron-down"></i>';
+    } else {
+        stations.style.display = 'none';
+        playlist.style.display = 'none';
+        if (btn) btn.innerHTML = '<i data-lucide="chevron-up"></i>';
+    }
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 }
 
 // Start

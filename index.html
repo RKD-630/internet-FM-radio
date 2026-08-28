@@ -12,8 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Icons -->
+    <!-- Icons & HLS Stream Player -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -135,7 +136,6 @@
                         <button class="cat-btn" data-tag="us news">US NEWS</button>
                         <button class="cat-btn" data-tag="world news">World News</button>
                         <button class="cat-btn" data-tag="russian news">Russian NEWS</button>
-                        <button class="cat-btn" data-tag="france news">France NEWS</button>
                         <button class="cat-btn" data-tag="pop">Pop</button>
                         <button class="cat-btn" data-tag="rock">Rock</button>
                         <button class="cat-btn" data-tag="jazz">Jazz</button>
@@ -196,27 +196,25 @@
                 </div>
 
                 <!-- Equalizer & Master Audio Control Strip -->
-                <div class="volume-controls glass">
-                    <div class="eq-controls-row">
-                        <button id="eq-hd-btn" class="control-btn fx-btn" title="Toggle HD Sound & EQ Enhancement">
-                            <span class="fx-led"></span>
-                            <span>HD / EQ</span>
-                        </button>
-                        
-                        <button id="dj-boost-btn" class="control-btn fx-btn" title="Toggle DJ Beats & Dynamic Bass Boost">
-                            <span class="fx-led"></span>
-                            <span>DJ Boost</span>
-                        </button>
-                        
-                        <button id="3d-surround-btn" class="control-btn fx-btn" title="Toggle 3D Surround Spatial Audio">
-                            <span class="fx-led"></span>
-                            <span>3D Surround</span>
-                        </button>
-                        
-                        <div class="vol-boost-check" title="Toggle Volume Boost">
-                            <input type="checkbox" id="vol-boost-check-input">
-                            <label for="vol-boost-check-input">Vol Boost</label>
-                        </div>
+                <div class="eq-controls-row">
+                    <button id="eq-hd-btn" class="control-btn fx-btn" title="Toggle HD Sound & EQ Enhancement">
+                        <span class="fx-led"></span>
+                        <span>HD / EQ</span>
+                    </button>
+                    
+                    <button id="dj-boost-btn" class="control-btn fx-btn" title="Toggle DJ Beats & Dynamic Bass Boost">
+                        <span class="fx-led"></span>
+                        <span>DJ Boost</span>
+                    </button>
+                    
+                    <button id="3d-surround-btn" class="control-btn fx-btn" title="Toggle 3D Surround Spatial Audio">
+                        <span class="fx-led"></span>
+                        <span>3D Surround</span>
+                    </button>
+                    
+                    <div class="vol-boost-check" title="Toggle Volume Boost">
+                        <input type="checkbox" id="vol-boost-check-input">
+                        <label for="vol-boost-check-input">Vol Boost</label>
                     </div>
                 </div>
             </section>
@@ -271,27 +269,6 @@
                 </aside>
             </section>
         </div>
-
-        <script>
-            function toggleBothSections(btn) {
-                const stations = document.getElementById('stations-grid');
-                const playlist = document.getElementById('quick-playlist-list');
-                
-                if (stations.style.display === 'none') {
-                    stations.style.display = stations.classList.contains('grid-layout') ? 'grid' : 'flex';
-                    playlist.style.display = 'flex';
-                    btn.innerHTML = '<i data-lucide="chevron-down"></i>';
-                } else {
-                    stations.style.display = 'none';
-                    playlist.style.display = 'none';
-                    btn.innerHTML = '<i data-lucide="chevron-up"></i>';
-                }
-                
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-            }
-        </script>
 
         <!-- Full Playlist View -->
         <div id="playlist-view" style="display: none;">
@@ -359,8 +336,6 @@
                 const moveY3 = (y - window.innerHeight / 2) * 0.02;
                 blob3.style.transform = `translate(${moveX3}px, ${moveY3}px)`;
             }
-        });
-
         });
     </script>
 </body>
