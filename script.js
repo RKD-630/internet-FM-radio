@@ -518,24 +518,6 @@ const CUSTOM_AUSTRALIAN_NEWS_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-sbs-news-affairs',
-        name: 'SBS News & Current Affairs Australia',
-        url_resolved: 'https://sbs-ice.streamguys1.com/sbs-news-current-affairs',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/SBS_logo_2019.svg/512px-SBS_logo_2019.svg.png',
-        country: 'Australia',
-        tags: 'news, australia news, talk, sbs, current affairs, english',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-3aw-693-melbourne',
-        name: '3AW News Talk 693 Melbourne',
-        url_resolved: 'https://stream.revma.ihrhls.com/zc7056',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/3AW_logo.svg/512px-3AW_logo.svg.png',
-        country: 'Australia',
-        tags: 'news, australia news, talk, melbourne, 3aw',
-        lastcheckok: 1
-    },
-    {
         stationuuid: 'custom-2gb-873-sydney',
         name: '2GB News Talk 873 AM Sydney',
         url_resolved: 'https://live-radio01.mediahubaustralia.com/2GB/mp3/',
@@ -593,15 +575,6 @@ const CUSTOM_AUSTRALIAN_NEWS_STATIONS = [
 
 const CUSTOM_EURO_NEWS_STATIONS = [
     {
-        stationuuid: 'custom-euronews-radio',
-        name: 'Euronews Radio International',
-        url_resolved: 'https://euronews-01.stream.publicradio.net/euronews/mp3',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Euronews_logo_2016.svg/512px-Euronews_logo_2016.svg.png',
-        country: 'France',
-        tags: 'news, euro news, europe, english, world news',
-        lastcheckok: 1
-    },
-    {
         stationuuid: 'custom-france-info-fm',
         name: 'France Info 105.5 FM',
         url_resolved: 'https://icecast.radiofrance.fr/franceinfo-midfi.mp3',
@@ -617,15 +590,6 @@ const CUSTOM_EURO_NEWS_STATIONS = [
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/BBC_World_Service_2022.svg/512px-BBC_World_Service_2022.svg.png',
         country: 'UK',
         tags: 'news, euro news, bbc, uk, global news',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-deutsche-welle-radio',
-        name: 'Deutsche Welle DW Radio',
-        url_resolved: 'https://dw-world-live.stream.publicradio.net/dw/mp3',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Deutsche_Welle_logo.svg/512px-Deutsche_Welle_logo.svg.png',
-        country: 'Germany',
-        tags: 'news, euro news, germany, dw, english',
         lastcheckok: 1
     },
     {
@@ -813,136 +777,10 @@ const CUSTOM_US_NEWS_STATIONS = [
         country: 'USA',
         tags: 'us news, usa news, cbs news, cbs, news, national',
         lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-790-kabc-los-angeles',
-        name: '790 KABC News Talk Los Angeles',
-        url_resolved: 'https://stream.revma.ihrhls.com/zc193',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
-        country: 'USA',
-        tags: 'us news, usa news, kabc, los angeles, talk, news',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-wgn-radio-720-chicago',
-        name: 'WGN Radio 720 AM Chicago',
-        url_resolved: 'https://wgnradio.streamguys1.com/wgnradio',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
-        country: 'USA',
-        tags: 'us news, usa news, wgn, chicago, news, talk',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-kgo-810-san-francisco',
-        name: 'KGO 810 AM News San Francisco',
-        url_resolved: 'https://stream.revma.ihrhls.com/zc197',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
-        country: 'USA',
-        tags: 'us news, usa news, kgo, san francisco, news, talk',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-wbur-909-boston-npr',
-        name: 'WBUR 90.9 FM Boston NPR',
-        url_resolved: 'https://wbur-live.streamguys1.com/wbur',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
-        country: 'USA',
-        tags: 'us news, usa news, npr, wbur, boston, news, talk',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-kqed-885-san-francisco-npr',
-        name: 'KQED 88.5 FM San Francisco NPR',
-        url_resolved: 'https://kqed-ice.streamguys1.com/kqedradio',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/NPR_logo.svg/512px-NPR_logo.svg.png',
-        country: 'USA',
-        tags: 'us news, usa news, kqed, npr, san francisco, news',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-voa-voice-of-america-news',
-        name: 'Voice of America VOA News',
-        url_resolved: 'https://voa-28.akacast.akamaistream.net/7/775/322037/v1/ibb.akamaistream.net/voa-28',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Voice_of_America_logo.svg/512px-Voice_of_America_logo.svg.png',
-        country: 'USA',
-        tags: 'us news, usa news, voa, voice of america, world news',
-        lastcheckok: 1
     }
 ];
 
 const CUSTOM_WORLD_NEWS_STATIONS = [
-    {
-        stationuuid: 'custom-al-jazeera-english-news',
-        name: 'Al Jazeera English News',
-        url_resolved: 'https://live-hls-web-aje.akamaized.net/custom/eng/med.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Al_Jazeera_English_logo.svg/512px-Al_Jazeera_English_logo.svg.png',
-        country: 'Qatar',
-        tags: 'world news, global news, al jazeera, news, middle east, english',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-nhk-world-japan-news',
-        name: 'NHK World Japan News',
-        url_resolved: 'https://nhkworld.cb.idm.cdn.nakanohito.jp/nhkworld/app/live/radio/index.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/NHK_World-Japan_logo.svg/512px-NHK_World-Japan_logo.svg.png',
-        country: 'Japan',
-        tags: 'world news, global news, nhk, japan, asia, english',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-cbc-radio-one-canada',
-        name: 'CBC Radio One Canada',
-        url_resolved: 'https://cbclive.akamaized.net/hls/live/2040529/toronto/master.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/CBC_logo_1992.svg/512px-CBC_logo_1992.svg.png',
-        country: 'Canada',
-        tags: 'world news, global news, cbc, canada, news, talk',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-rnz-national-new-zealand',
-        name: 'RNZ National New Zealand',
-        url_resolved: 'https://stream-ice.radio.net/rnz-national.mp3',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Radio_New_Zealand_logo.svg/512px-Radio_New_Zealand_logo.svg.png',
-        country: 'New Zealand',
-        tags: 'world news, global news, rnz, new zealand, news, talk',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-trt-world-radio-turkey',
-        name: 'TRT World Radio',
-        url_resolved: 'https://radiotrtworld.medya.trt.com.tr/trtworld/index.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/TRT_World_logo.svg/512px-TRT_World_logo.svg.png',
-        country: 'Turkey',
-        tags: 'world news, global news, trt, turkey, news, english',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-china-plus-cri-news',
-        name: 'China Plus CRI World News',
-        url_resolved: 'https://live.chinaplus.cri.cn/news/index.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/China_Radio_International_logo.svg/512px-China_Radio_International_logo.svg.png',
-        country: 'China',
-        tags: 'world news, global news, china plus, cri, asia, news',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-sabc-news-south-africa',
-        name: 'SABC News Radio South Africa',
-        url_resolved: 'https://stream.zeno.fm/0540wpyyq8quv',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/SABC_logo.svg/512px-SABC_logo.svg.png',
-        country: 'South Africa',
-        tags: 'world news, global news, sabc, africa, south africa, news',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-air-external-services-world',
-        name: 'AIR External Services World Radio',
-        url_resolved: 'https://air.ebsd.in/live/esd/master.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
-        country: 'India',
-        tags: 'world news, global news, air, india, external services, news',
-        lastcheckok: 1
-    },
     {
         stationuuid: 'custom-srf-4-news-switzerland',
         name: 'SRF 4 News Switzerland',
@@ -2043,14 +1881,17 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
                 const sName = (station.name || '').toLowerCase();
                 const sTags = (station.tags || '').toLowerCase();
 
-                if (sCountry.includes('bangladesh') || sCountry.includes('china') || sCountry.includes('uk') || sCountry.includes('united kingdom')) {
-                    return false;
-                }
-                if (sName.includes('bangladesh') || sName.includes('china') || sName.includes('london') || sName.includes('landon') || sName.includes('chinese')) {
-                    return false;
-                }
-                if (sTags.includes('bangladesh') || sTags.includes('china') || sTags.includes('london')) {
-                    return false;
+                // Explicit exception for Gazal Radio London
+                if (sName !== 'gazal radio london' && sName !== 'gazal radio london uk') {
+                    if (sCountry.includes('bangladesh') || sCountry.includes('china') || sCountry.includes('uk') || sCountry.includes('united kingdom')) {
+                        return false;
+                    }
+                    if (sName.includes('bangladesh') || sName.includes('china') || sName.includes('london') || sName.includes('landon') || sName.includes('chinese')) {
+                        return false;
+                    }
+                    if (sTags.includes('bangladesh') || sTags.includes('china') || sTags.includes('london')) {
+                        return false;
+                    }
                 }
             }
 
@@ -2100,7 +1941,7 @@ function renderStations() {
         const nameUpper = (station.name || '').toUpperCase();
         return `
             <div class="station-item ${currentStationIndex === index && currentSource === 'search' ? 'active' : ''}" onclick="playStation(${index}, 'search', this)">
-                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="lazy" onerror="this.src='${DEFAULT_LOGO}';">
+                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="eager" onerror="this.src='${DEFAULT_LOGO}';">
                 <div class="item-info">
                     <h4>${nameUpper}</h4>
                     <p>${station.country || 'Global'} • ${station.tags ? station.tags.split(',')[0] : 'FM'}</p>
@@ -2125,7 +1966,7 @@ function renderPlaylist() {
             const nameUpper = (station.name || '').toUpperCase();
             return `
             <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
-                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="lazy" onerror="this.src='${DEFAULT_LOGO}';">
+                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="eager" onerror="this.src='${DEFAULT_LOGO}';">
                 <div class="item-info">
                     <h4>${nameUpper}</h4>
                     <p>${station.country || 'Custom Station'}</p>
