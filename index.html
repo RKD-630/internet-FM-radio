@@ -29,13 +29,12 @@
         <!-- Top App Header -->
         <header>
             <div class="logo">
-                <div class="logo-icon-wrapper">
-                    <i data-lucide="radio"></i>
-                    <span class="logo-pulse"></span>
-                </div>
                 <div class="logo-text-group">
-                    <span class="logo-title">RKD FM</span>
-                    <span class="logo-sub">CYBER RADIO DECK</span>
+                    <img src="rkd_logo.png" alt="RKD Logo" class="header-logo-img">
+                    <div class="logo-text-inner">
+                        <span class="logo-title">RKD FM</span>
+                        <span class="logo-sub">CYBER RADIO DECK</span>
+                    </div>
                 </div>
             </div>
 
@@ -123,6 +122,7 @@
                         <button class="cat-btn" data-tag="singer">SINGER</button>
                         <button class="cat-btn" data-tag="gazal">GAZAL</button>
                         <button class="cat-btn" data-tag="music">MUSIC</button>
+                        <button class="cat-btn" data-tag="air">AIR</button>
                         <button class="cat-btn" data-tag="bhojpuri">BHOJPURI</button>
                         <button class="cat-btn" data-tag="punjabi">PUNJABI</button>
                         <button class="cat-btn" data-tag="regional">REGIONAL</button>
@@ -166,7 +166,7 @@
                         <div class="station-audio-aura" id="station-audio-aura"></div>
                         <div class="vinyl-wrapper" id="vinyl-wrapper">
                             <div class="vinyl-groove"></div>
-                            <img id="current-station-info-img" src="logo.png" alt="Station Logo" title="Click to save to playlist">
+                            <img id="current-station-info-img" src="rkd_logo.png" alt="Station Logo" title="Click to save to playlist" loading="eager" fetchpriority="high">
                             <div class="center-spindle"></div>
                         </div>
                         <button id="add-to-playlist-btn" class="fav-heart-btn" title="Save to Playlist">

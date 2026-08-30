@@ -13,7 +13,7 @@ let currentApiIndex = 0;
 let API_BASE = API_ENDPOINTS[currentApiIndex];
 
 const DEFAULT_LIMIT = 200;
-const DEFAULT_LOGO = 'logo.png';
+const DEFAULT_LOGO = 'rkd_logo.png';
 
 const CUSTOM_SINGER_STATIONS = [
     {
@@ -104,6 +104,33 @@ const CUSTOM_SINGER_STATIONS = [
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/jagjit-singh.jpg',
         country: 'India',
         tags: 'singer, ghazal, jagjit singh, hindi',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-vishal-shekhar-radio',
+        name: 'Vishal Shekhar Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio?artist=vishalshekhar',
+        favicon: 'logo.png',
+        country: 'India',
+        tags: 'singer, vishal shekhar, hindi, bollywood',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-armaan-malik-radio',
+        name: 'Armaan Malik Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio?artist=armaan',
+        favicon: 'logo.png',
+        country: 'India',
+        tags: 'singer, armaan malik, hindi, bollywood',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-neha-kakkar-radio',
+        name: 'Neha Kakkar Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio?artist=neha',
+        favicon: 'logo.png',
+        country: 'India',
+        tags: 'singer, neha kakkar, hindi, bollywood',
         lastcheckok: 1
     }
 ];
@@ -1002,6 +1029,150 @@ const CUSTOM_NEWS_STATIONS = [
         country: 'India',
         tags: 'news, tv, english, wion',
         lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-vividh-bharati',
+        name: 'AIR Vividh Bharati',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=vividh',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, vividh bharati, hindi, entertainment',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-mumbai',
+        name: 'Akashvani Mumbai',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=mumbai',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, mumbai, marathi, hindi',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-chennai',
+        name: 'Akashvani Chennai',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=chennai',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, chennai, tamil, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-bengaluru',
+        name: 'Akashvani Bengaluru',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=bengaluru',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, bengaluru, kannada, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-hyderabad',
+        name: 'Akashvani Hyderabad',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=hyderabad',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, hyderabad, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-hyderabad-a',
+        name: 'AIR Hyderabad A',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=hyd_a',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, hyderabad, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-tirupati',
+        name: 'Akashvani Tirupati',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=tirupati',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, tirupati, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-kothagudem',
+        name: 'Akashvani Kothagudem',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=kothagudem',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, kothagudem, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-kadapa',
+        name: 'Akashvani Kadapa',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=kadapa',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, kadapa, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-visakhapatnam',
+        name: 'Akashvani Visakhapatnam',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=visakhapatnam',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, visakhapatnam, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-akashvani-markapur',
+        name: 'Akashvani Markapur',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=markapur',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, akashvani, markapur, telugu, regional',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-rainbow-delhi',
+        name: 'AIR FM Rainbow Delhi',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=rainbow_delhi',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, rainbow fm, delhi, hindi, entertainment',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-rainbow-mumbai',
+        name: 'AIR FM Rainbow Mumbai',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=rainbow_mumbai',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, rainbow fm, mumbai, marathi, hindi',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-rainbow-chennai',
+        name: 'AIR FM Rainbow Chennai',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=rainbow_chennai',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, rainbow fm, chennai, tamil',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-rainbow-bengaluru',
+        name: 'AIR FM Rainbow Bengaluru',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=rainbow_bengaluru',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, rainbow fm, bengaluru, kannada',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-rainbow-hyderabad',
+        name: 'AIR FM Rainbow Hyderabad',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8?station=rainbow_hyderabad',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'air, rainbow fm, hyderabad, telugu',
+        lastcheckok: 1
     }
 ];
 
@@ -1822,6 +1993,24 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
         } else if (lowerTag === 'hindi' || lowerQuery === 'hindi') {
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_HINDI_STATIONS, ...resp];
+        } else if (lowerTag === 'classic' || lowerTag === 'old' || lowerTag === 'retro' || lowerQuery.includes('classic') || lowerQuery.includes('old') || lowerQuery.includes('retro')) {
+            const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS];
+            const classicCustom = allCustom.filter(s => {
+                if (!s.tags) return false;
+                const t = s.tags.toLowerCase();
+                return t.includes('classic') || t.includes('old') || t.includes('retro');
+            });
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...classicCustom, ...resp];
+        } else if (lowerTag === 'air' || lowerTag === 'all india radio' || lowerTag === 'akashvani' || lowerTag.includes('rainbow') || lowerQuery === 'air' || lowerQuery.includes('all india radio') || lowerQuery.includes('akashvani') || lowerQuery.includes('rainbow')) {
+            const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS];
+            const airCustom = allCustom.filter(s => {
+                if (!s.tags) return false;
+                const t = s.tags.toLowerCase();
+                return t.includes('air') || t.includes('all india radio') || t.includes('akashvani') || t.includes('rainbow');
+            });
+            const resp = await fetch(url).then(r => r.json()).catch(() => []);
+            currentStations = [...airCustom, ...resp];
         } else if (lowerTag === 'bhakti' || lowerTag === 'devotional' || lowerQuery.includes('bhakti')) {
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_BHAKTI_STATIONS, ...resp];
@@ -1854,7 +2043,23 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             const response = await fetch(url);
             const apiRes = await response.json().catch(() => []);
             if (country === 'India' || currentMode === 'India') {
-                currentStations = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...apiRes];
+                const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS];
+                if (query || tag) {
+                    const matchedCustom = allCustom.filter(s => {
+                        let matchQ = true;
+                        let matchT = true;
+                        if (query) {
+                            matchQ = (s.name && s.name.toLowerCase().includes(lowerQuery)) || (s.tags && s.tags.toLowerCase().includes(lowerQuery));
+                        }
+                        if (tag) {
+                            matchT = s.tags && s.tags.toLowerCase().includes(lowerTag);
+                        }
+                        return matchQ && matchT;
+                    });
+                    currentStations = [...matchedCustom, ...apiRes];
+                } else {
+                    currentStations = [...allCustom, ...apiRes];
+                }
             } else {
                 currentStations = apiRes;
             }
