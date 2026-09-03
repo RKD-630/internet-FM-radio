@@ -1222,149 +1222,10 @@ const timerBadge = document.getElementById('timer-badge');
 const gridViewBtn = document.getElementById('grid-view-btn');
 const listViewBtn = document.getElementById('list-view-btn');
 
-// Hero Volume Drag Overlay DOM Elements & State
-const heroVolOverlay = document.getElementById('hero-volume-overlay');
-const heroVolText = document.getElementById('hero-volume-text');
-
-let isDraggingHeroVol = false;
-let volDragStartX = 0;
-let volDragStartValue = 30;
-let volHudTimeout = null;
-
-function showHeroVolumeHUD(value) {
-    if (!heroVolOverlay || !heroVolText) return;
-    heroVolText.textContent = `${value}%`;
-    heroVolOverlay.classList.add('visible');
-
-    clearTimeout(volHudTimeout);
-    volHudTimeout = setTimeout(() => {
-        if (!isDraggingHeroVol) {
-            heroVolOverlay.classList.remove('visible');
-        }
-    }, 1200);
-}
-
-function setupHeroVolumeDrag() {
-    const heroSec = document.getElementById('hero-section') || document.querySelector('.hero-section');
-    if (!heroSec) return;
-
-    let volDragStartY = 0;
-    let scrollStartTop = 0;
-    let dragDirectionLocked = null; // 'horizontal' | 'vertical' | null
-
-    // Mouse Drag
-    heroSec.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn, .top-dark-panel')) {
-            return;
-        }
-        isDraggingHeroVol = true;
-        dragDirectionLocked = null;
-        volDragStartX = e.clientX;
-        volDragStartY = e.clientY;
-        scrollStartTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-        volDragStartValue = currentVolumeLevel;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDraggingHeroVol) return;
-
-        const deltaX = e.clientX - volDragStartX;
-        const deltaY = e.clientY - volDragStartY;
-
-        if (!dragDirectionLocked) {
-            if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
-                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-                    dragDirectionLocked = 'horizontal';
-                    if (heroSec) heroSec.classList.add('is-dragging-vol');
-                    updateVolume(volDragStartValue, true);
-                } else {
-                    dragDirectionLocked = 'vertical';
-                }
-            }
-        }
-
-        if (dragDirectionLocked === 'horizontal') {
-            e.preventDefault();
-            const volChange = Math.round(deltaX * 0.35);
-            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
-            updateVolume(newVol, true);
-        } else if (dragDirectionLocked === 'vertical') {
-            window.scrollTo(0, scrollStartTop - deltaY);
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (isDraggingHeroVol) {
-            isDraggingHeroVol = false;
-            dragDirectionLocked = null;
-            if (heroSec) heroSec.classList.remove('is-dragging-vol');
-            volHudTimeout = setTimeout(() => {
-                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
-            }, 1000);
-        }
-    });
-
-    // Touch Drag
-    heroSec.addEventListener('touchstart', (e) => {
-        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn, .top-dark-panel')) {
-            return;
-        }
-        if (e.touches.length === 1) {
-            isDraggingHeroVol = true;
-            dragDirectionLocked = null;
-            volDragStartX = e.touches[0].clientX;
-            volDragStartY = e.touches[0].clientY;
-            volDragStartValue = currentVolumeLevel;
-        }
-    }, { passive: true });
-
-    heroSec.addEventListener('touchmove', (e) => {
-        if (!isDraggingHeroVol || e.touches.length !== 1) return;
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        const deltaX = currentX - volDragStartX;
-        const deltaY = currentY - volDragStartY;
-
-        if (!dragDirectionLocked) {
-            if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
-                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-                    dragDirectionLocked = 'horizontal';
-                    if (heroSec) heroSec.classList.add('is-dragging-vol');
-                    updateVolume(volDragStartValue, true);
-                } else {
-                    dragDirectionLocked = 'vertical';
-                }
-            }
-        }
-
-        if (dragDirectionLocked === 'horizontal') {
-            if (e.cancelable) e.preventDefault();
-            const volChange = Math.round(deltaX * 0.35);
-            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
-            updateVolume(newVol, true);
-        }
-    }, { passive: false });
-
-    const endTouch = () => {
-        if (isDraggingHeroVol) {
-            isDraggingHeroVol = false;
-            dragDirectionLocked = null;
-            if (heroSec) heroSec.classList.remove('is-dragging-vol');
-            volHudTimeout = setTimeout(() => {
-                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
-            }, 1000);
-        }
-    };
-
-    heroSec.addEventListener('touchend', endTouch);
-    heroSec.addEventListener('touchcancel', endTouch);
-}
-
 // Initialize Application
 function init() {
     setupEventListeners();
     setupStationAudioAura();
-    setupHeroVolumeDrag();
     fetchStations('', 'India');
     renderPlaylist();
     updateVolume(30);
@@ -1567,11 +1428,13 @@ function setupEventListeners() {
     if (nextBtn) nextBtn.addEventListener('click', playNext);
 
     // Playlist Add / Heart Button
-    addToPlaylistBtn.addEventListener('click', () => {
-        if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
-            togglePlaylistStation(currentStations[currentStationIndex]);
-        }
-    });
+    if (addToPlaylistBtn) {
+        addToPlaylistBtn.addEventListener('click', () => {
+            if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
+                togglePlaylistStation(currentStations[currentStationIndex]);
+            }
+        });
+    }
 
     // FX Toggles
     if (eqHdBtn) eqHdBtn.addEventListener('click', toggleHDEQ);
@@ -2130,14 +1993,10 @@ function syncAllVolumeKnobUIs(volPct) {
     if (dockDisp) dockDisp.textContent = `${volPct}%`;
 }
 
-function updateVolume(value, showHUD = false) {
+function updateVolume(value) {
     currentVolumeLevel = Math.min(100, Math.max(0, parseInt(value) || 0));
     applyAudioFXSettings();
     syncAllVolumeKnobUIs(currentVolumeLevel);
-
-    if (showHUD && typeof showHeroVolumeHUD === 'function') {
-        showHeroVolumeHUD(currentVolumeLevel);
-    }
 }
 
 // Playlist Functions
@@ -2510,46 +2369,66 @@ function initRotaryKnobs() {
     function setupKnobDrag(knobElem, getInitialVal, onUpdate) {
         if (!knobElem) return;
         let isDragging = false;
-        let startY = 0;
-        let startVal = 0;
 
-        function updateVal(deltaY) {
-            let currentVal = Math.max(0, Math.min(1, startVal - deltaY * 0.005));
-            const angle = -135 + currentVal * 270;
-            const dial = knobElem.querySelector('.knob-dial');
-            if (dial) dial.style.transform = `rotate(${angle}deg)`;
-            onUpdate(currentVal);
+        function getAngleValue(x, y) {
+            const rect = knobElem.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = x - cx;
+            const dy = y - cy;
+
+            // Angle in degrees where 0deg is straight UP (12 o'clock)
+            let deg = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+            if (deg > 180) deg -= 360;
+
+            // Knob dial range is -135deg (0%) to +135deg (100%)
+            if (deg < -135) {
+                deg = (deg < -157.5) ? 135 : -135;
+            } else if (deg > 135) {
+                deg = (deg > 157.5) ? -135 : 135;
+            }
+
+            const val = (deg + 135) / 270;
+            return Math.max(0, Math.min(1, val));
         }
 
+        function updateFromAngle(x, y) {
+            const val = getAngleValue(x, y);
+            const angle = -135 + val * 270;
+            const dial = knobElem.querySelector('.knob-dial');
+            if (dial) dial.style.transform = `rotate(${angle}deg)`;
+            onUpdate(val);
+        }
+
+        // Mouse Drag & Click
         knobElem.addEventListener('mousedown', (e) => {
             isDragging = true;
-            startY = e.clientY;
-            startVal = typeof getInitialVal === 'function' ? getInitialVal() : getInitialVal;
+            updateFromAngle(e.clientX, e.clientY);
             e.preventDefault();
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            const deltaY = e.clientY - startY;
-            updateVal(deltaY);
+            updateFromAngle(e.clientX, e.clientY);
         });
 
         document.addEventListener('mouseup', () => { isDragging = false; });
 
-        // Touch support
+        // Touch Drag & Tap
         knobElem.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            startY = e.touches[0].clientY;
-            startVal = typeof getInitialVal === 'function' ? getInitialVal() : getInitialVal;
+            if (e.touches.length === 1) {
+                isDragging = true;
+                updateFromAngle(e.touches[0].clientX, e.touches[0].clientY);
+            }
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            const deltaY = e.touches[0].clientY - startY;
-            updateVal(deltaY);
+            if (!isDragging || e.touches.length !== 1) return;
+            updateFromAngle(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: true });
 
         document.addEventListener('touchend', () => { isDragging = false; });
+        document.addEventListener('touchcancel', () => { isDragging = false; });
 
         // Mouse wheel support
         knobElem.addEventListener('wheel', (e) => {
@@ -2569,7 +2448,7 @@ function initRotaryKnobs() {
         if (!elem) return;
         setupKnobDrag(elem, () => currentVolumeLevel / 100, (val) => {
             const volPct = Math.round(val * 100);
-            updateVolume(volPct, true);
+            updateVolume(volPct);
         });
     }
 

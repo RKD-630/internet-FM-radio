@@ -880,79 +880,6 @@ header {
 .hero-section {
     margin-bottom: 2.5rem;
     position: relative;
-    user-select: none;
-    touch-action: pan-y;
-    cursor: grab;
-}
-
-.hero-section.is-dragging-vol {
-    cursor: grabbing;
-}
-
-/* Hero Volume Drag HUD Circle Overlay */
-.hero-volume-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 200;
-    opacity: 0;
-    transform: scale(0.75);
-    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hero-volume-overlay.visible {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.volume-circle-hud {
-    width: 225px;
-    height: 225px;
-    border-radius: 50%;
-    background: rgba(255, 102, 0, 0.28);
-    border: 6px solid #FF6600;
-    box-shadow: 0 0 65px rgba(255, 102, 0, 0.9), inset 0 0 45px rgba(255, 102, 0, 0.55);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    animation: pulseOrangeGlow 1.5s infinite alternate ease-in-out;
-}
-
-@keyframes pulseOrangeGlow {
-    from {
-        box-shadow: 0 0 40px rgba(255, 102, 0, 0.75), inset 0 0 25px rgba(255, 102, 0, 0.45);
-        border-color: #FF6600;
-    }
-
-    to {
-        box-shadow: 0 0 80px rgba(255, 102, 0, 1), inset 0 0 55px rgba(255, 102, 0, 0.75);
-        border-color: #FF8533;
-    }
-}
-
-.volume-text-num {
-    color: #1BF40B !important;
-    font-family: var(--font-digital), var(--font-heading), sans-serif;
-    font-size: 3.8rem;
-    font-weight: 900;
-    text-shadow: 0 0 24px rgba(27, 244, 11, 0.9);
-    letter-spacing: 0.04em;
-    line-height: 1;
-}
-
-.volume-hud-label {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #FF8533;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-top: 8px;
 }
 
 .now-playing-card {
@@ -2142,7 +2069,7 @@ body.is-fullscreen:has(.now-playing-card.playing) .player-controls {
 
 .vfd-text {
     font-family: var(--font-digital);
-    font-size: 1.25rem;
+    font-size: 0.9375rem;
     font-weight: 700;
     color: #00f0ff;
     text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4);
@@ -2335,8 +2262,8 @@ body.is-fullscreen:has(.now-playing-card.playing) .player-controls {
 }
 
 .knob-control {
-    width: 72px;
-    height: 72px;
+    width: 96.5px;
+    height: 96.5px;
     border-radius: 50%;
     position: relative;
     cursor: grab;
@@ -2360,12 +2287,12 @@ body.is-fullscreen:has(.now-playing-card.playing) .player-controls {
 }
 
 .knob-indicator {
-    width: 3.5px;
-    height: 20px;
+    width: 4.5px;
+    height: 27px;
     background: #2d3442;
     position: absolute;
-    top: 6px;
-    left: calc(50% - 1.75px);
+    top: 8px;
+    left: calc(50% - 2.25px);
     border-radius: 2px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
@@ -2477,17 +2404,17 @@ body.is-fullscreen:has(.now-playing-card.playing) .player-controls {
 .presets-buttons-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 9px;
 }
 
 .preset-btn {
-    padding: 10px 16px;
-    border-radius: 10px;
+    padding: 7.5px 12px;
+    border-radius: 8px;
     border: 1.5px solid #949eb2;
     background: linear-gradient(180deg, #ffffff 0%, #e6e9f0 100%);
     font-family: var(--font-digital);
     font-weight: 800;
-    font-size: 0.8rem;
+    font-size: 0.6rem;
     color: #333d4d;
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1.5px 1px #ffffff;
