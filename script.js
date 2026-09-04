@@ -1222,20 +1222,154 @@ const timerBadge = document.getElementById('timer-badge');
 const gridViewBtn = document.getElementById('grid-view-btn');
 const listViewBtn = document.getElementById('list-view-btn');
 
+// Hero Volume Drag Overlay DOM Elements & State
+const heroVolOverlay = document.getElementById('hero-volume-overlay');
+const heroVolText = document.getElementById('hero-volume-text');
+
+let isDraggingHeroVol = false;
+let volDragStartX = 0;
+let volDragStartValue = 30;
+let volHudTimeout = null;
+
+function showHeroVolumeHUD(value) {
+    if (!heroVolOverlay || !heroVolText) return;
+    heroVolText.textContent = `${value}%`;
+    heroVolOverlay.classList.add('visible');
+
+    clearTimeout(volHudTimeout);
+    volHudTimeout = setTimeout(() => {
+        if (!isDraggingHeroVol) {
+            heroVolOverlay.classList.remove('visible');
+        }
+    }, 1200);
+}
+
+function setupHeroVolumeDrag() {
+    const heroSec = document.getElementById('hero-section') || document.querySelector('.hero-section');
+    if (!heroSec) return;
+
+    let volDragStartY = 0;
+    let scrollStartTop = 0;
+    let dragDirectionLocked = null; // 'horizontal' | 'vertical' | null
+
+    // Mouse Drag
+    heroSec.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn')) {
+            return;
+        }
+        isDraggingHeroVol = true;
+        dragDirectionLocked = null;
+        volDragStartX = e.clientX;
+        volDragStartY = e.clientY;
+        scrollStartTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        volDragStartValue = currentVolumeLevel;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDraggingHeroVol) return;
+
+        const deltaX = e.clientX - volDragStartX;
+        const deltaY = e.clientY - volDragStartY;
+
+        if (!dragDirectionLocked) {
+            if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                    dragDirectionLocked = 'horizontal';
+                    if (heroSec) heroSec.classList.add('is-dragging-vol');
+                    updateVolume(volDragStartValue, true);
+                } else {
+                    dragDirectionLocked = 'vertical';
+                }
+            }
+        }
+
+        if (dragDirectionLocked === 'horizontal') {
+            e.preventDefault();
+            const volChange = Math.round(deltaX * 0.35);
+            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
+            updateVolume(newVol, true);
+        } else if (dragDirectionLocked === 'vertical') {
+            window.scrollTo(0, scrollStartTop - deltaY);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDraggingHeroVol) {
+            isDraggingHeroVol = false;
+            dragDirectionLocked = null;
+            if (heroSec) heroSec.classList.remove('is-dragging-vol');
+            volHudTimeout = setTimeout(() => {
+                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
+            }, 1000);
+        }
+    });
+
+    // Touch Drag
+    heroSec.addEventListener('touchstart', (e) => {
+        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn')) {
+            return;
+        }
+        if (e.touches.length === 1) {
+            isDraggingHeroVol = true;
+            dragDirectionLocked = null;
+            volDragStartX = e.touches[0].clientX;
+            volDragStartY = e.touches[0].clientY;
+            volDragStartValue = currentVolumeLevel;
+        }
+    }, { passive: true });
+
+    heroSec.addEventListener('touchmove', (e) => {
+        if (!isDraggingHeroVol || e.touches.length !== 1) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = currentX - volDragStartX;
+        const deltaY = currentY - volDragStartY;
+
+        if (!dragDirectionLocked) {
+            if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                    dragDirectionLocked = 'horizontal';
+                    if (heroSec) heroSec.classList.add('is-dragging-vol');
+                    updateVolume(volDragStartValue, true);
+                } else {
+                    dragDirectionLocked = 'vertical';
+                }
+            }
+        }
+
+        if (dragDirectionLocked === 'horizontal') {
+            if (e.cancelable) e.preventDefault();
+            const volChange = Math.round(deltaX * 0.35);
+            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
+            updateVolume(newVol, true);
+        }
+    }, { passive: false });
+
+    const endTouch = () => {
+        if (isDraggingHeroVol) {
+            isDraggingHeroVol = false;
+            dragDirectionLocked = null;
+            if (heroSec) heroSec.classList.remove('is-dragging-vol');
+            volHudTimeout = setTimeout(() => {
+                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
+            }, 1000);
+        }
+    };
+
+    heroSec.addEventListener('touchend', endTouch);
+    heroSec.addEventListener('touchcancel', endTouch);
+}
+
 // Initialize Application
 function init() {
     setupEventListeners();
     setupStationAudioAura();
+    setupHeroVolumeDrag();
     fetchStations('', 'India');
     renderPlaylist();
     updateVolume(30);
     loadTheme();
     setupStatusObserver();
-    initVUMeters();
-    initRotaryKnobs();
-    initReceiverTogglesAndPresets();
-    initHorizontalStationScrollDrag();
-    initNeedleDrag();
 }
 
 function setupStatusObserver() {
@@ -1274,25 +1408,20 @@ function showToast(message, icon = 'info') {
 
 function setupEventListeners() {
     // Search
-    if (searchBtn) searchBtn.addEventListener('click', performSearch);
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            if (clearSearchBtn) clearSearchBtn.style.display = searchInput.value.trim() ? 'flex' : 'none';
-        });
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearch();
-        });
-    }
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = '';
-            clearSearchBtn.style.display = 'none';
-            fetchStations('', currentMode === 'India' ? 'India' : '');
-        });
-    }
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('input', () => {
+        clearSearchBtn.style.display = searchInput.value.trim() ? 'flex' : 'none';
+    });
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.style.display = 'none';
+        fetchStations('', currentMode === 'India' ? 'India' : '');
+    });
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
 
     function performSearch() {
-        if (!searchInput) return;
         const query = searchInput.value.trim();
         const country = currentMode === 'India' ? 'India' : '';
         fetchStations(query, country);
@@ -1301,8 +1430,8 @@ function setupEventListeners() {
 
     // Mode Toggle (India / Global)
     modeToggleBtn.addEventListener('click', () => {
-        if (searchInput) searchInput.value = '';
-        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+        searchInput.value = '';
+        clearSearchBtn.style.display = 'none';
         if (currentMode === 'India') {
             currentMode = 'Global';
             modeToggleText.textContent = 'Global';
@@ -1423,18 +1552,16 @@ function setupEventListeners() {
     themeToggle.addEventListener('click', toggleTheme);
 
     // Playback Controls
-    if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlay);
-    if (prevBtn) prevBtn.addEventListener('click', playPrevious);
-    if (nextBtn) nextBtn.addEventListener('click', playNext);
+    playPauseBtn.addEventListener('click', togglePlay);
+    prevBtn.addEventListener('click', playPrevious);
+    nextBtn.addEventListener('click', playNext);
 
     // Playlist Add / Heart Button
-    if (addToPlaylistBtn) {
-        addToPlaylistBtn.addEventListener('click', () => {
-            if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
-                togglePlaylistStation(currentStations[currentStationIndex]);
-            }
-        });
-    }
+    addToPlaylistBtn.addEventListener('click', () => {
+        if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
+            togglePlaylistStation(currentStations[currentStationIndex]);
+        }
+    });
 
     // FX Toggles
     if (eqHdBtn) eqHdBtn.addEventListener('click', toggleHDEQ);
@@ -1485,10 +1612,8 @@ function setupEventListeners() {
     audioPlayer.onplay = () => {
         ensureAudioContextResumed();
         applyAudioFXSettings();
-        if (playPauseBtn) {
-            playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
-            lucide.createIcons();
-        }
+        playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
+        lucide.createIcons();
         playerStatus.textContent = 'Playing';
         if (nowPlayingCard) nowPlayingCard.classList.add('playing');
         requestWakeLock();
@@ -1510,10 +1635,8 @@ function setupEventListeners() {
             clearTimeout(playCheckTimeout);
             playCheckTimeout = null;
         }
-        if (playPauseBtn) {
-            playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
-            lucide.createIcons();
-        }
+        playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
+        lucide.createIcons();
         playerStatus.textContent = 'Paused';
         if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
         releaseWakeLock();
@@ -1722,10 +1845,20 @@ function renderStations() {
     }
 
     stationsGrid.innerHTML = currentStations.map((station, index) => {
+        const isFav = currentPlaylist.some(s => s.stationuuid === station.stationuuid);
         const nameUpper = (station.name || '').toUpperCase();
         return `
-            <div class="station-item station-name-pill ${currentStationIndex === index && currentSource === 'search' ? 'active' : ''}" onclick="playStation(${index}, 'search', this)" title="${nameUpper}">
-                <span class="station-pill-name">${nameUpper}</span>
+            <div class="station-item ${currentStationIndex === index && currentSource === 'search' ? 'active' : ''}" onclick="playStation(${index}, 'search', this)">
+                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="eager" onerror="this.src='${DEFAULT_LOGO}';">
+                <div class="item-info">
+                    <h4>${nameUpper}</h4>
+                    <p>${station.country || 'Global'} • ${station.tags ? station.tags.split(',')[0] : 'FM'}</p>
+                </div>
+                <div class="item-actions">
+                    <button class="icon-btn" onclick="event.stopPropagation(); togglePlaylistById('${station.stationuuid}')" title="${isFav ? 'Remove Favorite' : 'Add Favorite'}">
+                        <i data-lucide="${isFav ? 'heart' : 'plus-circle'}" style="${isFav ? 'color: var(--accent-color)' : ''}"></i>
+                    </button>
+                </div>
             </div>
         `;
     }).join('');
@@ -1936,9 +2069,6 @@ function updatePlayerUI(station) {
         }
     }
     updateQueueInfo();
-    if (typeof syncFMFreqFromStationIndex === 'function') {
-        syncFMFreqFromStationIndex(currentStationIndex);
-    }
     lucide.createIcons();
 }
 
@@ -1970,33 +2100,13 @@ function playPrevious() {
 }
 
 // Volume Controls
-function syncAllVolumeKnobUIs(volPct) {
-    const valRatio = volPct / 100;
-    const angle = -135 + valRatio * 270;
-
-    // Faceplate knob
-    const faceplateKnob = document.getElementById('knob-volume');
-    if (faceplateKnob) {
-        const dial = faceplateKnob.querySelector('.knob-dial');
-        if (dial) dial.style.transform = `rotate(${angle}deg)`;
-    }
-    const faceplateDisp = document.getElementById('volume-val-display');
-    if (faceplateDisp) faceplateDisp.textContent = `${volPct}%`;
-
-    // Dock knob
-    const dockKnob = document.getElementById('dock-knob-volume');
-    if (dockKnob) {
-        const dial = dockKnob.querySelector('.knob-dial');
-        if (dial) dial.style.transform = `rotate(${angle}deg)`;
-    }
-    const dockDisp = document.getElementById('dock-volume-val');
-    if (dockDisp) dockDisp.textContent = `${volPct}%`;
-}
-
-function updateVolume(value) {
+function updateVolume(value, showHUD = false) {
     currentVolumeLevel = Math.min(100, Math.max(0, parseInt(value) || 0));
     applyAudioFXSettings();
-    syncAllVolumeKnobUIs(currentVolumeLevel);
+
+    if (showHUD && typeof showHeroVolumeHUD === 'function') {
+        showHeroVolumeHUD(currentVolumeLevel);
+    }
 }
 
 // Playlist Functions
@@ -2086,28 +2196,18 @@ function toggleVolBoost(e) {
 
 function toggleSmartAutoScan() {
     isSmartScanning = !isSmartScanning;
-    const presetAutoScanBtn = document.getElementById('preset-btn-autoscan');
-    if (presetAutoScanBtn) {
-        presetAutoScanBtn.classList.toggle('active', isSmartScanning);
-        presetAutoScanBtn.textContent = isSmartScanning ? 'STOP SCAN' : 'AUTO SCAN';
-    }
-
     if (isSmartScanning) {
-        if (smartAutoScanBtn) {
-            smartAutoScanBtn.innerHTML = '<i data-lucide="stop-circle"></i><span>Stop Scan</span>';
-            smartAutoScanBtn.style.background = 'var(--accent-color)';
-            smartAutoScanBtn.style.color = '#fff';
-            lucide.createIcons();
-        }
+        smartAutoScanBtn.innerHTML = '<i data-lucide="stop-circle"></i><span>Stop Scan</span>';
+        smartAutoScanBtn.style.background = 'var(--accent-color)';
+        smartAutoScanBtn.style.color = '#fff';
+        lucide.createIcons();
         showToast('Auto Scan Started', 'zap');
         playSmartScanStation();
     } else {
-        if (smartAutoScanBtn) {
-            smartAutoScanBtn.innerHTML = '<i data-lucide="zap"></i><span>Auto Scan</span>';
-            smartAutoScanBtn.style.background = '';
-            smartAutoScanBtn.style.color = '';
-            lucide.createIcons();
-        }
+        smartAutoScanBtn.innerHTML = '<i data-lucide="zap"></i><span>Auto Scan</span>';
+        smartAutoScanBtn.style.background = '';
+        smartAutoScanBtn.style.color = '';
+        lucide.createIcons();
         clearTimeout(smartScanTimeout);
         showToast('Auto Scan Stopped', 'stop-circle');
     }
@@ -2204,524 +2304,6 @@ function toggleBothSections(btn) {
     if (window.lucide) {
         lucide.createIcons();
     }
-}
-
-/* ==========================================================================
-   MODEL SX-1970 VINTAGE STEREO RECEIVER ENGINE & INTERACTION
-   ========================================================================== */
-
-let vuCanvasLeft, vuCtxLeft, vuCanvasRight, vuCtxRight;
-let leftNeedleVal = 0, rightNeedleVal = 0;
-let leftNeedleTarget = 0, rightNeedleTarget = 0;
-let currentTunedFreq = 88.0;
-let bassGainValue = 0;
-
-// Dual VU Meters Canvas Rendering
-function initVUMeters() {
-    vuCanvasLeft = document.getElementById('vu-meter-left');
-    vuCanvasRight = document.getElementById('vu-meter-right');
-    if (!vuCanvasLeft || !vuCanvasRight) return;
-
-    vuCtxLeft = vuCanvasLeft.getContext('2d');
-    vuCtxRight = vuCanvasRight.getContext('2d');
-
-    function drawVUGauge(ctx, title, needleVal, isRightMeter) {
-        const w = ctx.canvas.width;
-        const h = ctx.canvas.height;
-        ctx.clearRect(0, 0, w, h);
-
-        const cx = w / 2;
-        const cy = h + 25;
-        const radius = h * 0.92;
-
-        // Arc scale dots & lines
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, Math.PI * 1.22, Math.PI * 1.78, false);
-        ctx.strokeStyle = '#2d1f03';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([3, 5]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Ticks and Numbers
-        ctx.fillStyle = '#2d1f03';
-        ctx.font = 'bold 11px Orbitron, monospace';
-        ctx.textAlign = 'center';
-
-        if (!isRightMeter) {
-            // Signal / Left Meter scale: 0, 5, 10
-            const angles = [Math.PI * 1.25, Math.PI * 1.5, Math.PI * 1.75];
-            const labels = ['0', '5', '10'];
-            angles.forEach((angle, idx) => {
-                const tx = cx + Math.cos(angle) * (radius - 16);
-                const ty = cy + Math.sin(angle) * (radius - 16);
-                ctx.fillText(labels[idx], tx, ty);
-            });
-        } else {
-            // Tuning / Right Meter scale: L, Center, R
-            const angles = [Math.PI * 1.28, Math.PI * 1.5, Math.PI * 1.72];
-            const labels = ['L', 'Center', 'R'];
-            angles.forEach((angle, idx) => {
-                const tx = cx + Math.cos(angle) * (radius - 16);
-                const ty = cy + Math.sin(angle) * (radius - 16);
-                if (labels[idx] === 'Center') {
-                    ctx.fillStyle = '#057a37';
-                    ctx.fillText(labels[idx], tx, ty + 2);
-                    ctx.fillStyle = '#2d1f03';
-                } else {
-                    ctx.fillText(labels[idx], tx, ty);
-                }
-            });
-        }
-
-        // Sweeping Red Needle
-        const needleAngle = Math.PI * 1.25 + needleVal * (Math.PI * 0.5);
-        const nx = cx + Math.cos(needleAngle) * (radius + 5);
-        const ny = cy + Math.sin(needleAngle) * (radius + 5);
-
-        ctx.save();
-        ctx.shadowColor = 'rgba(255, 42, 42, 0.6)';
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(nx, ny);
-        ctx.strokeStyle = '#ff2a2a';
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-
-        // Needle Pivot
-        ctx.beginPath();
-        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c1404';
-        ctx.fill();
-        ctx.restore();
-    }
-
-    function renderVULoop() {
-        const isPlaying = !audioPlayer.paused && audioPlayer.readyState >= 3;
-
-        if (isPlaying) {
-            // Get audio signal amplitude if analyser exists
-            if (typeof analyserNode !== 'undefined' && analyserNode && typeof dataArray !== 'undefined' && dataArray) {
-                analyserNode.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                let avg = sum / dataArray.length / 255;
-                leftNeedleTarget = 0.2 + avg * 0.75 + (Math.random() * 0.08 - 0.04);
-                rightNeedleTarget = 0.5 + (Math.sin(Date.now() * 0.003) * 0.25) * (0.5 + avg * 0.5);
-            } else {
-                const time = Date.now() * 0.005;
-                leftNeedleTarget = 0.35 + (Math.sin(time * 3) * 0.2 + Math.cos(time * 5) * 0.15);
-                rightNeedleTarget = 0.5 + (Math.sin(time * 2) * 0.2);
-            }
-        } else {
-            leftNeedleTarget = 0.02;
-            rightNeedleTarget = 0.1;
-        }
-
-        leftNeedleVal += (leftNeedleTarget - leftNeedleVal) * 0.15;
-        rightNeedleVal += (rightNeedleTarget - rightNeedleVal) * 0.15;
-
-        drawVUGauge(vuCtxLeft, 'SIGNAL / LEFT', Math.max(0, Math.min(1, leftNeedleVal)), false);
-        drawVUGauge(vuCtxRight, 'TUNING / RIGHT', Math.max(0, Math.min(1, rightNeedleVal)), true);
-
-        requestAnimationFrame(renderVULoop);
-    }
-
-    renderVULoop();
-}
-
-// FM Dial Scale Needle Sync
-function updateFMDialAndNeedle(freq) {
-    currentTunedFreq = Math.max(88.0, Math.min(108.0, freq));
-    const needle = document.getElementById('dial-needle');
-    const tuningValDisp = document.getElementById('tuning-val-display');
-
-    const pct = ((currentTunedFreq - 88.0) / 20.0) * 100;
-    if (needle) needle.style.left = `${pct}%`;
-    if (tuningValDisp) tuningValDisp.textContent = `${currentTunedFreq.toFixed(1)} MHz`;
-
-    // Rotate Tuning Knob UI
-    const knobTuning = document.getElementById('knob-tuning');
-    if (knobTuning) {
-        const angle = -135 + (pct / 100) * 270;
-        const dial = knobTuning.querySelector('.knob-dial');
-        if (dial) dial.style.transform = `rotate(${angle}deg)`;
-    }
-}
-
-function syncFMFreqFromStationIndex(index) {
-    const list = currentSource === 'search' ? currentStations : currentPlaylist;
-    if (list.length === 0) return;
-    const count = Math.max(1, list.length - 1);
-    const freq = 88.0 + (index / count) * 20.0;
-    updateFMDialAndNeedle(freq);
-}
-
-// Skeuomorphic Draggable Rotary Knobs
-function initRotaryKnobs() {
-    const volumeKnob = document.getElementById('knob-volume');
-    const dockVolumeKnob = document.getElementById('dock-knob-volume');
-    const tuningKnob = document.getElementById('knob-tuning');
-    const bassKnob = document.getElementById('knob-bass');
-
-    function setupKnobDrag(knobElem, getInitialVal, onUpdate) {
-        if (!knobElem) return;
-        let isDragging = false;
-
-        function getAngleValue(x, y) {
-            const rect = knobElem.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            const dx = x - cx;
-            const dy = y - cy;
-
-            // Angle in degrees where 0deg is straight UP (12 o'clock)
-            let deg = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-            if (deg > 180) deg -= 360;
-
-            // Knob dial range is -135deg (0%) to +135deg (100%)
-            if (deg < -135) {
-                deg = (deg < -157.5) ? 135 : -135;
-            } else if (deg > 135) {
-                deg = (deg > 157.5) ? -135 : 135;
-            }
-
-            const val = (deg + 135) / 270;
-            return Math.max(0, Math.min(1, val));
-        }
-
-        function updateFromAngle(x, y) {
-            const val = getAngleValue(x, y);
-            const angle = -135 + val * 270;
-            const dial = knobElem.querySelector('.knob-dial');
-            if (dial) dial.style.transform = `rotate(${angle}deg)`;
-            onUpdate(val);
-        }
-
-        // Mouse Drag & Click
-        knobElem.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            updateFromAngle(e.clientX, e.clientY);
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            updateFromAngle(e.clientX, e.clientY);
-        });
-
-        document.addEventListener('mouseup', () => { isDragging = false; });
-
-        // Touch Drag & Tap
-        knobElem.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                updateFromAngle(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!isDragging || e.touches.length !== 1) return;
-            updateFromAngle(e.touches[0].clientX, e.touches[0].clientY);
-        }, { passive: true });
-
-        document.addEventListener('touchend', () => { isDragging = false; });
-        document.addEventListener('touchcancel', () => { isDragging = false; });
-
-        // Mouse wheel support
-        knobElem.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const current = typeof getInitialVal === 'function' ? getInitialVal() : getInitialVal;
-            const deltaY = e.deltaY > 0 ? -0.04 : 0.04;
-            const newVal = Math.max(0, Math.min(1, current + deltaY));
-            const angle = -135 + newVal * 270;
-            const dial = knobElem.querySelector('.knob-dial');
-            if (dial) dial.style.transform = `rotate(${angle}deg)`;
-            onUpdate(newVal);
-        }, { passive: false });
-    }
-
-    // 1. Volume Knobs (Faceplate & Dock)
-    function bindVolumeKnob(elem) {
-        if (!elem) return;
-        setupKnobDrag(elem, () => currentVolumeLevel / 100, (val) => {
-            const volPct = Math.round(val * 100);
-            updateVolume(volPct);
-        });
-    }
-
-    bindVolumeKnob(volumeKnob);
-    bindVolumeKnob(dockVolumeKnob);
-
-    syncAllVolumeKnobUIs(currentVolumeLevel);
-
-    // 2. Tuning Knob
-    if (tuningKnob) {
-        let tuneDebounce;
-        setupKnobDrag(tuningKnob, 0, (val) => {
-            const freq = 88.0 + val * 20.0;
-            updateFMDialAndNeedle(freq);
-
-            clearTimeout(tuneDebounce);
-            tuneDebounce = setTimeout(() => {
-                const list = currentSource === 'search' ? currentStations : currentPlaylist;
-                if (list.length > 0) {
-                    const targetIdx = Math.round(val * (list.length - 1));
-                    if (targetIdx !== currentStationIndex) {
-                        playStation(targetIdx, currentSource);
-                    }
-                }
-            }, 300);
-        });
-    }
-
-    // 3. Bass Knob
-    if (bassKnob) {
-        setupKnobDrag(bassKnob, 0.5, (val) => {
-            bassGainValue = Math.round((val - 0.5) * 20); // -10 to +10 dB
-            const disp = document.getElementById('bass-val-display');
-            if (disp) disp.textContent = bassGainValue > 0 ? `+${bassGainValue}` : `${bassGainValue}`;
-            if (typeof applyAudioFXSettings === 'function') applyAudioFXSettings();
-        });
-    }
-}
-
-// Receiver Toggles & Presets
-function initReceiverTogglesAndPresets() {
-    const btnPwr = document.getElementById('btn-toggle-pwr');
-    const btnSt = document.getElementById('btn-toggle-st');
-    const btnMut = document.getElementById('btn-toggle-mut');
-
-    if (btnPwr) {
-        btnPwr.addEventListener('click', () => {
-            playPrevious();
-            btnPwr.classList.add('active');
-            setTimeout(() => btnPwr.classList.remove('active'), 200);
-        });
-    }
-
-    if (btnSt) {
-        btnSt.addEventListener('click', () => {
-            togglePlay();
-        });
-    }
-
-    if (btnMut) {
-        btnMut.addEventListener('click', () => {
-            playNext();
-            btnMut.classList.add('active');
-            setTimeout(() => btnMut.classList.remove('active'), 200);
-        });
-    }
-
-    // Audio Player State Sync with ST button (Play/Pause indicator)
-    audioPlayer.addEventListener('play', () => {
-        if (btnSt) {
-            btnSt.classList.add('active');
-            const icon = btnSt.querySelector('i[data-lucide], svg[data-lucide]');
-            if (icon) {
-                icon.setAttribute('data-lucide', 'pause');
-                if (window.lucide) lucide.createIcons();
-            }
-        }
-    });
-    audioPlayer.addEventListener('pause', () => {
-        if (btnSt) {
-            btnSt.classList.remove('active');
-            const icon = btnSt.querySelector('i[data-lucide], svg[data-lucide]');
-            if (icon) {
-                icon.setAttribute('data-lucide', 'play');
-                if (window.lucide) lucide.createIcons();
-            }
-        }
-    });
-
-    // Preset buttons (Auto Scan, Discover, Playlist, Refresh)
-    const presetBtns = document.querySelectorAll('.preset-btn');
-    presetBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const presetAction = btn.getAttribute('data-preset');
-            presetBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            if (presetAction === 'autoscan') {
-                toggleSmartAutoScan();
-            } else if (presetAction === 'discover') {
-                switchView('discovery');
-            } else if (presetAction === 'playlist') {
-                switchView('playlist');
-            } else if (presetAction === 'refresh') {
-                fetchStations(lastQuery, lastCountry, lastTag);
-                if (typeof showToast === 'function') {
-                    showToast('Stations Refreshed', 'refresh-cw');
-                }
-            }
-        });
-    });
-}
-
-
-
-// Drag Scroll for Horizontal Station Carousel
-function initHorizontalStationScrollDrag() {
-    const scrollContainer = document.querySelector('.stations-horizontal-scroll');
-    if (!scrollContainer) return;
-
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    scrollContainer.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button, .fav-btn, .fav-heart-btn, .play-overlay-btn')) return;
-        isDown = true;
-        scrollContainer.classList.add('is-dragging');
-        startX = e.pageX - scrollContainer.offsetLeft;
-        scrollLeft = scrollContainer.scrollLeft;
-    });
-
-    scrollContainer.addEventListener('mouseleave', () => {
-        isDown = false;
-        scrollContainer.classList.remove('is-dragging');
-    });
-
-    scrollContainer.addEventListener('mouseup', () => {
-        isDown = false;
-        scrollContainer.classList.remove('is-dragging');
-    });
-
-    scrollContainer.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - scrollContainer.offsetLeft;
-        const walk = (x - startX) * 2;
-        scrollContainer.scrollLeft = scrollLeft - walk;
-    });
-}
-
-// Interactive Red FM Dial Needle Dragging (Ultra-Fast Instant Radio Playback)
-function initNeedleDrag() {
-    const needle = document.getElementById('dial-needle');
-    const dialTrack = document.getElementById('fm-dial-track');
-    if (!dialTrack) return;
-
-    let isNeedleDragging = false;
-    let lastTunedIndex = -1;
-    let dragTuneDebounce = null;
-
-    function getFreqFromMouseX(clientX) {
-        const rect = dialTrack.getBoundingClientRect();
-        if (rect.width === 0) return 88.0;
-        const relativeX = Math.max(0, Math.min(rect.width, clientX - rect.left));
-        const pct = relativeX / rect.width;
-        return 88.0 + (pct * 20.0);
-    }
-
-    function triggerFastStationPlay(targetIndex, freq) {
-        if (currentStations && currentStations[targetIndex]) {
-            const station = currentStations[targetIndex];
-            playStation(targetIndex, 'search');
-            const items = document.querySelectorAll('.stations-horizontal-scroll .station-item');
-            if (items[targetIndex]) {
-                items[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            }
-            if (typeof showToast === 'function') {
-                showToast(`Tuned to ${freq.toFixed(1)} MHz • ${station.name.toUpperCase()}`, 'radio');
-            }
-        }
-    }
-
-    function updateNeedleFromX(clientX) {
-        const freq = getFreqFromMouseX(clientX);
-        updateFMDialAndNeedle(freq);
-
-        if (currentStations && currentStations.length > 0) {
-            const pct = Math.max(0, Math.min(1, (freq - 88.0) / 20.0));
-            const targetIndex = Math.min(
-                currentStations.length - 1,
-                Math.max(0, Math.round(pct * (currentStations.length - 1)))
-            );
-            if (targetIndex !== lastTunedIndex && currentStations[targetIndex]) {
-                lastTunedIndex = targetIndex;
-                const station = currentStations[targetIndex];
-                if (currentStationName) {
-                    currentStationName.textContent = `TUNING: ${freq.toFixed(1)} MHz • ${station.name.toUpperCase()}`;
-                }
-                
-                // Fast 150ms debounce while dragging to quickly play station if paused
-                clearTimeout(dragTuneDebounce);
-                dragTuneDebounce = setTimeout(() => {
-                    if (isNeedleDragging) {
-                        triggerFastStationPlay(targetIndex, freq);
-                    }
-                }, 150);
-            }
-        }
-    }
-
-    function startNeedleDrag(clientX, e) {
-        ensureAudioContextResumed();
-        isNeedleDragging = true;
-        dialTrack.classList.add('is-needle-dragging');
-        if (needle) needle.classList.add('is-dragging');
-        updateNeedleFromX(clientX);
-    }
-
-    function moveNeedleDrag(clientX) {
-        if (!isNeedleDragging) return;
-        updateNeedleFromX(clientX);
-    }
-
-    function endNeedleDrag() {
-        if (!isNeedleDragging) return;
-        isNeedleDragging = false;
-        dialTrack.classList.remove('is-needle-dragging');
-        if (needle) needle.classList.remove('is-dragging');
-        clearTimeout(dragTuneDebounce);
-
-        if (currentStations && currentStations.length > 0) {
-            const pct = Math.max(0, Math.min(1, (currentTunedFreq - 88.0) / 20.0));
-            const targetIndex = Math.min(
-                currentStations.length - 1,
-                Math.max(0, Math.round(pct * (currentStations.length - 1)))
-            );
-            triggerFastStationPlay(targetIndex, currentTunedFreq);
-        }
-    }
-
-    dialTrack.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-        startNeedleDrag(e.clientX, e);
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (isNeedleDragging) {
-            e.preventDefault();
-            moveNeedleDrag(e.clientX);
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        endNeedleDrag();
-    });
-
-    dialTrack.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 0) {
-            e.stopPropagation();
-            startNeedleDrag(e.touches[0].clientX, e);
-        }
-    }, { passive: true });
-
-    document.addEventListener('touchmove', (e) => {
-        if (isNeedleDragging && e.touches.length > 0) {
-            moveNeedleDrag(e.touches[0].clientX);
-        }
-    }, { passive: true });
-
-    document.addEventListener('touchend', () => {
-        endNeedleDrag();
-    });
 }
 
 // Start
