@@ -1,3 +1,105 @@
+
+// ==========================================================================
+// RKD FM | HIGH-DEFINITION DYNAMIC SVG LOGO ENGINE
+// ==========================================================================
+const BRAND_SVG_LOGOS = {
+    'air': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%230b192c"/><circle cx="100" cy="90" r="65" fill="none" stroke="%23f59e0b" stroke-width="4" opacity="0.6"/><circle cx="100" cy="90" r="45" fill="none" stroke="%2300f3ff" stroke-width="3" opacity="0.8"/><circle cx="100" cy="90" r="25" fill="%23f59e0b"/><polygon points="100,45 90,75 110,75" fill="%23ffffff"/><text x="100" y="162" font-family="sans-serif" font-weight="900" font-size="16" fill="%23ffffff" text-anchor="middle" letter-spacing="1">AKASHVANI</text><text x="100" y="178" font-family="sans-serif" font-weight="700" font-size="12" fill="%2300f3ff" text-anchor="middle">ALL INDIA RADIO</text></svg>`,
+    'mirchi': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231a050b"/><path d="M100 35 C120 70, 150 90, 130 135 C115 165, 85 165, 70 135 C50 90, 80 70, 100 35 Z" fill="%23ef4444"/><path d="M100 20 C105 30, 95 35, 90 40" stroke="%2322c55e" stroke-width="6" fill="none" stroke-linecap="round"/><text x="100" y="168" font-family="sans-serif" font-weight="900" font-size="18" fill="%23facc15" text-anchor="middle">RADIO MIRCHI</text></svg>`,
+    'redfm': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%230f0f0f"/><rect x="25" y="45" width="150" height="75" rx="12" fill="%23dc2626"/><text x="100" y="98" font-family="sans-serif" font-weight="900" font-size="34" fill="%23ffffff" text-anchor="middle">93.5</text><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="20" fill="%23ef4444" text-anchor="middle">RED FM</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23facc15" text-anchor="middle">BAJATE RAHO!</text></svg>`,
+    'radiocity': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231e1b4b"/><path d="M40 120 L40 90 L60 90 L60 120 L80 120 L80 70 L100 70 L100 120 L120 120 L120 80 L140 80 L140 120 L160 120 L160 100 L160 120 Z" fill="%2306b6d4" opacity="0.6"/><circle cx="100" cy="65" r="22" fill="%23ec4899"/><text x="100" y="158" font-family="sans-serif" font-weight="900" font-size="20" fill="%23ffffff" text-anchor="middle">RADIO CITY</text></svg>`,
+    'bigfm': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%230f172a"/><circle cx="100" cy="85" r="50" fill="%23f97316"/><text x="100" y="80" font-family="sans-serif" font-weight="900" font-size="22" fill="%23ffffff" text-anchor="middle">92.7</text><text x="100" y="105" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff" text-anchor="middle">BIG</text><text x="100" y="162" font-family="sans-serif" font-weight="900" font-size="20" fill="%233b82f6" text-anchor="middle">FM RADIO</text></svg>`,
+    'vividhbharati': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231c1917"/><circle cx="100" cy="80" r="45" fill="%2378350f" stroke="%23f59e0b" stroke-width="4"/><rect x="88" y="55" width="24" height="40" rx="12" fill="%23f59e0b"/><path d="M75 80 A25 25 0 0 0 125 80" fill="none" stroke="%23ffffff" stroke-width="4"/><line x1="100" y1="105" x2="100" y2="130" stroke="%23ffffff" stroke-width="5"/><text x="100" y="160" font-family="sans-serif" font-weight="900" font-size="14" fill="%23f59e0b" text-anchor="middle">VIVIDH BHARATI</text></svg>`,
+    'bbc': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23000000"/><rect x="35" y="70" width="40" height="40" fill="%23dc2626"/><rect x="80" y="70" width="40" height="40" fill="%23dc2626"/><rect x="125" y="70" width="40" height="40" fill="%23dc2626"/><text x="55" y="98" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff" text-anchor="middle">B</text><text x="100" y="98" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff" text-anchor="middle">B</text><text x="145" y="98" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff" text-anchor="middle">C</text><text x="100" y="150" font-family="sans-serif" font-weight="800" font-size="16" fill="%23ffffff" text-anchor="middle">WORLD NEWS</text></svg>`,
+    'arijit': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%232e1065"/><circle cx="100" cy="80" r="45" fill="%23581c87" stroke="%23ec4899" stroke-width="3"/><path d="M85 65 Q100 45 115 65 Q100 85 85 65 Z" fill="%23facc15"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="18" fill="%23ffffff" text-anchor="middle">ARIJIT SINGH</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="12" fill="%23ec4899" text-anchor="middle">ROMANTIC HITS</text></svg>`,
+    'kishore': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23134e4a"/><circle cx="100" cy="80" r="48" fill="%230f766e" stroke="%232dd4bf" stroke-width="3"/><circle cx="100" cy="80" r="15" fill="%23134e4a"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="16" fill="%232dd4bf" text-anchor="middle">KISHORE KUMAR</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="12" fill="%23ffffff" text-anchor="middle">GOLDEN HITS</text></svg>`,
+    'lata': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23450a0a"/><circle cx="100" cy="80" r="48" fill="%2378350f" stroke="%23f59e0b" stroke-width="3"/><path d="M85 60 C100 50 115 70 100 100" fill="none" stroke="%23f59e0b" stroke-width="4"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="15" fill="%23f59e0b" text-anchor="middle">LATA MANGESHKAR</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">NIGHTINGALE OF INDIA</text></svg>`,
+    'rafi': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23064e3b"/><circle cx="100" cy="80" r="48" fill="%23047857" stroke="%2334d399" stroke-width="3"/><path d="M80 70 L90 50 L100 65 L110 50 L120 70 Z" fill="%23fbbf24"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="15" fill="%2334d399" text-anchor="middle">MOHAMMED RAFI</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23fbbf24" text-anchor="middle">IMMORTAL CLASSICS</text></svg>`,
+    'asha': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23701a75"/><circle cx="100" cy="80" r="48" fill="%2386198f" stroke="%23f0abfc" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="16" fill="%23f0abfc" text-anchor="middle">ASHA BHOSLE</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">RETRO MAGIC</text></svg>`,
+    'alka': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23831843"/><circle cx="100" cy="80" r="48" fill="%239d174d" stroke="%23f472b6" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="16" fill="%23f472b6" text-anchor="middle">ALKA YAGNIK</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">90s MELODIES</text></svg>`,
+    'sonu': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231e3a8a"/><circle cx="100" cy="80" r="48" fill="%231d4ed8" stroke="%2360a5fa" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="16" fill="%2360a5fa" text-anchor="middle">SONU NIGAM</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">VOICE OF BOLLYWOOD</text></svg>`,
+    'mukesh': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23450a0a"/><circle cx="100" cy="80" r="48" fill="%23991b1b" stroke="%23fca5a5" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="18" fill="%23fca5a5" text-anchor="middle">MUKESH</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">GOLDEN VOICE</text></svg>`,
+    'sanu': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%2378350f"/><circle cx="100" cy="80" r="48" fill="%23b45309" stroke="%23fde047" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="16" fill="%23fde047" text-anchor="middle">KUMAR SANU</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">KING OF MELODY</text></svg>`,
+    'udit': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23854d0e"/><circle cx="100" cy="80" r="48" fill="%23a16207" stroke="%23fef08a" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="15" fill="%23fef08a" text-anchor="middle">UDIT NARAYAN</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">ROMANTIC CLASSICS</text></svg>`,
+    'shreya': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23581c87"/><circle cx="100" cy="80" r="48" fill="%237e22ce" stroke="%23e9d5ff" stroke-width="3"/><text x="100" y="152" font-family="sans-serif" font-weight="900" font-size="14" fill="%23e9d5ff" text-anchor="middle">SHREYA GHOSHAL</text><text x="100" y="172" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">MELODIOUS QUEEN</text></svg>`,
+    'bhakti': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%2378350f"/><circle cx="100" cy="80" r="48" fill="%239a3412" stroke="%23fde047" stroke-width="3"/><text x="100" y="92" font-family="sans-serif" font-weight="900" font-size="42" fill="%23fde047" text-anchor="middle">ॐ</text><text x="100" y="156" font-family="sans-serif" font-weight="900" font-size="18" fill="%23fde047" text-anchor="middle">BHAKTI RADIO</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">DEVOTIONAL & MANTRAS</text></svg>`,
+    'gazal': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231e1b4b"/><circle cx="100" cy="80" r="48" fill="%23312e81" stroke="%23a5b4fc" stroke-width="3"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23a5b4fc" text-anchor="middle">GAZAL MEHFIL</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">POETRY & CLASSICS</text></svg>`,
+    'remix': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%2309090b"/><circle cx="100" cy="80" r="48" fill="%2318181b" stroke="%2306b6d4" stroke-width="3"/><path d="M65 80 A35 35 0 0 1 135 80 M60 70 L60 90 M140 70 L140 90" stroke="%23ec4899" stroke-width="5" fill="none"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%2306b6d4" text-anchor="middle">DJ REMIX</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ec4899" text-anchor="middle">PARTY & DANCE MIX</text></svg>`,
+    'punjabi': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23713f12"/><circle cx="100" cy="80" r="48" fill="%23854d0e" stroke="%23facc15" stroke-width="3"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23facc15" text-anchor="middle">PUNJABI HITS</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">BHANGRA & FOLK</text></svg>`,
+    'bangla': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23450a0a"/><circle cx="100" cy="80" r="48" fill="%2378350f" stroke="%23f59e0b" stroke-width="3"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23f59e0b" text-anchor="middle">BANGLA RADIO</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">KOLKATA & RABINDRA</text></svg>`,
+    'bhojpuri': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%2378350f"/><circle cx="100" cy="80" r="48" fill="%239a3412" stroke="%23fde047" stroke-width="3"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23fde047" text-anchor="middle">BHOJPURI FM</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">SUPERHIT GAANE</text></svg>`,
+    'regional': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%230f766e"/><circle cx="100" cy="80" r="48" fill="%23115e59" stroke="%232dd4bf" stroke-width="3"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="17" fill="%232dd4bf" text-anchor="middle">REGIONAL RADIO</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">INDIA LOCAL STATIONS</text></svg>`,
+    'music': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231e1b4b"/><circle cx="100" cy="80" r="48" fill="%23312e81" stroke="%2306b6d4" stroke-width="3"/><text x="100" y="95" font-family="sans-serif" font-weight="900" font-size="38" fill="%2306b6d4" text-anchor="middle">🎼</text><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%2306b6d4" text-anchor="middle">PURE MUSIC</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23a855f7" text-anchor="middle">INSTRUMENTAL & RAGA</text></svg>`,
+    'news': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%231e293b"/><circle cx="100" cy="80" r="48" fill="%23334155" stroke="%2338bdf8" stroke-width="3"/><text x="100" y="95" font-family="sans-serif" font-weight="900" font-size="36" fill="%2338bdf8" text-anchor="middle">🎙️</text><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%2338bdf8" text-anchor="middle">NEWS RADIO</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">LIVE HEADLINES 24/7</text></svg>`,
+    'pop': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23831843"/><circle cx="100" cy="80" r="48" fill="%239d174d" stroke="%23f472b6" stroke-width="3"/><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23f472b6" text-anchor="middle">POP HITS</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">TOP 40 & CHARTS</text></svg>`,
+    'rock': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%2318181b"/><circle cx="100" cy="80" r="48" fill="%2327272a" stroke="%23ef4444" stroke-width="3"/><text x="100" y="95" font-family="sans-serif" font-weight="900" font-size="36" fill="%23ef4444" text-anchor="middle">🎸</text><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23ef4444" text-anchor="middle">ROCK RADIO</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">CLASSIC & HARD ROCK</text></svg>`,
+    'jazz': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23451a03"/><circle cx="100" cy="80" r="48" fill="%2378350f" stroke="%23fbbf24" stroke-width="3"/><text x="100" y="95" font-family="sans-serif" font-weight="900" font-size="36" fill="%23fbbf24" text-anchor="middle">🎷</text><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%23fbbf24" text-anchor="middle">JAZZ LOUNGE</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">SMOOTH JAZZ & BLUES</text></svg>`,
+    'classical': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%23022c22"/><circle cx="100" cy="80" r="48" fill="%23064e3b" stroke="%2334d399" stroke-width="3"/><text x="100" y="95" font-family="sans-serif" font-weight="900" font-size="36" fill="%2334d399" text-anchor="middle">🎻</text><text x="100" y="154" font-family="sans-serif" font-weight="900" font-size="18" fill="%2334d399" text-anchor="middle">CLASSICAL</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%23ffffff" text-anchor="middle">SYMPHONY & CONCERTO</text></svg>`,
+    'default': `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="30" fill="%230e121d"/><circle cx="100" cy="80" r="50" fill="%23182032" stroke="%236366f1" stroke-width="4"/><path d="M75 80 A25 25 0 0 1 125 80" fill="none" stroke="%2306b6d4" stroke-width="4"/><text x="100" y="156" font-family="sans-serif" font-weight="900" font-size="18" fill="%236366f1" text-anchor="middle">RKD FM</text><text x="100" y="174" font-family="sans-serif" font-weight="700" font-size="11" fill="%2306b6d4" text-anchor="middle">CYBER RADIO DECK</text></svg>`
+};
+
+function getCategoryOrNameLogo(name = '', tags = '') {
+    const n = (name || '').toLowerCase();
+    const t = (tags || '').toLowerCase();
+
+    if (n.includes('air') || n.includes('akashvani') || n.includes('vividh') || n.includes('rainbow') || t.includes('air') || t.includes('akashvani')) return BRAND_SVG_LOGOS.air;
+    if (n.includes('mirchi') || t.includes('mirchi')) return BRAND_SVG_LOGOS.mirchi;
+    if (n.includes('red fm') || n.includes('93.5') || t.includes('red fm')) return BRAND_SVG_LOGOS.redfm;
+    if (n.includes('city') || t.includes('radiocity')) return BRAND_SVG_LOGOS.radiocity;
+    if (n.includes('big fm') || n.includes('92.7') || t.includes('big fm')) return BRAND_SVG_LOGOS.bigfm;
+    if (n.includes('vividh') || t.includes('vividh')) return BRAND_SVG_LOGOS.vividhbharati;
+    if (n.includes('bbc') || t.includes('bbc')) return BRAND_SVG_LOGOS.bbc;
+    
+    // Singers
+    if (n.includes('arijit') || t.includes('arijit')) return BRAND_SVG_LOGOS.arijit;
+    if (n.includes('kishore') || t.includes('kishore')) return BRAND_SVG_LOGOS.kishore;
+    if (n.includes('lata') || t.includes('lata')) return BRAND_SVG_LOGOS.lata;
+    if (n.includes('rafi') || t.includes('rafi')) return BRAND_SVG_LOGOS.rafi;
+    if (n.includes('asha') || t.includes('asha')) return BRAND_SVG_LOGOS.asha;
+    if (n.includes('alka') || t.includes('alka')) return BRAND_SVG_LOGOS.alka;
+    if (n.includes('sonu') || t.includes('sonu')) return BRAND_SVG_LOGOS.sonu;
+    if (n.includes('mukesh') || t.includes('mukesh')) return BRAND_SVG_LOGOS.mukesh;
+    if (n.includes('sanu') || t.includes('sanu')) return BRAND_SVG_LOGOS.sanu;
+    if (n.includes('udit') || t.includes('udit')) return BRAND_SVG_LOGOS.udit;
+    if (n.includes('shreya') || t.includes('shreya')) return BRAND_SVG_LOGOS.shreya;
+
+    // Categories
+    if (n.includes('bhakti') || t.includes('bhakti') || t.includes('devotional') || n.includes('shiva') || n.includes('hanuman') || n.includes('krishna') || n.includes('mantra')) return BRAND_SVG_LOGOS.bhakti;
+    if (n.includes('gazal') || n.includes('ghazal') || t.includes('gazal') || t.includes('ghazal')) return BRAND_SVG_LOGOS.gazal;
+    if (n.includes('remix') || n.includes('dj') || t.includes('remix') || t.includes('dj')) return BRAND_SVG_LOGOS.remix;
+    if (n.includes('punjabi') || t.includes('punjabi')) return BRAND_SVG_LOGOS.punjabi;
+    if (n.includes('bangla') || n.includes('bengali') || t.includes('bangla')) return BRAND_SVG_LOGOS.bangla;
+    if (n.includes('bhojpuri') || t.includes('bhojpuri')) return BRAND_SVG_LOGOS.bhojpuri;
+    if (n.includes('regional') || t.includes('regional') || n.includes('marathi') || n.includes('gujarati') || n.includes('tamil') || n.includes('telugu') || n.includes('kannada')) return BRAND_SVG_LOGOS.regional;
+    if (n.includes('instrumental') || n.includes('sitar') || n.includes('flute') || n.includes('raga') || t.includes('music')) return BRAND_SVG_LOGOS.music;
+    if (n.includes('news') || t.includes('news') || n.includes('republic') || n.includes('zee') || n.includes('wion') || n.includes('dd')) return BRAND_SVG_LOGOS.news;
+    if (n.includes('pop') || t.includes('pop')) return BRAND_SVG_LOGOS.pop;
+    if (n.includes('rock') || t.includes('rock')) return BRAND_SVG_LOGOS.rock;
+    if (n.includes('jazz') || t.includes('jazz')) return BRAND_SVG_LOGOS.jazz;
+    if (n.includes('classical') || t.includes('classical')) return BRAND_SVG_LOGOS.classical;
+
+    return BRAND_SVG_LOGOS.default;
+}
+
+function getStationLogo(station) {
+    if (!station) return BRAND_SVG_LOGOS.default;
+    const fav = station.favicon;
+    if (fav && typeof fav === 'string' && fav.trim() !== '' && !fav.includes('onlineradiohub.com') && (fav.startsWith('http://') || fav.startsWith('https://') || fav.startsWith('data:image/'))) {
+        return fav.trim();
+    }
+    return getCategoryOrNameLogo(station.name, station.tags);
+}
+
+function handleLogoError(imgElement, name = '', tags = '') {
+    if (!imgElement) return;
+    imgElement.onerror = null;
+    imgElement.src = getCategoryOrNameLogo(name, tags);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // ==========================================================================
 // RKD FM | CYBER RADIO DECK ENGINE
 // ==========================================================================
@@ -71,21 +173,39 @@ const CUSTOM_SINGER_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-armaan-malik-radio',
-        name: 'Armaan Malik Hits',
-        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio?artist=armaan',
-        favicon: 'logo.png',
+        stationuuid: 'custom-kishore-kumar-radio',
+        name: 'Kishore Kumar Radio Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodkishorekumar/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mohammed-rafi.jpg',
         country: 'India',
-        tags: 'singer, armaan malik, hindi, bollywood',
+        tags: 'singer, kishore kumar, hindi, classics, retro, oldies',
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-neha-kakkar-radio',
-        name: 'Neha Kakkar Hits',
-        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio?artist=neha',
-        favicon: 'logo.png',
+        stationuuid: 'custom-lata-mangeshkar-radio',
+        name: 'Lata Mangeshkar Golden Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlatamangeshkar/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/asha-bhosle.jpg',
         country: 'India',
-        tags: 'singer, neha kakkar, hindi, bollywood',
+        tags: 'singer, lata mangeshkar, hindi, classics, retro, oldies',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-mukesh-radio-hits',
+        name: 'Mukesh Super Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodmukesh/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mohammed-rafi.jpg',
+        country: 'India',
+        tags: 'singer, mukesh, hindi, classics, retro, oldies',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-retro-bollywood-70s',
+        name: 'Retro Bollywood 70s Special',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood70s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'singer, 70s, retro, bollywood, classic, oldies',
         lastcheckok: 1
     }
 ];
@@ -215,15 +335,6 @@ const CUSTOM_BHAKTI_STATIONS = [
         lastcheckok: 1
     },
     {
-        stationuuid: 'custom-easy-96-radio',
-        name: 'Easy 96 Radio',
-        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
-        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
-        country: 'India',
-        tags: 'bhakti, devotional, hindi, easy 96',
-        lastcheckok: 1
-    },
-    {
         stationuuid: 'custom-bhajans-radio-guyana',
         name: 'Bhajans Radio Guyana',
         url_resolved: 'https://s3.citrus3.com:8042/stream',
@@ -286,7 +397,7 @@ const CUSTOM_HINDI_STATIONS = [
         url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/easy-96-radio.jpg',
         country: 'India',
-        tags: 'hindi, easy 96, pop, bollywood, bhakti',
+        tags: 'hindi, easy 96, pop, bollywood',
         lastcheckok: 1
     },
     {
@@ -404,6 +515,177 @@ const CUSTOM_HINDI_STATIONS = [
         favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-maharani.jpg',
         country: 'India',
         tags: 'hindi, maharani, classic, folk, melodies',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-city-classics',
+        name: 'Radio City Classics',
+        url_resolved: 'https://streamasiacdn.atc-labs.com/radiocityclassics.aac',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-city-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, classics, retro, oldies',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-city-ishq',
+        name: 'Radio City Ishq',
+        url_resolved: 'https://streamasiacdn.atc-labs.com/radiocityishq.aac',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mirchi-love-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, romantic, love, ishq',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-mirchi-90s',
+        name: 'Radio Mirchi 90s Hits',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood90s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, 90s, classics, retro',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-hit-bollywood-radio',
+        name: 'Hit Bollywood Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodhits/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, top40, hits, party',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bollywood-melodies',
+        name: 'Bollywood Melodies Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlove/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, melodies, acoustic, romantic',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-city-dance',
+        name: 'Radio City Dance Hits',
+        url_resolved: 'https://streamasiacdn.atc-labs.com/radiocitydance.aac',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-city-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, dance, party, remix',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-filmy-mirchi',
+        name: 'Filmy Mirchi',
+        url_resolved: 'https://drive.uber.radio/uber/filmymirchi/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, bollywood, filmy, mirchi, cinema',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bollywood-gaane-purane',
+        name: 'Bollywood Gaane Purane',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodretro/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-city-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, bollywood gaane purane, purane gaane',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-hindi-gold-radio',
+        name: 'Hindi Gold Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlatamangeshkar/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mohammed-rafi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, hindi gold radio, gold',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-90s-once-again-radio',
+        name: '90s Once Again Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood90s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, 90s, oldies, 90sonceagainradio',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-gaane',
+        name: 'Radio Gaane',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodhits/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, radio gaane, oldies, melodies',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-nostalgic-bollywood-90s',
+        name: 'Nostalgic Bollywood 90s',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood90s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, 90s, nostalgic bollywood 90s, oldies',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-goldy-evergreen-radio',
+        name: 'Goldy Evergreen Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodkishorekumar/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/asha-bhosle.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, goldy evergreen, evergreen',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-hindi-retro-radio',
+        name: 'Hindi Retro Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood70s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-city-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, hindi ratro, vintage',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-madhur-sangeet-radio',
+        name: 'Madhur Sangeet Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodlove/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mirchi-love-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, madhur sangeet, sangeet',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-divers-fm-classic',
+        name: 'Divers FM Classic',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, divers fm, music',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bollywood-classic-songs',
+        name: 'Bollywood Classic Songs',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodrdburman/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, bollywood classic songs',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-nev-classic',
+        name: 'Radio Nev Classic',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodmukesh/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/mohammed-rafi.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, radionev, classic radio',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-60s-forever-hindi',
+        name: '60s Forever Hindi Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodretro/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/asha-bhosle.jpg',
+        country: 'India',
+        tags: 'hindi, classic, retro, oldies, 60sforever, 60s',
         lastcheckok: 1
     }
 ];
@@ -662,6 +944,24 @@ const CUSTOM_GLOBAL_POP_STATIONS = [
 
 const CUSTOM_NEWS_STATIONS = [
     {
+        stationuuid: 'custom-air-delhi-fm-gold',
+        name: 'AIR Delhi FM Gold',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, air, delhi, fm gold',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-air-news-247',
+        name: 'AIR News 24/7',
+        url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio00264kbps.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
+        country: 'India',
+        tags: 'news, air, 24/7, live news',
+        lastcheckok: 1
+    },
+    {
         stationuuid: 'custom-republic-bharat-tv',
         name: 'Republic Bharat TV',
         url_resolved: 'https://streams.tangotv.in/REPUBLICBHARAT/ORIGIN/index.m3u8',
@@ -707,6 +1007,18 @@ const CUSTOM_NEWS_STATIONS = [
         lastcheckok: 1
     },
     {
+        stationuuid: 'custom-wion-live-tv',
+        name: 'WION LIVE TV',
+        url_resolved: 'https://d7x8z4yuq42qn.cloudfront.net/index_3.m3u8',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/WION_Logo.svg/512px-WION_Logo.svg.png',
+        country: 'India',
+        tags: 'news, tv, english, wion',
+        lastcheckok: 1
+    }
+];
+
+const CUSTOM_AIR_STATIONS = [
+    {
         stationuuid: 'custom-air-delhi-fm-gold',
         name: 'AIR Delhi FM Gold',
         url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8',
@@ -730,7 +1042,7 @@ const CUSTOM_NEWS_STATIONS = [
         url_resolved: 'https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio002_Auto.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
         country: 'India',
-        tags: 'news, air, delhi, indraprastha',
+        tags: 'air, delhi, indraprastha',
         lastcheckok: 1
     },
     {
@@ -739,7 +1051,7 @@ const CUSTOM_NEWS_STATIONS = [
         url_resolved: 'https://radio.wavespb.com/live/deae7120a205bfff/deae7120a205bfff.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
         country: 'India',
-        tags: 'news, akashvani, warangal, regional',
+        tags: 'akashvani, warangal, regional',
         lastcheckok: 1
     },
     {
@@ -748,7 +1060,7 @@ const CUSTOM_NEWS_STATIONS = [
         url_resolved: 'https://radio.wavespb.com/live/3bcd83926d6c3cca/3bcd83926d6c3cca.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
         country: 'India',
-        tags: 'news, akashvani, anantapur, regional',
+        tags: 'akashvani, anantapur, regional',
         lastcheckok: 1
     },
     {
@@ -757,16 +1069,7 @@ const CUSTOM_NEWS_STATIONS = [
         url_resolved: 'https://radio.wavespb.com/live/5d9989b5189a8f4a/5d9989b5189a8f4a.m3u8',
         favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/All_India_Radio_logo.svg/512px-All_India_Radio_logo.svg.png',
         country: 'India',
-        tags: 'news, akashvani, nizamabad, regional',
-        lastcheckok: 1
-    },
-    {
-        stationuuid: 'custom-wion-live-tv',
-        name: 'WION LIVE TV',
-        url_resolved: 'https://d7x8z4yuq42qn.cloudfront.net/index_3.m3u8',
-        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/WION_Logo.svg/512px-WION_Logo.svg.png',
-        country: 'India',
-        tags: 'news, tv, english, wion',
+        tags: 'akashvani, nizamabad, regional',
         lastcheckok: 1
     },
     {
@@ -1026,6 +1329,60 @@ const CUSTOM_DJ_REMIX_STATIONS = [
         country: 'India',
         tags: 'dj remix, remix, bombaybeats, 1.fm, dance, hits',
         lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-club-mirchi',
+        name: 'Club Mirchi (Bollywood DJ Mix)',
+        url_resolved: 'https://drive.uber.radio/uber/filmymirchi/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'dj remix, remix, dance, party, mix, club mirchi, bollywood',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-radio-city-dance-remix',
+        name: 'Radio City Dance Remix',
+        url_resolved: 'https://streamasiacdn.atc-labs.com/radiocitydance.aac',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-city-hindi.jpg',
+        country: 'India',
+        tags: 'dj remix, remix, dance, edm, party, mix, radio city',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bollywood-edm-radio',
+        name: 'Bollywood EDM Radio',
+        url_resolved: 'https://drive.uber.radio/uber/bollywoodworkout/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-hits.jpg',
+        country: 'India',
+        tags: 'dj remix, remix, dance, edm, electronic, party, mix',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-desi-dj-mashup',
+        name: 'Desi DJ Mashup Radio',
+        url_resolved: 'https://s6.yesstreaming.net/proxy/john1237?mp=/live',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/bollywood-beyond.jpg',
+        country: 'India',
+        tags: 'dj remix, remix, mashup, dance, party, mix, bass',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-retro-bollywood-dj-remix',
+        name: 'Retro Bollywood DJ Remix',
+        url_resolved: 'https://drive.uber.radio/uber/bollywood90s/icecast.audio',
+        favicon: 'https://onlineradiohub.com/wp-content/uploads/2023/06/radio-mirchi-hindi.jpg',
+        country: 'India',
+        tags: 'dj remix, remix, retro, 90s, dance, party, mix',
+        lastcheckok: 1
+    },
+    {
+        stationuuid: 'custom-bollywood-party-club-mix',
+        name: 'Bollywood Party Club Mix',
+        url_resolved: 'https://strmreg.1.fm/bombaybeats_mobile_mp3',
+        favicon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/1.FM_Logo.svg/512px-1.FM_Logo.svg.png',
+        country: 'India',
+        tags: 'dj remix, remix, party, club, dance, mix, bollywood',
+        lastcheckok: 1
     }
 ];
 
@@ -1222,154 +1579,20 @@ const timerBadge = document.getElementById('timer-badge');
 const gridViewBtn = document.getElementById('grid-view-btn');
 const listViewBtn = document.getElementById('list-view-btn');
 
-// Hero Volume Drag Overlay DOM Elements & State
-const heroVolOverlay = document.getElementById('hero-volume-overlay');
-const heroVolText = document.getElementById('hero-volume-text');
-
-let isDraggingHeroVol = false;
-let volDragStartX = 0;
-let volDragStartValue = 30;
-let volHudTimeout = null;
-
-function showHeroVolumeHUD(value) {
-    if (!heroVolOverlay || !heroVolText) return;
-    heroVolText.textContent = `${value}%`;
-    heroVolOverlay.classList.add('visible');
-
-    clearTimeout(volHudTimeout);
-    volHudTimeout = setTimeout(() => {
-        if (!isDraggingHeroVol) {
-            heroVolOverlay.classList.remove('visible');
-        }
-    }, 1200);
-}
-
-function setupHeroVolumeDrag() {
-    const heroSec = document.getElementById('hero-section') || document.querySelector('.hero-section');
-    if (!heroSec) return;
-
-    let volDragStartY = 0;
-    let scrollStartTop = 0;
-    let dragDirectionLocked = null; // 'horizontal' | 'vertical' | null
-
-    // Mouse Drag
-    heroSec.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn')) {
-            return;
-        }
-        isDraggingHeroVol = true;
-        dragDirectionLocked = null;
-        volDragStartX = e.clientX;
-        volDragStartY = e.clientY;
-        scrollStartTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-        volDragStartValue = currentVolumeLevel;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDraggingHeroVol) return;
-
-        const deltaX = e.clientX - volDragStartX;
-        const deltaY = e.clientY - volDragStartY;
-
-        if (!dragDirectionLocked) {
-            if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
-                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-                    dragDirectionLocked = 'horizontal';
-                    if (heroSec) heroSec.classList.add('is-dragging-vol');
-                    updateVolume(volDragStartValue, true);
-                } else {
-                    dragDirectionLocked = 'vertical';
-                }
-            }
-        }
-
-        if (dragDirectionLocked === 'horizontal') {
-            e.preventDefault();
-            const volChange = Math.round(deltaX * 0.35);
-            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
-            updateVolume(newVol, true);
-        } else if (dragDirectionLocked === 'vertical') {
-            window.scrollTo(0, scrollStartTop - deltaY);
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (isDraggingHeroVol) {
-            isDraggingHeroVol = false;
-            dragDirectionLocked = null;
-            if (heroSec) heroSec.classList.remove('is-dragging-vol');
-            volHudTimeout = setTimeout(() => {
-                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
-            }, 1000);
-        }
-    });
-
-    // Touch Drag
-    heroSec.addEventListener('touchstart', (e) => {
-        if (e.target.closest('button, input, a, label, .viz-btn, .fav-heart-btn')) {
-            return;
-        }
-        if (e.touches.length === 1) {
-            isDraggingHeroVol = true;
-            dragDirectionLocked = null;
-            volDragStartX = e.touches[0].clientX;
-            volDragStartY = e.touches[0].clientY;
-            volDragStartValue = currentVolumeLevel;
-        }
-    }, { passive: true });
-
-    heroSec.addEventListener('touchmove', (e) => {
-        if (!isDraggingHeroVol || e.touches.length !== 1) return;
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        const deltaX = currentX - volDragStartX;
-        const deltaY = currentY - volDragStartY;
-
-        if (!dragDirectionLocked) {
-            if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
-                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-                    dragDirectionLocked = 'horizontal';
-                    if (heroSec) heroSec.classList.add('is-dragging-vol');
-                    updateVolume(volDragStartValue, true);
-                } else {
-                    dragDirectionLocked = 'vertical';
-                }
-            }
-        }
-
-        if (dragDirectionLocked === 'horizontal') {
-            if (e.cancelable) e.preventDefault();
-            const volChange = Math.round(deltaX * 0.35);
-            let newVol = Math.min(100, Math.max(0, volDragStartValue + volChange));
-            updateVolume(newVol, true);
-        }
-    }, { passive: false });
-
-    const endTouch = () => {
-        if (isDraggingHeroVol) {
-            isDraggingHeroVol = false;
-            dragDirectionLocked = null;
-            if (heroSec) heroSec.classList.remove('is-dragging-vol');
-            volHudTimeout = setTimeout(() => {
-                if (heroVolOverlay) heroVolOverlay.classList.remove('visible');
-            }, 1000);
-        }
-    };
-
-    heroSec.addEventListener('touchend', endTouch);
-    heroSec.addEventListener('touchcancel', endTouch);
-}
-
 // Initialize Application
 function init() {
     setupEventListeners();
     setupStationAudioAura();
-    setupHeroVolumeDrag();
     fetchStations('', 'India');
     renderPlaylist();
     updateVolume(30);
     loadTheme();
     setupStatusObserver();
+    initVUMeters();
+    initRotaryKnobs();
+    initReceiverTogglesAndPresets();
+    initHorizontalStationScrollDrag();
+    initNeedleDrag();
 }
 
 function setupStatusObserver() {
@@ -1408,20 +1631,25 @@ function showToast(message, icon = 'info') {
 
 function setupEventListeners() {
     // Search
-    searchBtn.addEventListener('click', performSearch);
-    searchInput.addEventListener('input', () => {
-        clearSearchBtn.style.display = searchInput.value.trim() ? 'flex' : 'none';
-    });
-    clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearSearchBtn.style.display = 'none';
-        fetchStations('', currentMode === 'India' ? 'India' : '');
-    });
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch();
-    });
+    if (searchBtn) searchBtn.addEventListener('click', performSearch);
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            if (clearSearchBtn) clearSearchBtn.style.display = searchInput.value.trim() ? 'flex' : 'none';
+        });
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+    }
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            fetchStations('', currentMode === 'India' ? 'India' : '');
+        });
+    }
 
     function performSearch() {
+        if (!searchInput) return;
         const query = searchInput.value.trim();
         const country = currentMode === 'India' ? 'India' : '';
         fetchStations(query, country);
@@ -1430,8 +1658,8 @@ function setupEventListeners() {
 
     // Mode Toggle (India / Global)
     modeToggleBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearSearchBtn.style.display = 'none';
+        if (searchInput) searchInput.value = '';
+        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
         if (currentMode === 'India') {
             currentMode = 'Global';
             modeToggleText.textContent = 'Global';
@@ -1552,16 +1780,18 @@ function setupEventListeners() {
     themeToggle.addEventListener('click', toggleTheme);
 
     // Playback Controls
-    playPauseBtn.addEventListener('click', togglePlay);
-    prevBtn.addEventListener('click', playPrevious);
-    nextBtn.addEventListener('click', playNext);
+    if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlay);
+    if (prevBtn) prevBtn.addEventListener('click', playPrevious);
+    if (nextBtn) nextBtn.addEventListener('click', playNext);
 
     // Playlist Add / Heart Button
-    addToPlaylistBtn.addEventListener('click', () => {
-        if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
-            togglePlaylistStation(currentStations[currentStationIndex]);
-        }
-    });
+    if (addToPlaylistBtn) {
+        addToPlaylistBtn.addEventListener('click', () => {
+            if (currentStationIndex >= 0 && currentStations[currentStationIndex]) {
+                togglePlaylistStation(currentStations[currentStationIndex]);
+            }
+        });
+    }
 
     // FX Toggles
     if (eqHdBtn) eqHdBtn.addEventListener('click', toggleHDEQ);
@@ -1612,8 +1842,10 @@ function setupEventListeners() {
     audioPlayer.onplay = () => {
         ensureAudioContextResumed();
         applyAudioFXSettings();
-        playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
-        lucide.createIcons();
+        if (playPauseBtn) {
+            playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
+            lucide.createIcons();
+        }
         playerStatus.textContent = 'Playing';
         if (nowPlayingCard) nowPlayingCard.classList.add('playing');
         requestWakeLock();
@@ -1635,8 +1867,10 @@ function setupEventListeners() {
             clearTimeout(playCheckTimeout);
             playCheckTimeout = null;
         }
-        playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
-        lucide.createIcons();
+        if (playPauseBtn) {
+            playPauseBtn.innerHTML = '<i data-lucide="play" id="play-icon"></i>';
+            lucide.createIcons();
+        }
         playerStatus.textContent = 'Paused';
         if (nowPlayingCard) nowPlayingCard.classList.remove('playing');
         releaseWakeLock();
@@ -1697,7 +1931,7 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_HINDI_STATIONS, ...resp];
         } else if (lowerTag === 'classic' || lowerTag === 'old' || lowerTag === 'retro' || lowerQuery.includes('classic') || lowerQuery.includes('old') || lowerQuery.includes('retro')) {
-            const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS];
+            const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS, ...CUSTOM_AIR_STATIONS];
             const classicCustom = allCustom.filter(s => {
                 if (!s.tags) return false;
                 const t = s.tags.toLowerCase();
@@ -1706,14 +1940,14 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...classicCustom, ...resp];
         } else if (lowerTag === 'air' || lowerTag === 'all india radio' || lowerTag === 'akashvani' || lowerTag.includes('rainbow') || lowerQuery === 'air' || lowerQuery.includes('all india radio') || lowerQuery.includes('akashvani') || lowerQuery.includes('rainbow')) {
-            const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS];
+            const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS, ...CUSTOM_AIR_STATIONS];
             const airCustom = allCustom.filter(s => {
                 if (!s.tags) return false;
                 const t = s.tags.toLowerCase();
                 return t.includes('air') || t.includes('all india radio') || t.includes('akashvani') || t.includes('rainbow');
             });
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
-            currentStations = [...airCustom, ...resp];
+            currentStations = [...CUSTOM_AIR_STATIONS, ...airCustom, ...resp];
         } else if (lowerTag === 'bhakti' || lowerTag === 'devotional' || lowerQuery.includes('bhakti')) {
             const resp = await fetch(url).then(r => r.json()).catch(() => []);
             currentStations = [...CUSTOM_BHAKTI_STATIONS, ...resp];
@@ -1746,7 +1980,7 @@ async function fetchStations(query = '', country = '', tag = '', autoPlay = fals
             const response = await fetch(url);
             const apiRes = await response.json().catch(() => []);
             if (country === 'India' || currentMode === 'India') {
-                const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS];
+                const allCustom = [...CUSTOM_HINDI_STATIONS, ...CUSTOM_BANGLA_STATIONS, ...CUSTOM_NEWS_STATIONS, ...CUSTOM_BHAKTI_STATIONS, ...CUSTOM_SINGER_STATIONS, ...CUSTOM_GHAZAL_STATIONS, ...CUSTOM_PUNJABI_STATIONS, ...CUSTOM_DJ_REMIX_STATIONS, ...CUSTOM_AIR_STATIONS];
                 if (query || tag) {
                     const matchedCustom = allCustom.filter(s => {
                         let matchQ = true;
@@ -1844,246 +2078,53 @@ function renderStations() {
         return;
     }
 
+    const isGrid = stationsGrid.classList.contains('grid-layout');
     stationsGrid.innerHTML = currentStations.map((station, index) => {
-        const isFav = currentPlaylist.some(s => s.stationuuid === station.stationuuid);
-        const nameUpper = (station.name || '').toUpperCase();
-        return `
-            <div class="station-item ${currentStationIndex === index && currentSource === 'search' ? 'active' : ''}" onclick="playStation(${index}, 'search', this)">
-                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="eager" onerror="this.src='${DEFAULT_LOGO}';">
-                <div class="item-info">
-                    <h4>${nameUpper}</h4>
-                    <p>${station.country || 'Global'} • ${station.tags ? station.tags.split(',')[0] : 'FM'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="icon-btn" onclick="event.stopPropagation(); togglePlaylistById('${station.stationuuid}')" title="${isFav ? 'Remove Favorite' : 'Add Favorite'}">
-                        <i data-lucide="${isFav ? 'heart' : 'plus-circle'}" style="${isFav ? 'color: var(--accent-color)' : ''}"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-    updateQueueInfo();
-    lucide.createIcons();
-}
+        const isFav = favorites.some(f => f.stationuuid === station.stationuuid);
+        const isPlaying = currentStation && currentStation.stationuuid === station.stationuuid;
+        const logoSrc = getStationLogo(station);
+        const stName = escapeHtml(station.name || 'Unknown Station');
+        const stTags = escapeHtml(station.tags || '');
 
-function renderPlaylist() {
-    const isFavEmpty = currentPlaylist.length === 0;
-    const playlistHTML = isFavEmpty
-        ? `<div class="empty-state"><i data-lucide="list-music"></i><p>No favorite stations saved</p></div>`
-        : currentPlaylist.map((station, index) => {
-            const nameUpper = (station.name || '').toUpperCase();
+        if (isGrid) {
             return `
-            <div class="station-item" onclick="playStation(${index}, 'playlist', this)">
-                <img src="${station.favicon || DEFAULT_LOGO}" class="list-img" loading="eager" onerror="this.src='${DEFAULT_LOGO}';">
-                <div class="item-info">
-                    <h4>${nameUpper}</h4>
-                    <p>${station.country || 'Custom Station'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="icon-btn" onclick="event.stopPropagation(); removeFromPlaylist(${index})">
-                        <i data-lucide="trash-2" style="color: var(--accent-color)"></i>
+                <div class="station-card ${isPlaying ? 'playing' : ''}" onclick="playStation(${index}, 'search')">
+                    <div class="card-img-wrapper">
+                        <img src="${logoSrc}" class="card-img" loading="eager" onerror="handleLogoError(this, '${stName}', '${stTags}')">
+                        <div class="card-play-overlay">
+                            <i data-lucide="${isPlaying ? 'pause' : 'play'}"></i>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <h4 class="card-title">${stName}</h4>
+                        <p class="card-tags">${stTags}</p>
+                    </div>
+                    <button class="fav-heart-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${station.stationuuid}')">
+                        <i data-lucide="heart"></i>
                     </button>
                 </div>
-            </div>
-        `;
-        }).join('');
-
-    if (quickPlaylistList) quickPlaylistList.innerHTML = playlistHTML;
-    if (fullPlaylistList) fullPlaylistList.innerHTML = playlistHTML;
-    if (playlistCountBadge) playlistCountBadge.textContent = currentPlaylist.length;
-    if (quickFavCount) quickFavCount.textContent = `${currentPlaylist.length} items`;
-
-    updateQueueInfo();
-    lucide.createIcons();
-}
-
-function switchView(target) {
-    mainTabs.forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.tab === target);
-    });
-    Object.keys(views).forEach(key => {
-        if (views[key]) views[key].style.display = key === target ? 'block' : 'none';
-    });
-}
-
-// Playback Engine - Instant Super Fast Radio Playback
-function playStation(index, source = 'search', element = null) {
-    ensureAudioContextResumed();
-    currentSource = source;
-    const list = source === 'search' ? currentStations : currentPlaylist;
-    const station = list[index];
-    if (!station) return;
-
-    currentStationIndex = index;
-    updatePlayerUI(station);
-
-    const streamUrl = station.url_resolved || station.url;
-    if (!streamUrl) return;
-
-    // Clear existing play check timeout if any
-    if (playCheckTimeout) {
-        clearTimeout(playCheckTimeout);
-        playCheckTimeout = null;
-    }
-
-    // Set 4.5 second auto-skip timeout if station does not start playing
-    playCheckTimeout = setTimeout(() => {
-        if (audioPlayer.paused || audioPlayer.currentTime === 0 || audioPlayer.readyState < 3) {
-            console.warn('Station did not play within 4.5 seconds. Auto-skipping to next station...');
-            if (playerStatus) playerStatus.textContent = 'Stream Timeout - Playing Next...';
-            playNext();
+            `;
+        } else {
+            return `
+                <div class="station-item ${isPlaying ? 'playing' : ''}" onclick="playStation(${index}, 'search')">
+                    <img src="${logoSrc}" class="list-img" loading="eager" onerror="handleLogoError(this, '${stName}', '${stTags}')">
+                    <div class="list-info">
+                        <h4>${stName}</h4>
+                        <p>${stTags}</p>
+                    </div>
+                    <button class="fav-heart-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${station.stationuuid}')">
+                        <i data-lucide="heart"></i>
+                    </button>
+                </div>
+            `;
         }
-    }, 4500);
+    }).join('');
 
-    // Instant status and visual feedback
-    if (playerStatus) playerStatus.textContent = 'Connecting...';
-    if (nowPlayingCard) nowPlayingCard.classList.add('playing');
-    if (playPauseBtn) {
-        playPauseBtn.innerHTML = '<i data-lucide="pause" id="play-icon"></i>';
-        if (window.lucide) lucide.createIcons();
-    }
-
-    // Configure fast audio player attributes
-    audioPlayer.preload = 'auto';
-    audioPlayer.autoplay = true;
-
-    // Destroy existing HLS instance if any
-    if (hlsInstance) {
-        hlsInstance.destroy();
-        hlsInstance = null;
-    }
-
-    // Fast HLS Stream (.m3u8) Playback Optimization
-    if (streamUrl.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
-        hlsInstance = new Hls({
-            enableWorker: true,
-            lowLatencyMode: true,
-            backBufferLength: 10,
-            maxBufferLength: 3,
-            maxMaxBufferLength: 6,
-            liveSyncDurationCount: 2,
-            liveMaxLatencyDurationCount: 4,
-            startFragPrefetch: true
-        });
-        hlsInstance.loadSource(streamUrl);
-        hlsInstance.attachMedia(audioPlayer);
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-            audioPlayer.play().catch(e => console.warn('Autoplay error:', e));
-        });
-        hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-                switch (data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR:
-                        hlsInstance.startLoad();
-                        break;
-                    case Hls.ErrorTypes.MEDIA_ERROR:
-                        hlsInstance.recoverMediaError();
-                        break;
-                    default:
-                        hlsInstance.destroy();
-                        hlsInstance = null;
-                        audioPlayer.src = streamUrl;
-                        audioPlayer.play().catch(e => console.warn('Direct fallback error:', e));
-                        break;
-                }
-            }
-        });
-    } else {
-        audioPlayer.src = streamUrl;
-        audioPlayer.play().catch(e => {
-            console.warn('Autoplay blocked:', e);
-            if (playerStatus) playerStatus.textContent = 'Click Play to Listen';
-        });
-    }
-
-    const items = document.querySelectorAll('.station-item');
-    items.forEach(item => item.classList.remove('active'));
-    if (element) element.classList.add('active');
-}
-
-
-function updateQueueInfo() {
-    const queuePrevItem = document.getElementById('queue-prev-item');
-    const queueNextItem = document.getElementById('queue-next-item');
-    const queuePrevName = document.getElementById('queue-prev-name');
-    const queueNextName = document.getElementById('queue-next-name');
-
-    const list = currentSource === 'search' ? currentStations : currentPlaylist;
-    if (!list || list.length === 0) {
-        if (queuePrevName) queuePrevName.textContent = '--';
-        if (queueNextName) queueNextName.textContent = '--';
-        return;
-    }
-
-    const idx = (currentStationIndex >= 0 && currentStationIndex < list.length) ? currentStationIndex : 0;
-    const prevIndex = (idx - 1 + list.length) % list.length;
-    const nextIndex = (idx + 1) % list.length;
-
-    const prevStation = list[prevIndex];
-    const nextStation = list[nextIndex];
-
-    if (queuePrevName) queuePrevName.textContent = prevStation ? prevStation.name.toUpperCase() : '--';
-    if (queueNextName) queueNextName.textContent = nextStation ? nextStation.name.toUpperCase() : '--';
-
-    // Reset rotation state: start with NEXT showing first
-    showingNextInQueue = true;
-    if (queueNextItem && queuePrevItem) {
-        queueNextItem.style.display = 'inline-flex';
-        queuePrevItem.style.display = 'none';
-    }
-
-    // Set 3-second alternating toggle interval
-    if (queueTickerInterval) clearInterval(queueTickerInterval);
-    queueTickerInterval = setInterval(() => {
-        showingNextInQueue = !showingNextInQueue;
-        if (queueNextItem && queuePrevItem) {
-            if (showingNextInQueue) {
-                queueNextItem.style.display = 'inline-flex';
-                queuePrevItem.style.display = 'none';
-            } else {
-                queueNextItem.style.display = 'none';
-                queuePrevItem.style.display = 'inline-flex';
-            }
-        }
-    }, 3000);
-}
-
-function updatePlayerUI(station) {
-    const name = (station.name || 'Unknown Station').toUpperCase();
-    const country = station.country || 'Global';
-    const tags = station.tags ? station.tags.split(',').slice(0, 2).join(', ') : 'FM Radio';
-    const img = station.favicon || DEFAULT_LOGO;
-
-    if (currentStationName) currentStationName.textContent = name;
-    if (currentStationMeta) currentStationMeta.textContent = `${country} • ${tags}`;
-    if (currentStationImg) {
-        currentStationImg.src = img;
-        currentStationImg.onerror = () => { currentStationImg.src = DEFAULT_LOGO; };
-    }
-
-    const isFav = currentPlaylist.some(s => s.stationuuid === station.stationuuid);
-    if (favHeartIcon) {
-        favHeartIcon.setAttribute('data-lucide', isFav ? 'heart' : 'heart-off');
-        if (addToPlaylistBtn) {
-            addToPlaylistBtn.style.color = isFav ? 'var(--accent-color)' : '#fff';
-        }
-    }
-    updateQueueInfo();
-    lucide.createIcons();
-}
-
-function togglePlay() {
-    ensureAudioContextResumed();
-    if (audioPlayer.paused) {
-        if (!audioPlayer.src && currentStations.length > 0) {
-            playStation(0, 'search');
-        } else if (audioPlayer.src) {
-            audioPlayer.play().catch(e => console.warn(e));
-        }
-    } else {
-        audioPlayer.pause();
+    if (window.lucide) {
+        lucide.createIcons();
     }
 }
+
 
 function playNext() {
     const list = currentSource === 'search' ? currentStations : currentPlaylist;
@@ -2100,13 +2141,33 @@ function playPrevious() {
 }
 
 // Volume Controls
-function updateVolume(value, showHUD = false) {
+function syncAllVolumeKnobUIs(volPct) {
+    const valRatio = volPct / 100;
+    const angle = -135 + valRatio * 270;
+
+    // Faceplate knob
+    const faceplateKnob = document.getElementById('knob-volume');
+    if (faceplateKnob) {
+        const dial = faceplateKnob.querySelector('.knob-dial');
+        if (dial) dial.style.transform = `rotate(${angle}deg)`;
+    }
+    const faceplateDisp = document.getElementById('volume-val-display');
+    if (faceplateDisp) faceplateDisp.textContent = `${volPct}%`;
+
+    // Dock knob
+    const dockKnob = document.getElementById('dock-knob-volume');
+    if (dockKnob) {
+        const dial = dockKnob.querySelector('.knob-dial');
+        if (dial) dial.style.transform = `rotate(${angle}deg)`;
+    }
+    const dockDisp = document.getElementById('dock-volume-val');
+    if (dockDisp) dockDisp.textContent = `${volPct}%`;
+}
+
+function updateVolume(value) {
     currentVolumeLevel = Math.min(100, Math.max(0, parseInt(value) || 0));
     applyAudioFXSettings();
-
-    if (showHUD && typeof showHeroVolumeHUD === 'function') {
-        showHeroVolumeHUD(currentVolumeLevel);
-    }
+    syncAllVolumeKnobUIs(currentVolumeLevel);
 }
 
 // Playlist Functions
@@ -2196,18 +2257,28 @@ function toggleVolBoost(e) {
 
 function toggleSmartAutoScan() {
     isSmartScanning = !isSmartScanning;
+    const presetAutoScanBtn = document.getElementById('preset-btn-autoscan');
+    if (presetAutoScanBtn) {
+        presetAutoScanBtn.classList.toggle('active', isSmartScanning);
+        presetAutoScanBtn.textContent = isSmartScanning ? 'STOP SCAN' : 'AUTO SCAN';
+    }
+
     if (isSmartScanning) {
-        smartAutoScanBtn.innerHTML = '<i data-lucide="stop-circle"></i><span>Stop Scan</span>';
-        smartAutoScanBtn.style.background = 'var(--accent-color)';
-        smartAutoScanBtn.style.color = '#fff';
-        lucide.createIcons();
+        if (smartAutoScanBtn) {
+            smartAutoScanBtn.innerHTML = '<i data-lucide="stop-circle"></i><span>Stop Scan</span>';
+            smartAutoScanBtn.style.background = 'var(--accent-color)';
+            smartAutoScanBtn.style.color = '#fff';
+            lucide.createIcons();
+        }
         showToast('Auto Scan Started', 'zap');
         playSmartScanStation();
     } else {
-        smartAutoScanBtn.innerHTML = '<i data-lucide="zap"></i><span>Auto Scan</span>';
-        smartAutoScanBtn.style.background = '';
-        smartAutoScanBtn.style.color = '';
-        lucide.createIcons();
+        if (smartAutoScanBtn) {
+            smartAutoScanBtn.innerHTML = '<i data-lucide="zap"></i><span>Auto Scan</span>';
+            smartAutoScanBtn.style.background = '';
+            smartAutoScanBtn.style.color = '';
+            lucide.createIcons();
+        }
         clearTimeout(smartScanTimeout);
         showToast('Auto Scan Stopped', 'stop-circle');
     }
@@ -2304,6 +2375,524 @@ function toggleBothSections(btn) {
     if (window.lucide) {
         lucide.createIcons();
     }
+}
+
+/* ==========================================================================
+   MODEL SX-1970 VINTAGE STEREO RECEIVER ENGINE & INTERACTION
+   ========================================================================== */
+
+let vuCanvasLeft, vuCtxLeft, vuCanvasRight, vuCtxRight;
+let leftNeedleVal = 0, rightNeedleVal = 0;
+let leftNeedleTarget = 0, rightNeedleTarget = 0;
+let currentTunedFreq = 88.0;
+let bassGainValue = 0;
+
+// Dual VU Meters Canvas Rendering
+function initVUMeters() {
+    vuCanvasLeft = document.getElementById('vu-meter-left');
+    vuCanvasRight = document.getElementById('vu-meter-right');
+    if (!vuCanvasLeft || !vuCanvasRight) return;
+
+    vuCtxLeft = vuCanvasLeft.getContext('2d');
+    vuCtxRight = vuCanvasRight.getContext('2d');
+
+    function drawVUGauge(ctx, title, needleVal, isRightMeter) {
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const cx = w / 2;
+        const cy = h + 25;
+        const radius = h * 0.92;
+
+        // Arc scale dots & lines
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, Math.PI * 1.22, Math.PI * 1.78, false);
+        ctx.strokeStyle = '#2d1f03';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([3, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Ticks and Numbers
+        ctx.fillStyle = '#2d1f03';
+        ctx.font = 'bold 11px Orbitron, monospace';
+        ctx.textAlign = 'center';
+
+        if (!isRightMeter) {
+            // Signal / Left Meter scale: 0, 5, 10
+            const angles = [Math.PI * 1.25, Math.PI * 1.5, Math.PI * 1.75];
+            const labels = ['0', '5', '10'];
+            angles.forEach((angle, idx) => {
+                const tx = cx + Math.cos(angle) * (radius - 16);
+                const ty = cy + Math.sin(angle) * (radius - 16);
+                ctx.fillText(labels[idx], tx, ty);
+            });
+        } else {
+            // Tuning / Right Meter scale: L, Center, R
+            const angles = [Math.PI * 1.28, Math.PI * 1.5, Math.PI * 1.72];
+            const labels = ['L', 'Center', 'R'];
+            angles.forEach((angle, idx) => {
+                const tx = cx + Math.cos(angle) * (radius - 16);
+                const ty = cy + Math.sin(angle) * (radius - 16);
+                if (labels[idx] === 'Center') {
+                    ctx.fillStyle = '#057a37';
+                    ctx.fillText(labels[idx], tx, ty + 2);
+                    ctx.fillStyle = '#2d1f03';
+                } else {
+                    ctx.fillText(labels[idx], tx, ty);
+                }
+            });
+        }
+
+        // Sweeping Red Needle
+        const needleAngle = Math.PI * 1.25 + needleVal * (Math.PI * 0.5);
+        const nx = cx + Math.cos(needleAngle) * (radius + 5);
+        const ny = cy + Math.sin(needleAngle) * (radius + 5);
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(255, 42, 42, 0.6)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.strokeStyle = '#ff2a2a';
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Needle Pivot
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#1c1404';
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function renderVULoop() {
+        const isPlaying = !audioPlayer.paused && audioPlayer.readyState >= 3;
+
+        if (isPlaying) {
+            // Get audio signal amplitude if analyser exists
+            if (typeof analyserNode !== 'undefined' && analyserNode && typeof dataArray !== 'undefined' && dataArray) {
+                analyserNode.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                let avg = sum / dataArray.length / 255;
+                leftNeedleTarget = 0.2 + avg * 0.75 + (Math.random() * 0.08 - 0.04);
+                rightNeedleTarget = 0.5 + (Math.sin(Date.now() * 0.003) * 0.25) * (0.5 + avg * 0.5);
+            } else {
+                const time = Date.now() * 0.005;
+                leftNeedleTarget = 0.35 + (Math.sin(time * 3) * 0.2 + Math.cos(time * 5) * 0.15);
+                rightNeedleTarget = 0.5 + (Math.sin(time * 2) * 0.2);
+            }
+        } else {
+            leftNeedleTarget = 0.02;
+            rightNeedleTarget = 0.1;
+        }
+
+        leftNeedleVal += (leftNeedleTarget - leftNeedleVal) * 0.15;
+        rightNeedleVal += (rightNeedleTarget - rightNeedleVal) * 0.15;
+
+        drawVUGauge(vuCtxLeft, 'SIGNAL / LEFT', Math.max(0, Math.min(1, leftNeedleVal)), false);
+        drawVUGauge(vuCtxRight, 'TUNING / RIGHT', Math.max(0, Math.min(1, rightNeedleVal)), true);
+
+        requestAnimationFrame(renderVULoop);
+    }
+
+    renderVULoop();
+}
+
+// FM Dial Scale Needle Sync
+function updateFMDialAndNeedle(freq) {
+    currentTunedFreq = Math.max(88.0, Math.min(108.0, freq));
+    const needle = document.getElementById('dial-needle');
+    const tuningValDisp = document.getElementById('tuning-val-display');
+
+    const pct = ((currentTunedFreq - 88.0) / 20.0) * 100;
+    if (needle) needle.style.left = `${pct}%`;
+    if (tuningValDisp) tuningValDisp.textContent = `${currentTunedFreq.toFixed(1)} MHz`;
+
+    // Rotate Tuning Knob UI
+    const knobTuning = document.getElementById('knob-tuning');
+    if (knobTuning) {
+        const angle = -135 + (pct / 100) * 270;
+        const dial = knobTuning.querySelector('.knob-dial');
+        if (dial) dial.style.transform = `rotate(${angle}deg)`;
+    }
+}
+
+function syncFMFreqFromStationIndex(index) {
+    const list = currentSource === 'search' ? currentStations : currentPlaylist;
+    if (list.length === 0) return;
+    const count = Math.max(1, list.length - 1);
+    const freq = 88.0 + (index / count) * 20.0;
+    updateFMDialAndNeedle(freq);
+}
+
+// Skeuomorphic Draggable Rotary Knobs
+function initRotaryKnobs() {
+    const volumeKnob = document.getElementById('knob-volume');
+    const dockVolumeKnob = document.getElementById('dock-knob-volume');
+    const tuningKnob = document.getElementById('knob-tuning');
+    const bassKnob = document.getElementById('knob-bass');
+
+    function setupKnobDrag(knobElem, getInitialVal, onUpdate) {
+        if (!knobElem) return;
+        let isDragging = false;
+
+        function getAngleValue(x, y) {
+            const rect = knobElem.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = x - cx;
+            const dy = y - cy;
+
+            // Angle in degrees where 0deg is straight UP (12 o'clock)
+            let deg = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+            if (deg > 180) deg -= 360;
+
+            // Knob dial range is -135deg (0%) to +135deg (100%)
+            if (deg < -135) {
+                deg = (deg < -157.5) ? 135 : -135;
+            } else if (deg > 135) {
+                deg = (deg > 157.5) ? -135 : 135;
+            }
+
+            const val = (deg + 135) / 270;
+            return Math.max(0, Math.min(1, val));
+        }
+
+        function updateFromAngle(x, y) {
+            const val = getAngleValue(x, y);
+            const angle = -135 + val * 270;
+            const dial = knobElem.querySelector('.knob-dial');
+            if (dial) dial.style.transform = `rotate(${angle}deg)`;
+            onUpdate(val);
+        }
+
+        // Mouse Drag & Click
+        knobElem.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            updateFromAngle(e.clientX, e.clientY);
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            updateFromAngle(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Touch Drag & Tap
+        knobElem.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                updateFromAngle(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            updateFromAngle(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => { isDragging = false; });
+        document.addEventListener('touchcancel', () => { isDragging = false; });
+
+        // Mouse wheel support
+        knobElem.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const current = typeof getInitialVal === 'function' ? getInitialVal() : getInitialVal;
+            const deltaY = e.deltaY > 0 ? -0.04 : 0.04;
+            const newVal = Math.max(0, Math.min(1, current + deltaY));
+            const angle = -135 + newVal * 270;
+            const dial = knobElem.querySelector('.knob-dial');
+            if (dial) dial.style.transform = `rotate(${angle}deg)`;
+            onUpdate(newVal);
+        }, { passive: false });
+    }
+
+    // 1. Volume Knobs (Faceplate & Dock)
+    function bindVolumeKnob(elem) {
+        if (!elem) return;
+        setupKnobDrag(elem, () => currentVolumeLevel / 100, (val) => {
+            const volPct = Math.round(val * 100);
+            updateVolume(volPct);
+        });
+    }
+
+    bindVolumeKnob(volumeKnob);
+    bindVolumeKnob(dockVolumeKnob);
+
+    syncAllVolumeKnobUIs(currentVolumeLevel);
+
+    // 2. Tuning Knob
+    if (tuningKnob) {
+        let tuneDebounce;
+        setupKnobDrag(tuningKnob, 0, (val) => {
+            const freq = 88.0 + val * 20.0;
+            updateFMDialAndNeedle(freq);
+
+            clearTimeout(tuneDebounce);
+            tuneDebounce = setTimeout(() => {
+                const list = currentSource === 'search' ? currentStations : currentPlaylist;
+                if (list.length > 0) {
+                    const targetIdx = Math.round(val * (list.length - 1));
+                    if (targetIdx !== currentStationIndex) {
+                        playStation(targetIdx, currentSource);
+                    }
+                }
+            }, 300);
+        });
+    }
+
+    // 3. Bass Knob
+    if (bassKnob) {
+        setupKnobDrag(bassKnob, 0.5, (val) => {
+            bassGainValue = Math.round((val - 0.5) * 20); // -10 to +10 dB
+            const disp = document.getElementById('bass-val-display');
+            if (disp) disp.textContent = bassGainValue > 0 ? `+${bassGainValue}` : `${bassGainValue}`;
+            if (typeof applyAudioFXSettings === 'function') applyAudioFXSettings();
+        });
+    }
+}
+
+// Receiver Toggles & Presets
+function initReceiverTogglesAndPresets() {
+    const btnPwr = document.getElementById('btn-toggle-pwr');
+    const btnSt = document.getElementById('btn-toggle-st');
+    const btnMut = document.getElementById('btn-toggle-mut');
+
+    if (btnPwr) {
+        btnPwr.addEventListener('click', () => {
+            playPrevious();
+            btnPwr.classList.add('active');
+            setTimeout(() => btnPwr.classList.remove('active'), 200);
+        });
+    }
+
+    if (btnSt) {
+        btnSt.addEventListener('click', () => {
+            togglePlay();
+        });
+    }
+
+    if (btnMut) {
+        btnMut.addEventListener('click', () => {
+            playNext();
+            btnMut.classList.add('active');
+            setTimeout(() => btnMut.classList.remove('active'), 200);
+        });
+    }
+
+    // Audio Player State Sync with ST button (Play/Pause indicator)
+    audioPlayer.addEventListener('play', () => {
+        if (btnSt) {
+            btnSt.classList.add('active');
+            const icon = btnSt.querySelector('i[data-lucide], svg[data-lucide]');
+            if (icon) {
+                icon.setAttribute('data-lucide', 'pause');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    });
+    audioPlayer.addEventListener('pause', () => {
+        if (btnSt) {
+            btnSt.classList.remove('active');
+            const icon = btnSt.querySelector('i[data-lucide], svg[data-lucide]');
+            if (icon) {
+                icon.setAttribute('data-lucide', 'play');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    });
+
+    // Preset buttons (Auto Scan, Discover, Playlist, Refresh)
+    const presetBtns = document.querySelectorAll('.preset-btn');
+    presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const presetAction = btn.getAttribute('data-preset');
+            presetBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (presetAction === 'autoscan') {
+                toggleSmartAutoScan();
+            } else if (presetAction === 'discover') {
+                switchView('discovery');
+            } else if (presetAction === 'playlist') {
+                switchView('playlist');
+            } else if (presetAction === 'refresh') {
+                fetchStations(lastQuery, lastCountry, lastTag);
+                if (typeof showToast === 'function') {
+                    showToast('Stations Refreshed', 'refresh-cw');
+                }
+            }
+        });
+    });
+}
+
+
+
+// Drag Scroll for Horizontal Station Carousel
+function initHorizontalStationScrollDrag() {
+    const scrollContainer = document.querySelector('.stations-horizontal-scroll');
+    if (!scrollContainer) return;
+
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    scrollContainer.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, .fav-btn, .fav-heart-btn, .play-overlay-btn')) return;
+        isDown = true;
+        scrollContainer.classList.add('is-dragging');
+        startX = e.pageX - scrollContainer.offsetLeft;
+        scrollLeft = scrollContainer.scrollLeft;
+    });
+
+    scrollContainer.addEventListener('mouseleave', () => {
+        isDown = false;
+        scrollContainer.classList.remove('is-dragging');
+    });
+
+    scrollContainer.addEventListener('mouseup', () => {
+        isDown = false;
+        scrollContainer.classList.remove('is-dragging');
+    });
+
+    scrollContainer.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - scrollContainer.offsetLeft;
+        const walk = (x - startX) * 2;
+        scrollContainer.scrollLeft = scrollLeft - walk;
+    });
+}
+
+// Interactive Red FM Dial Needle Dragging (Ultra-Fast Instant Radio Playback)
+function initNeedleDrag() {
+    const needle = document.getElementById('dial-needle');
+    const dialTrack = document.getElementById('fm-dial-track');
+    if (!dialTrack) return;
+
+    let isNeedleDragging = false;
+    let lastTunedIndex = -1;
+    let dragTuneDebounce = null;
+
+    function getFreqFromMouseX(clientX) {
+        const rect = dialTrack.getBoundingClientRect();
+        if (rect.width === 0) return 88.0;
+        const relativeX = Math.max(0, Math.min(rect.width, clientX - rect.left));
+        const pct = relativeX / rect.width;
+        return 88.0 + (pct * 20.0);
+    }
+
+    function triggerFastStationPlay(targetIndex, freq) {
+        if (currentStations && currentStations[targetIndex]) {
+            const station = currentStations[targetIndex];
+            playStation(targetIndex, 'search');
+            const items = document.querySelectorAll('.stations-horizontal-scroll .station-item');
+            if (items[targetIndex]) {
+                items[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+            if (typeof showToast === 'function') {
+                showToast(`Tuned to ${freq.toFixed(1)} MHz • ${station.name.toUpperCase()}`, 'radio');
+            }
+        }
+    }
+
+    function updateNeedleFromX(clientX) {
+        const freq = getFreqFromMouseX(clientX);
+        updateFMDialAndNeedle(freq);
+
+        if (currentStations && currentStations.length > 0) {
+            const pct = Math.max(0, Math.min(1, (freq - 88.0) / 20.0));
+            const targetIndex = Math.min(
+                currentStations.length - 1,
+                Math.max(0, Math.round(pct * (currentStations.length - 1)))
+            );
+            if (targetIndex !== lastTunedIndex && currentStations[targetIndex]) {
+                lastTunedIndex = targetIndex;
+                const station = currentStations[targetIndex];
+                if (currentStationName) {
+                    currentStationName.textContent = `TUNING: ${freq.toFixed(1)} MHz • ${station.name.toUpperCase()}`;
+                }
+                
+                // Fast 150ms debounce while dragging to quickly play station if paused
+                clearTimeout(dragTuneDebounce);
+                dragTuneDebounce = setTimeout(() => {
+                    if (isNeedleDragging) {
+                        triggerFastStationPlay(targetIndex, freq);
+                    }
+                }, 150);
+            }
+        }
+    }
+
+    function startNeedleDrag(clientX, e) {
+        ensureAudioContextResumed();
+        isNeedleDragging = true;
+        dialTrack.classList.add('is-needle-dragging');
+        if (needle) needle.classList.add('is-dragging');
+        updateNeedleFromX(clientX);
+    }
+
+    function moveNeedleDrag(clientX) {
+        if (!isNeedleDragging) return;
+        updateNeedleFromX(clientX);
+    }
+
+    function endNeedleDrag() {
+        if (!isNeedleDragging) return;
+        isNeedleDragging = false;
+        dialTrack.classList.remove('is-needle-dragging');
+        if (needle) needle.classList.remove('is-dragging');
+        clearTimeout(dragTuneDebounce);
+
+        if (currentStations && currentStations.length > 0) {
+            const pct = Math.max(0, Math.min(1, (currentTunedFreq - 88.0) / 20.0));
+            const targetIndex = Math.min(
+                currentStations.length - 1,
+                Math.max(0, Math.round(pct * (currentStations.length - 1)))
+            );
+            triggerFastStationPlay(targetIndex, currentTunedFreq);
+        }
+    }
+
+    dialTrack.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startNeedleDrag(e.clientX, e);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isNeedleDragging) {
+            e.preventDefault();
+            moveNeedleDrag(e.clientX);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        endNeedleDrag();
+    });
+
+    dialTrack.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            e.stopPropagation();
+            startNeedleDrag(e.touches[0].clientX, e);
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isNeedleDragging && e.touches.length > 0) {
+            moveNeedleDrag(e.touches[0].clientX);
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+        endNeedleDrag();
+    });
 }
 
 // Start
